@@ -85,7 +85,7 @@ class Handler(SimpleHTTPRequestHandler):
     def send_json(self,status,obj):
         raw=json.dumps(obj,ensure_ascii=False).encode(); self.send_response(status); self.send_header("Content-Type","application/json; charset=utf-8"); self.send_header("Content-Length",str(len(raw))); self.end_headers(); self.wfile.write(raw)
     def do_GET(self):
-        if self.path=="/api/health": return self.send_json(200,{"ok":True,"mode":"airtable" if TOKEN and BASE_ID else "demo","baseConfigured":bool(BASE_ID)})
+        if self.path=="/api/health": return self.send_json(200,{"ok":True,"mode":"airtable" if TOKEN and BASE_ID else "local-empty","baseConfigured":bool(TOKEN and BASE_ID),"assistant":"qwen" if QWEN_KEY else "rules"})
         if self.path.startswith("/api/expenses"):
             try: return self.send_json(200,{"expenses":get_expenses()})
             except Exception as e: return self.send_json(502,{"error":"Airtable indisponible","detail":str(e)})
