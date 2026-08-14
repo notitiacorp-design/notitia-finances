@@ -3,448 +3,416 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Notitia · Finances</title>
+<title>Notitia · Le foyer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,620&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;650&family=Literata:opsz,wght@7..72,500;7..72,650&display=swap" rel="stylesheet">
 <style>
 :root{
-  --void:#110e0c; --ink:#f3ebe1; --muted:#b6a89a; --dim:#7d7166;
-  --ember:#e7a25c; --copper:#c4783a; --moss:#7ea47a; --rose:#d27a62;
-  --panel:#1b1714ee; --panel-solid:#1c1815; --line:#3a322bcc;
-  --glow:rgba(231,162,92,.18);
-  --radius:22px;
+  --paper:#efe6d6;
+  --page:#f6efe3;
+  --sheet:#fbf6ec;
+  --ink:#241c16;
+  --mute:#6a5d50;
+  --faint:#8a7c6d;
+  --rule:#d9cbb8;
+  --brick:#8f4030;
+  --moss:#3d5a43;
+  --pin:#b5834a;
 }
 *{box-sizing:border-box}
-html,body{height:100%}
+html,body{margin:0;min-height:100%;background:var(--paper);color:var(--ink)}
 body{
-  margin:0; color:var(--ink);
-  font:15.5px/1.5 Manrope,ui-sans-serif,system-ui,sans-serif;
-  background:
-    radial-gradient(900px 520px at 12% -10%, rgba(231,162,92,.16), transparent 55%),
-    radial-gradient(700px 480px at 110% 8%, rgba(126,164,122,.12), transparent 50%),
-    radial-gradient(800px 600px at 70% 120%, rgba(210,122,98,.08), transparent 45%),
-    var(--void);
-  min-height:100%;
+  font:16px/1.5 Figtree,ui-sans-serif,system-ui,sans-serif;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, #f7edd8, transparent 55%),
+    linear-gradient(180deg, #eadfcb 0, var(--paper) 180px);
 }
-body:before{
-  content:""; position:fixed; inset:0; pointer-events:none; opacity:.09; z-index:0;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.app{max-width:1180px;margin:0 auto;padding:28px 22px 72px}
+.mast{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:18px;
+  align-items:end;
+  padding-bottom:22px;
+  border-bottom:1px solid var(--ink);
 }
-.app{position:relative; z-index:1; max-width:1280px; margin:0 auto; padding:18px 18px 28px; min-height:100%}
-.top{
-  display:flex; justify-content:space-between; align-items:flex-end; gap:16px;
-  padding:8px 8px 22px;
+.kicker{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--brick);font-weight:650}
+.names{font:650 clamp(34px,6vw,56px)/.95 Literata,Georgia,serif;margin:6px 0 0;letter-spacing:-.03em}
+.month-nav{display:flex;align-items:center;gap:10px}
+.ghost{
+  min-width:40px;height:40px;border:1px solid var(--ink);background:transparent;
+  display:grid;place-items:center;
 }
-.mark{display:flex; align-items:center; gap:12px}
-.orb{
-  width:42px; height:42px; border-radius:50%;
-  background:
-    conic-gradient(from 210deg, var(--ember), #7ea47a 40%, #d27a62 72%, var(--ember));
-  mask:radial-gradient(circle 13px at 50% 50%, transparent 98%, #000 100%);
-  box-shadow:0 0 28px var(--glow);
+.month-label{font:650 18px Literata,Georgia,serif;min-width:10rem;text-align:center}
+.desk{display:grid;grid-template-columns:1.05fr .95fr;gap:28px;margin-top:28px}
+.sheet{
+  background:var(--sheet);
+  border:1px solid #e2d4bf;
+  box-shadow:0 1px 0 #fff8, 0 18px 40px #2a1c0c12;
+  padding:26px 26px 22px;
 }
-.eyebrow{letter-spacing:.22em; text-transform:uppercase; font-size:10px; color:var(--ember); font-weight:700}
-.brand{font:620 30px/1 Fraunces,Georgia,serif; margin:2px 0 0}
-.sub{color:var(--muted); max-width:34rem; margin:6px 0 0}
-.mode{
-  font-size:12px; color:#ead9c4; border:1px solid var(--line);
-  padding:8px 12px; border-radius:999px; background:#241f1bcc; white-space:nowrap;
+.sheet h2{font:650 15px Literata,Georgia,serif;margin:0 0 4px;letter-spacing:.02em}
+.quiet{color:var(--mute);margin:0 0 18px;font-size:14px}
+.sum{
+  font:650 clamp(40px,6vw,64px)/.9 Literata,Georgia,serif;
+  letter-spacing:-.04em;
 }
-.stage{display:grid; grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr); gap:16px}
-.halo{
-  position:relative; overflow:hidden;
-  background:linear-gradient(180deg,#221c18cc,#171310d9);
-  border:1px solid var(--line); border-radius:28px; padding:22px 22px 18px;
-  box-shadow:0 20px 60px #0006;
+.sum small{display:block;margin-top:8px;font:500 13px Figtree,sans-serif;color:var(--mute);letter-spacing:0}
+.beam{margin:22px 0 8px;position:relative;height:44px}
+.beam-line{position:absolute;left:0;right:0;top:21px;height:1px;background:var(--ink)}
+.beam-end{position:absolute;top:0;display:flex;flex-direction:column;gap:2px;font-size:12px}
+.beam-end b{font:650 15px Literata,Georgia,serif}
+.beam-end.q{left:0}
+.beam-end.j{right:0;text-align:right}
+.pin{
+  position:absolute;top:13px;width:17px;height:17px;border-radius:50%;
+  background:var(--pin);border:2px solid var(--ink);transform:translateX(-50%);
 }
-.halo h2,.panel h2,.panel h3{font:620 22px/1.15 Fraunces,Georgia,serif; margin:0}
-.halo p,.lede{color:var(--muted); margin:6px 0 0}
-.orbit-wrap{display:grid; grid-template-columns:180px 1fr; gap:22px; align-items:center; margin-top:18px}
-.orbit{position:relative; width:168px; height:168px; margin:auto}
-.orbit svg{width:100%; height:100%; transform:rotate(-90deg)}
-.orbit .center{
-  position:absolute; inset:0; display:grid; place-content:center; text-align:center;
+.note{
+  margin-top:14px;padding-top:12px;border-top:1px dashed var(--rule);
+  color:var(--mute);font-size:14px;
 }
-.orbit .center b{font:620 22px/1 Fraunces,Georgia,serif}
-.orbit .center span{display:block; color:var(--dim); font-size:11px; letter-spacing:.08em; text-transform:uppercase; margin-top:4px}
-.metrics{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-.metric{
-  padding:12px 14px; border-radius:16px;
-  background:#100d0bb0; border:1px solid #3a322b66;
+.env-head{display:flex;justify-content:space-between;align-items:baseline;margin:28px 0 10px}
+.env-head h2{margin:0}
+.env-grid{display:grid;gap:8px}
+.env{
+  display:grid;grid-template-columns:7.2rem 1fr auto;gap:10px;align-items:center;
+  padding:9px 0;border-bottom:1px solid var(--rule);
 }
-.metric b{display:block; font:620 22px/1 Fraunces,Georgia,serif}
-.metric span{color:var(--dim); font-size:12px}
-.metric.attn b{color:var(--ember)}
-.insight{
-  margin-top:16px; padding:14px 16px; border-radius:16px;
-  background:linear-gradient(90deg, rgba(231,162,92,.1), transparent 70%);
-  border:1px solid #e7a25c33;
+.env .cat{font-weight:650}
+.env .track{height:3px;background:#e7dcc9;position:relative}
+.env .fill{position:absolute;inset:0 auto 0 0;background:var(--ink)}
+.env .fill.over{background:var(--brick)}
+.env .fill.ok{background:var(--moss)}
+.env .meta{font-size:12px;color:var(--mute);text-align:right;min-width:7.5rem}
+.env input{
+  width:5.4rem;border:0;border-bottom:1px solid var(--ink);background:transparent;
+  text-align:right;padding:2px 0;font-weight:650;
 }
-.insight strong{display:block; font:600 14px Manrope,sans-serif; margin-bottom:3px}
-.insight p{margin:0; color:var(--muted); font-size:13.5px}
-.panel{
-  background:var(--panel); border:1px solid var(--line); border-radius:28px;
-  padding:18px; box-shadow:0 18px 50px #0005;
+.env input:focus{outline:none;border-bottom-width:2px}
+.ledger{margin-top:28px}
+.line{
+  display:grid;grid-template-columns:5.6rem 1fr auto;gap:12px;
+  padding:9px 0 9px 12px;border-bottom:1px solid var(--rule);
+  position:relative;
 }
-.chat-panel{display:flex; flex-direction:column; min-height:640px; padding:0; overflow:hidden}
-.chat-head{padding:18px 18px 10px; border-bottom:1px solid #3a322b55}
-.chat-head p{margin:6px 0 10px}
-.chips{display:flex; flex-wrap:wrap; gap:8px}
+.line:before{
+  content:"";position:absolute;left:0;top:6px;bottom:6px;width:2px;background:#c24a3a99;
+}
+.line .when{color:var(--faint);font-size:13px}
+.line .who{color:var(--mute);font-size:13px}
+.line .amt{font-weight:650;font-variant-numeric:tabular-nums}
+.empty{color:var(--faint);padding:16px 0;font-size:14px}
+.talk{
+  background:var(--page);
+  border:1px solid #d8c9b2;
+  min-height:720px;
+  display:flex;flex-direction:column;
+  box-shadow:8px 12px 0 #2a1c0c0a;
+}
+.talk-head{padding:22px 22px 0}
+.talk-head h2{font:650 28px/1 Literata,Georgia,serif;margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 0}
 .chip{
-  border:1px solid #4a403866; background:#2a231ecc; color:var(--ink);
-  border-radius:999px; padding:8px 12px; font:600 12.5px Manrope,sans-serif;
-  cursor:pointer; min-height:40px;
+  border:1px solid var(--ink);background:transparent;padding:7px 10px;font-size:13px;min-height:36px;
 }
-.chip:hover{border-color:var(--ember); color:#fff}
-.thread{
-  flex:1; overflow:auto; padding:16px 16px 8px;
-  display:flex; flex-direction:column; gap:12px;
-  background:
-    radial-gradient(420px 180px at 80% 0%, rgba(231,162,92,.06), transparent 60%);
+.chip:hover{background:var(--ink);color:var(--sheet)}
+.thread{flex:1;overflow:auto;padding:18px 22px;display:flex;flex-direction:column;gap:14px}
+.msg{max-width:92%}
+.msg.user{align-self:flex-end}
+.msg .paper{
+  background:#fffaf1;border:1px solid #e4d6c1;padding:11px 13px;white-space:pre-wrap;
 }
-.msg{max-width:86%; display:flex; flex-direction:column; gap:6px}
-.msg.user{align-self:flex-end; align-items:flex-end}
-.msg.bot{align-self:flex-start}
-.bubble{
-  padding:11px 13px; border-radius:18px; white-space:pre-wrap; font-size:14.5px;
+.msg.user .paper{background:#241c16;color:#f6efe3;border-color:#241c16}
+.msg img{display:block;max-width:200px;margin-bottom:6px;border:1px solid #e4d6c1}
+.card{
+  margin:0 22px 12px;padding:12px 14px;border:1px solid var(--ink);background:#fffaf1;
 }
-.msg.user .bubble{background:#e7a25c; color:#1a120c; border-bottom-right-radius:6px}
-.msg.bot .bubble{background:#2a241f; border:1px solid #4a403855; border-bottom-left-radius:6px}
-.thumb{max-width:210px; border-radius:14px; display:block; border:1px solid #4a403866}
-.suggest{
-  margin:0 16px 10px; padding:12px 14px; border-radius:16px;
-  background:#1f2a1dcc; border:1px solid #7ea47a55;
+.card p{margin:6px 0 10px}
+.do{
+  border:0;background:var(--ink);color:var(--sheet);padding:10px 12px;font-weight:650;
 }
-.suggest p{margin:6px 0 10px; color:#d7e4d4}
-.composer{
-  margin:0 12px 12px; padding:10px; border-radius:22px;
-  background:#100d0b; border:1px solid #4a403877;
-  box-shadow:0 0 0 1px #0004 inset;
+.composer{margin:0 14px 14px;border-top:1px solid var(--ink);padding-top:12px}
+.attach{display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:13px}
+.attach img{width:36px;height:36px;object-fit:cover;border:1px solid var(--rule)}
+.attach button{border:0;background:transparent;color:var(--mute)}
+.row{display:flex;align-items:flex-end;gap:8px}
+.icon,.send{
+  width:42px;height:42px;flex:none;border:1px solid var(--ink);background:var(--sheet);
+  display:grid;place-items:center;
 }
-.drop-hint{
-  display:none; text-align:center; color:var(--ember); font-size:13px; padding:8px 4px 2px;
-}
-.composer.drag .drop-hint{display:block}
-.attach-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px}
-.attach-chip{
-  display:flex; align-items:center; gap:8px; padding:6px 8px;
-  background:#2a231e; border:1px solid #4a403866; border-radius:12px;
-}
-.attach-chip img{width:42px; height:42px; object-fit:cover; border-radius:8px}
-.attach-chip button{border:0; background:transparent; color:var(--muted); cursor:pointer; font-size:16px}
-.compose-line{display:flex; align-items:flex-end; gap:8px}
-.icon-btn,.send{
-  width:44px; height:44px; flex:none; border:0; border-radius:14px; cursor:pointer;
-}
-.icon-btn{background:#2a231e; color:var(--ink); border:1px solid #4a403866}
-.send{background:var(--ember); color:#1a120c; font-weight:700}
-.send:disabled{opacity:.45; cursor:not-allowed}
+.send{background:var(--brick);border-color:var(--brick);color:#fffaf1}
 textarea{
-  flex:1; resize:none; min-height:44px; max-height:120px;
-  border:0; background:transparent; color:var(--ink); font:inherit; padding:11px 4px;
-  outline:none;
+  flex:1;border:0;background:transparent;resize:none;min-height:42px;max-height:120px;
+  padding:10px 4px;outline:none;
 }
-.hidden-file{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
-.ledger{display:flex; flex-direction:column; gap:16px}
-.section-head{display:flex; justify-content:space-between; align-items:end; gap:10px; margin-bottom:10px}
-.filters{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0}
-select, input[type=text], input[type=number], input[type=date], .field input, .field select{
-  border:1px solid #4a403866; background:#100d0b; color:var(--ink);
-  border-radius:12px; padding:10px 11px; font:inherit;
+.file{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.manual{margin-top:18px;padding-top:16px;border-top:1px solid var(--rule)}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.wide{grid-column:1/-1}
+label{display:block;font-size:12px;color:var(--mute);margin-bottom:4px}
+.form input,.form select{
+  width:100%;border:0;border-bottom:1px solid var(--ink);background:transparent;padding:8px 0;
 }
-.filters select,.filters input{min-width:0; flex:1}
-.row{
-  display:grid; grid-template-columns:1.3fr .7fr .6fr; gap:8px;
-  padding:11px 2px; border-bottom:1px solid #3a322b55; align-items:center;
-}
-.amount{text-align:right; font-weight:700}
-.pill{display:inline-block; border:1px solid #4a403866; border-radius:999px; padding:2px 8px; font-size:12px; color:var(--muted)}
-.empty{color:var(--dim); padding:16px 2px}
-.barline{display:flex; justify-content:space-between; margin:10px 0 4px; font-size:13px}
-.bar{height:6px; background:#2a231e; border-radius:99px}
-.bar i{display:block; height:100%; background:linear-gradient(90deg,var(--copper),var(--ember)); border-radius:99px}
-.form{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-.field.wide,.actions.wide,.error{grid-column:1/-1}
-.field label{display:block; font-size:12px; color:var(--dim); margin-bottom:5px}
-.button{
-  width:100%; border:0; border-radius:14px; padding:12px 14px; cursor:pointer;
-  background:var(--ink); color:#161310; font:700 14px Manrope,sans-serif;
-}
-.error{color:#f0b2a4; font-size:13px}
+.err{color:var(--brick);font-size:13px}
 .tabs{display:none}
-@media(max-width:920px){
-  .stage{grid-template-columns:1fr}
-  .orbit-wrap{grid-template-columns:1fr; justify-items:center; text-align:center}
-  .metrics{width:100%}
-  .chat-panel{min-height:72vh}
-  .tabs{display:flex; gap:8px; margin:0 0 12px}
-  .tabs button{flex:1; min-height:44px; border-radius:14px; border:1px solid #4a403866; background:#1c1815; color:var(--ink); font:600 13px Manrope,sans-serif}
-  .tabs button.on{background:var(--ember); color:#1a120c; border-color:transparent}
+@media(max-width:880px){
+  .desk{grid-template-columns:1fr}
+  .talk{min-height:68vh}
+  .tabs{display:flex;gap:8px;margin:18px 0 0}
+  .tabs button{flex:1;min-height:42px;border:1px solid var(--ink);background:transparent;font-weight:650}
+  .tabs button.on{background:var(--ink);color:var(--sheet)}
   .pane{display:none}
-  .pane.on{display:block}
-  .chat-pane.on{display:flex}
+  .pane.on{display:flex}
+  .books.on{display:block}
   .form{grid-template-columns:1fr}
-  .row{grid-template-columns:1fr auto}
-  .hide-mobile{display:none}
+  .mast{grid-template-columns:1fr}
 }
-@media(prefers-reduced-motion:reduce){
-  *{transition:none!important; animation:none!important}
-}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<div class="app">
-  <header class="top">
-    <div class="mark">
-      <div class="orb" aria-hidden="true"></div>
-      <div>
-        <div class="eyebrow">Notitia</div>
-        <div class="brand">Le foyer, en clair.</div>
-        <p class="sub">Parlez, envoyez un ticket, une capture ou une photo. Les comptes se mettent à jour ensemble.</p>
-      </div>
+<main class="app">
+  <header class="mast">
+    <div>
+      <div class="kicker">Notitia · foyer</div>
+      <h1 class="names">Quentin & Jessica</h1>
     </div>
-    <div id="mode" class="mode">Connexion…</div>
+    <div class="month-nav">
+      <button class="ghost" id="prevM" aria-label="Mois précédent">‹</button>
+      <div class="month-label" id="monthLabel">—</div>
+      <button class="ghost" id="nextM" aria-label="Mois suivant">›</button>
+    </div>
   </header>
 
   <nav class="tabs" aria-label="Navigation">
     <button type="button" data-tab="talk" class="on">Parler</button>
-    <button type="button" data-tab="books">Comptes</button>
-    <button type="button" data-tab="add">Ajouter</button>
+    <button type="button" data-tab="books">Le mois</button>
   </nav>
 
-  <section class="stage">
-    <section class="panel chat-panel pane chat-pane on" id="talk">
-      <div class="chat-head">
-        <h2>Conseiller</h2>
-        <p class="lede">Photo de ticket, e-ticket, capture d’écran ou une simple question. Il lit, propose, vous confirmez.</p>
+  <section class="desk">
+    <section class="sheet books pane" id="books">
+      <h2>Ce mois</h2>
+      <p class="quiet" id="period">Chargement…</p>
+      <div class="sum" id="total">0 €</div>
+      <div class="beam" aria-hidden="true">
+        <div class="beam-line"></div>
+        <div class="beam-end q"><b id="qtotal">0 €</b><span>Quentin</span></div>
+        <div class="beam-end j"><b id="jtotal">0 €</b><span>Jessica</span></div>
+        <div class="pin" id="pin"></div>
+      </div>
+      <p class="note" id="insight">Le foyer s’écrit au fil des tickets.</p>
+
+      <div class="env-head">
+        <h2>Enveloppes</h2>
+        <span class="quiet" id="budgetHint">Un montant, puis Entrée</span>
+      </div>
+      <div class="env-grid" id="envelopes"></div>
+
+      <div class="ledger">
+        <h2>Carnet</h2>
+        <div id="list"></div>
+      </div>
+
+      <details class="manual">
+        <summary>Écrire une ligne à la main</summary>
+        <form id="form" class="form" style="margin-top:14px">
+          <div class="wide"><label for="label">Dépense</label><input id="label" required></div>
+          <div><label for="amount">Montant</label><input id="amount" type="number" min="0" step="0.01" required></div>
+          <div><label for="date">Date</label><input id="date" type="date" required></div>
+          <div><label for="category">Catégorie</label>
+            <select id="category"><option>Courses</option><option>Logement</option><option>Transport</option><option>Sorties</option><option>Abonnements</option><option>Santé</option><option>Autres</option></select>
+          </div>
+          <div><label for="payer">Payé par</label><select id="payer"><option>Quentin</option><option>Jessica</option></select></div>
+          <div class="wide"><label for="note">Note</label><input id="note"></div>
+          <div class="wide"><button class="do" id="submit" type="submit">Ajouter</button></div>
+          <div id="error" class="err wide" hidden></div>
+        </form>
+      </details>
+    </section>
+
+    <section class="talk pane on" id="talk">
+      <div class="talk-head">
+        <h2>À table</h2>
+        <p class="quiet">Une question, un ticket, une capture. Rien n’est écrit sans vous.</p>
         <div class="chips">
-          <button class="chip" data-question="Fais-moi un résumé">Résumé</button>
-          <button class="chip" data-question="Qui doit équilibrer ?">Équilibre</button>
-          <button class="chip" data-question="Quelle catégorie coûte le plus ?">Où part l’argent</button>
-          <button class="chip" data-question="Lis ce ticket et prépare la dépense à confirmer.">Lire un ticket</button>
+          <button class="chip" data-q="Où en est le mois ?">Le mois</button>
+          <button class="chip" data-q="Qui doit équilibrer ?">Équilibre</button>
+          <button class="chip" data-q="Comment tiennent les enveloppes ?">Budgets</button>
+          <button class="chip" data-q="Propose un budget courses raisonnable pour ce mois.">Ajuster courses</button>
         </div>
       </div>
       <div class="thread" id="chat"></div>
-      <div id="suggestBox" class="suggest" hidden></div>
+      <div id="suggestBox" hidden></div>
       <form class="composer" id="composer">
-        <div class="drop-hint">Déposez le ticket ici</div>
-        <div class="attach-row" id="attachRow" hidden></div>
-        <div class="compose-line">
-          <button type="button" class="icon-btn" id="pickBtn" title="Joindre une image" aria-label="Joindre une image"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15V7a2 2 0 0 0-2-2H7"/><rect x="3" y="7" width="14" height="14" rx="2"/><circle cx="8.5" cy="12.5" r="1.3"/><path d="m17 21-4.2-5.2-3.3 3.2L7 16"/></svg></button>
-          <button type="button" class="icon-btn" id="camBtn" title="Prendre une photo" aria-label="Prendre une photo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8h3l1.5-2h7L17 8h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2z"/><circle cx="12" cy="14" r="3.2"/></svg></button>
-          <textarea id="question" rows="1" placeholder="Écrivez, collez une capture, ou joignez un ticket…"></textarea>
-          <button type="submit" class="send" id="askBtn" aria-label="Envoyer"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h12"/><path d="m12 6 6 6-6 6"/></svg></button>
+        <div class="attach" id="attachRow" hidden></div>
+        <div class="row">
+          <button type="button" class="icon" id="pickBtn" aria-label="Joindre une image">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="1"/><circle cx="8" cy="10" r="1.4"/><path d="m21 16-5-5-4 4-2-2-5 5"/></svg>
+          </button>
+          <button type="button" class="icon" id="camBtn" aria-label="Prendre une photo">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3"/></svg>
+          </button>
+          <textarea id="question" rows="1" placeholder="Écrire, coller une capture, ou joindre un ticket"></textarea>
+          <button class="send" id="askBtn" aria-label="Envoyer">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h12M13 6l6 6-6 6"/></svg>
+          </button>
         </div>
-        <input class="hidden-file" id="receipt" type="file" accept="image/*,.pdf" >
-        <input class="hidden-file" id="camera" type="file" accept="image/*" capture="environment">
+        <input class="file" id="receipt" type="file" accept="image/*">
+        <input class="file" id="camera" type="file" accept="image/*" capture="environment">
       </form>
     </section>
-
-    <aside class="ledger">
-      <section class="halo pane" id="books">
-        <div class="section-head">
-          <div>
-            <h2>Le foyer ce mois</h2>
-            <p class="lede" id="period">Chargement…</p>
-          </div>
-          <select id="month" aria-label="Période"><option value="all">Tout</option></select>
-        </div>
-        <div class="orbit-wrap">
-          <div class="orbit" aria-hidden="true">
-            <svg viewBox="0 0 120 120">
-              <circle cx="60" cy="60" r="46" fill="none" stroke="#2a231e" stroke-width="10"/>
-              <circle id="arcQ" cx="60" cy="60" r="46" fill="none" stroke="#e7a25c" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 289"/>
-              <circle id="arcP" cx="60" cy="60" r="46" fill="none" stroke="#7ea47a" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 289"/>
-            </svg>
-            <div class="center"><b id="total">0 €</b><span>commun</span></div>
-          </div>
-          <div class="metrics">
-            <div class="metric"><b id="qtotal">0 €</b><span>Quentin</span></div>
-            <div class="metric"><b id="ptotal">0 €</b><span>Partenaire</span></div>
-            <div class="metric attn"><b id="balance">0 €</b><span>À lisser</span></div>
-            <div class="metric"><b id="count">0</b><span>Lignes</span></div>
-          </div>
-        </div>
-        <div class="insight"><strong id="insightTitle">Lecture en cours</strong><p id="insightText">Le foyer s’éclaire dès qu’une dépense arrive.</p></div>
-        <div class="filters">
-          <input id="search" type="text" placeholder="Rechercher…" aria-label="Rechercher">
-          <select id="catFilter" aria-label="Catégorie"><option value="all">Catégories</option></select>
-          <select id="payerFilter" aria-label="Payeur"><option value="all">Qui a payé</option><option>Quentin</option><option>Partenaire</option></select>
-        </div>
-        <div id="list"></div>
-        <h3 style="margin:18px 0 4px">Où part l’argent</h3>
-        <div id="categories"></div>
-      </section>
-
-      <section class="panel pane" id="add">
-        <h2>Saisie manuelle</h2>
-        <p class="lede">Si vous préférez écrire la ligne vous-même.</p>
-        <form id="form" class="form" style="margin-top:14px">
-          <div class="field wide"><label for="label">Dépense</label><input id="label" required placeholder="Courses, loyer, train…"></div>
-          <div class="field"><label for="amount">Montant</label><input id="amount" type="number" min="0" step="0.01" required placeholder="0,00"></div>
-          <div class="field"><label for="date">Date</label><input id="date" type="date" required></div>
-          <div class="field"><label for="category">Catégorie</label>
-            <select id="category"><option>Courses</option><option>Logement</option><option>Transport</option><option>Sorties</option><option>Abonnements</option><option>Santé</option><option>Autres</option></select>
-          </div>
-          <div class="field"><label for="payer">Payé par</label><select id="payer"><option>Quentin</option><option>Partenaire</option></select></div>
-          <div class="field wide"><label for="note">Note</label><input id="note" placeholder="Facultatif"></div>
-          <div class="actions wide"><button class="button" id="submit">Ajouter</button></div>
-          <div id="error" class="error" hidden></div>
-        </form>
-      </section>
-    </aside>
   </section>
-</div>
+</main>
 <script>
 const API_BASE = window.NOTITIA_API || '';
 const $ = id => document.getElementById(id);
-let expenses = [];
-let pendingImage = null;
-const eur = n => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(n);
+const CATS = ['Courses','Logement','Transport','Sorties','Abonnements','Santé','Autres'];
+let expenses = [], envelopes = [], month = new Date().toISOString().slice(0,7), pendingImage = null;
+const eur = n => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(n||0);
 const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const monthName = m => new Date(m+'-01T00:00:00').toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+function shiftMonth(delta){
+  const [y,mo]=month.split('-').map(Number);
+  const d=new Date(y, mo-1+delta, 1);
+  month=d.toISOString().slice(0,7);
+}
 
-function visible(){
-  const m=$('month').value, term=$('search').value.trim().toLowerCase(), cat=$('catFilter').value, pay=$('payerFilter').value;
-  return expenses.filter(x => (m==='all'||String(x.date).startsWith(m)) && (!term||String(x.label).toLowerCase().includes(term)||String(x.category).toLowerCase().includes(term)) && (cat==='all'||x.category===cat) && (pay==='all'||x.payer===pay));
-}
-function setArc(el, start, frac){
-  const c=289, len=Math.max(0,Math.min(1,frac))*c;
-  el.setAttribute('stroke-dasharray', `${len} ${c}`);
-  el.setAttribute('stroke-dashoffset', String(-start*c));
-}
-function fillMonths(){
-  const sel=$('month'), cur=sel.value;
-  const months=[...new Set(expenses.map(x=>String(x.date||'').slice(0,7)).filter(Boolean))].sort().reverse();
-  sel.innerHTML='<option value="all">Tout</option>'+months.map(m=>{
-    const [y,mo]=m.split('-'); const label=new Date(`${m}-01T00:00:00`).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
-    return `<option value="${esc(m)}">${esc(label)}</option>`;
-  }).join('');
-  if([...sel.options].some(o=>o.value===cur)) sel.value=cur;
-}
 function render(){
-  const rows=visible(), total=rows.filter(x=>x.shared).reduce((a,x)=>a+Number(x.amount||0),0);
-  const q=rows.filter(x=>x.shared&&x.payer==='Quentin').reduce((a,x)=>a+Number(x.amount||0),0);
-  const p=rows.filter(x=>x.shared&&x.payer==='Partenaire').reduce((a,x)=>a+Number(x.amount||0),0);
-  const due=Math.abs(q-p)/2;
-  $('total').textContent=eur(total); $('qtotal').textContent=eur(q); $('ptotal').textContent=eur(p); $('balance').textContent=eur(due);
-  $('period').textContent=(rows.length+' dépense'+(rows.length>1?'s':'')+' · parts égales');
-  $('count').textContent=String(rows.length);
-  const qf=total?q/total:0, pf=total?p/total:0;
-  setArc($('arcQ'), 0, qf); setArc($('arcP'), qf, pf);
-  $('list').innerHTML=rows.length?rows.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(x=>`<div class="row"><div><b>${esc(x.label)}</b><br><small class="pill">${esc(x.date)} · ${esc(x.category)}</small></div><div class="hide-mobile"><span class="pill">${esc(x.payer)}</span></div><div class="amount">${eur(x.amount)}</div></div>`).join(''):'<div class="empty">Aucune dépense sur cette vue.</div>';
-  const cats={}; rows.forEach(x=>{if(x.shared)cats[x.category]=(cats[x.category]||0)+Number(x.amount||0)});
-  const max=Math.max(1,...Object.values(cats));
-  $('categories').innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="barline"><span>${esc(k)}</span><b>${eur(v)}</b></div><div class="bar"><i style="width:${v/max*100}%"></i></div>`).join('')||'<div class="empty">Pas encore de catégorie.</div>';
-  if(!rows.length){$('insightTitle').textContent='Le foyer est encore silencieux';$('insightText').textContent='Envoyez un ticket, une capture, ou ajoutez une première ligne.'}
-  else if(due<.01){$('insightTitle').textContent='Équilibre';$('insightText').textContent='Les contributions sont alignées sur cette sélection.'}
-  else{$('insightTitle').textContent='À lisser';$('insightText').textContent=`${q>p?'Partenaire':'Quentin'} peut prendre ${eur(due)} sur les prochaines dépenses communes.`}
+  $('monthLabel').textContent=monthName(month);
+  const rows=expenses.filter(x=>String(x.date||'').startsWith(month) && x.shared!==false);
+  const total=rows.reduce((a,x)=>a+Number(x.amount||0),0);
+  const q=rows.filter(x=>x.payer==='Quentin').reduce((a,x)=>a+Number(x.amount||0),0);
+  const j=rows.filter(x=>x.payer==='Jessica').reduce((a,x)=>a+Number(x.amount||0),0);
+  $('total').innerHTML=eur(total)+'<small>'+rows.length+' dépense'+(rows.length>1?'s':'')+' commune'+(rows.length>1?'s':'')+'</small>';
+  $('qtotal').textContent=eur(q); $('jtotal').textContent=eur(j);
+  const pin=total? (q/total)*100 : 50;
+  $('pin').style.left=Math.max(8,Math.min(92,pin))+'%';
+  const due=Math.abs(q-j)/2;
+  if(!rows.length) $('insight').textContent='Rien n’est encore posé sur ce mois.';
+  else if(due<0.01) $('insight').textContent='Quentin et Jessica sont à l’équilibre.';
+  else $('insight').textContent=(q>j?'Jessica':'Quentin')+' peut prendre '+eur(due)+' pour lisser.';
+  $('period').textContent='Parts égales · '+monthName(month);
+  $('envelopes').innerHTML=envelopes.map(e=>{
+    const ratio=e.budget>0?Math.min(e.spent/e.budget,1):0;
+    const cls=e.status==='over'?'over':(e.status==='ok'?'ok':'');
+    const meta=e.budget>0?(eur(e.spent)+' / '+eur(e.budget)):(eur(e.spent)+' · libre');
+    return `<div class="env"><div class="cat">${esc(e.category)}</div><div class="track"><i class="fill ${cls}" style="width:${ratio*100}%"></i></div><div class="meta"><input data-cat="${esc(e.category)}" type="number" min="0" step="1" value="${e.budget||''}" placeholder="—"><div>${esc(meta)}</div></div></div>`;
+  }).join('');
+  document.querySelectorAll('#envelopes input').forEach(inp=>{
+    inp.addEventListener('change',()=>saveBudget(inp.dataset.cat, inp.value));
+    inp.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();inp.blur()}});
+  });
+  $('list').innerHTML=rows.length?rows.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(x=>`<div class="line"><div class="when">${esc(String(x.date).slice(8,10)+'/'+String(x.date).slice(5,7))}</div><div><b>${esc(x.label)}</b><div class="who">${esc(x.payer)} · ${esc(x.category)}</div></div><div class="amt">${eur(x.amount)}</div></div>`).join(''):'<div class="empty">Le carnet est encore blanc.</div>';
 }
-function addMsg(role, text, img){
-  const wrap=document.createElement('div');
-  wrap.className='msg '+role;
-  if(img){const im=document.createElement('img'); im.className='thumb'; im.alt='Pièce jointe'; im.src=img; wrap.appendChild(im)}
-  const b=document.createElement('div'); b.className='bubble'; b.textContent=text; wrap.appendChild(b);
-  $('chat').appendChild(wrap); $('chat').scrollTop=$('chat').scrollHeight;
-  return b;
+
+async function saveBudget(category, amount){
+  if(amount===''||amount==null) return;
+  const r=await fetch(API_BASE+'/api/budgets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({category,amount,month})});
+  const j=await r.json();
+  if(!r.ok){ addMsg('bot','Budget non enregistré.'); return }
+  envelopes=j.envelopes||envelopes; render();
 }
-function showSuggestion(s){
-  if(!s){$('suggestBox').hidden=true;return}
-  $('suggestBox').hidden=false;
-  $('suggestBox').innerHTML=`<strong>Lu, à confirmer</strong><p>${esc(s.label)} · ${eur(s.amount)} · ${esc(s.category)} · ${esc(s.date||'date à préciser')} · ${esc(s.payer)}</p><button type="button" class="button" id="confirmSug">Enregistrer cette dépense</button>`;
-  $('confirmSug').onclick=async()=>{
+
+function addMsg(role,text,img){
+  const wrap=document.createElement('div'); wrap.className='msg '+role;
+  if(img){const im=document.createElement('img'); im.alt='Justificatif'; im.src=img; wrap.appendChild(im)}
+  const p=document.createElement('div'); p.className='paper'; p.textContent=text; wrap.appendChild(p);
+  $('chat').appendChild(wrap); $('chat').scrollTop=$('chat').scrollHeight; return p;
+}
+function card(html){
+  $('suggestBox').hidden=false; $('suggestBox').innerHTML=html; $('suggestBox').className='card';
+}
+function hideCards(){ $('suggestBox').hidden=true; $('suggestBox').innerHTML='' }
+function showSuggestion(s,b){
+  if(!s && !b){ hideCards(); return }
+  let html='';
+  if(s) html+=`<strong>Ticket lu</strong><p>${esc(s.label)} · ${eur(s.amount)} · ${esc(s.category)} · ${esc(s.date||'date à préciser')} · ${esc(s.payer)}</p><button type="button" class="do" id="confirmSug">Poser dans le carnet</button>`;
+  if(b) html+=`<strong style="display:block;margin-top:${s?'14px':'0'}">Enveloppe proposée</strong><p>${esc(b.category)} · ${eur(b.amount)} · ${esc(b.month)}${b.reason?' · '+esc(b.reason):''}</p><button type="button" class="do" id="confirmBud">Tenir ce budget</button>`;
+  card(html);
+  const cs=$('confirmSug'); if(cs) cs.onclick=async()=>{
     if(!s.date) s.date=new Date().toISOString().slice(0,10);
     try{
       const r=await fetch(API_BASE+'/api/expenses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(s)});
       const j=await r.json(); if(!r.ok) throw Error(j.detail||j.error||'Erreur');
-      expenses.unshift(j.expense); fillMonths(); render(); $('suggestBox').hidden=true;
-      addMsg('bot','C’est noté. Cette dépense entre dans le foyer.');
-    }catch(e){addMsg('bot','Je n’ai pas pu l’enregistrer : '+e.message)}
+      expenses.unshift(j.expense); hideCards(); await reload(false); addMsg('bot','C’est dans le carnet.');
+    }catch(e){addMsg('bot','Pas pu l’écrire : '+e.message)}
+  };
+  const cb=$('confirmBud'); if(cb) cb.onclick=async()=>{
+    try{ await saveBudget(b.category,b.amount); hideCards(); addMsg('bot','L’enveloppe '+b.category+' est posée à '+eur(b.amount)+'.') }
+    catch(e){ addMsg('bot','Budget non posé.') }
   };
 }
-function showAttach(dataUrl, name){
-  pendingImage=dataUrl;
-  $('attachRow').hidden=false;
-  $('attachRow').innerHTML=`<div class="attach-chip"><img src="${dataUrl}" alt=""><span>${esc(name||'Pièce jointe')}</span><button type="button" id="clearAtt" aria-label="Retirer">✕</button></div>`;
+function clearAttach(){ pendingImage=null; $('attachRow').hidden=true; $('attachRow').innerHTML=''; $('receipt').value=''; $('camera').value='' }
+function showAttach(url,name){
+  pendingImage=url; $('attachRow').hidden=false;
+  $('attachRow').innerHTML=`<img src="${url}" alt=""><span>${esc(name||'Justificatif')}</span><button type="button" id="clearAtt" aria-label="Retirer">✕</button>`;
   $('clearAtt').onclick=clearAttach;
 }
-function clearAttach(){
-  pendingImage=null; $('attachRow').hidden=true; $('attachRow').innerHTML='';
-  $('receipt').value=''; $('camera').value='';
-}
-function compressImage(file){
+function compress(file){
   return new Promise((resolve,reject)=>{
-    if(file.type==='application/pdf'){
-      reject(new Error('Envoyez plutôt une capture ou une photo du e-ticket.')); return;
-    }
-    const img=new Image(); const url=URL.createObjectURL(file);
+    const img=new Image(), u=URL.createObjectURL(file);
     img.onload=()=>{
       const max=1400; let w=img.width,h=img.height;
       if(w>max||h>max){const s=Math.min(max/w,max/h); w=Math.round(w*s); h=Math.round(h*s)}
       const c=document.createElement('canvas'); c.width=w; c.height=h;
-      c.getContext('2d').drawImage(img,0,0,w,h);
-      URL.revokeObjectURL(url);
+      c.getContext('2d').drawImage(img,0,0,w,h); URL.revokeObjectURL(u);
       resolve(c.toDataURL('image/jpeg',0.82));
     };
-    img.onerror=()=>{URL.revokeObjectURL(url); reject(new Error('Image illisible'))};
-    img.src=url;
+    img.onerror=()=>{URL.revokeObjectURL(u); reject(new Error('Image illisible'))};
+    img.src=u;
   });
 }
-async function attachFile(file){
-  if(!file) return;
-  try{ showAttach(await compressImage(file), file.name) }
-  catch(e){ addMsg('bot', e.message) }
-}
+async function attach(file){ if(!file) return; try{ showAttach(await compress(file), file.name) }catch(e){ addMsg('bot', e.message) } }
 async function ask(question){
   const q=(question||$('question').value||'').trim();
   if(!q && !pendingImage) return;
   const img=pendingImage;
   addMsg('user', q||'Voici le justificatif.', img);
-  const pending=addMsg('bot','Je lis…');
+  const pending=addMsg('bot','Je regarde…');
   $('question').value=''; clearAttach();
   try{
-    const r=await fetch(API_BASE+'/api/assistant',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,image:img})});
-    const j=await r.json(); if(!r.ok) throw Error(j.detail||j.error||'Assistant indisponible');
-    pending.textContent=j.answer; showSuggestion(j.suggestion);
-  }catch(e){pending.textContent='Je n’ai pas pu répondre. '+e.message}
+    const r=await fetch(API_BASE+'/api/assistant',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,image:img,month})});
+    const j=await r.json(); if(!r.ok) throw Error(j.detail||j.error||'Indisponible');
+    pending.textContent=j.answer; showSuggestion(j.suggestion,j.budget);
+  }catch(e){ pending.textContent='Je n’ai pas pu répondre. '+e.message }
 }
-async function load(){
+async function reload(greet){
   try{
-    const r=await fetch(API_BASE+'/api/health'); const h=await r.json();
-    $('mode').textContent=h.mode==='airtable'?'Foyer relié':'Hors-ligne';
-    const d=await fetch(API_BASE+'/api/expenses'); const j=await d.json();
-    if(!d.ok) throw Error(j.detail||j.error||'Lecture impossible');
-    expenses=j.expenses||[];
-  }catch(e){$('mode').textContent='Connexion coupée'; expenses=[]; addMsg('bot','Je n’arrive pas à lire les dépenses pour l’instant.')}
-  const cats=[...new Set(expenses.map(x=>x.category))].sort();
-  cats.forEach(c=>{const o=document.createElement('option'); o.value=c; o.textContent=c; $('catFilter').appendChild(o)});
-  fillMonths(); render();
-  if(!$('chat').children.length) addMsg('bot','Déposez un ticket, collez une capture, ou posez une question. Je ne crée rien sans votre feu vert.');
+    const r=await fetch(API_BASE+'/api/state?month='+encodeURIComponent(month));
+    const j=await r.json(); if(!r.ok) throw Error(j.detail||j.error||'Lecture impossible');
+    expenses=j.expenses||[]; envelopes=j.envelopes||[];
+  }catch(e){ expenses=[]; envelopes=CATS.map(c=>({category:c,budget:0,spent:0,status:'unset'})); if(greet) addMsg('bot','Je n’arrive pas à ouvrir le carnet pour l’instant.') }
+  render();
+  if(greet && !$('chat').children.length) addMsg('bot','Posez un ticket sur la table, ou une enveloppe. Je ne touche à rien sans votre accord.');
 }
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('on',x===b));
-  ['talk','books','add'].forEach(id=>$(id).classList.toggle('on', id===b.dataset.tab));
+  $('talk').classList.toggle('on', b.dataset.tab==='talk');
+  $('books').classList.toggle('on', b.dataset.tab==='books');
 });
-['month','search','catFilter','payerFilter'].forEach(id=>$(id).addEventListener('input',render));
-document.querySelectorAll('[data-question]').forEach(b=>b.onclick=()=>ask(b.dataset.question));
+$('prevM').onclick=async()=>{shiftMonth(-1); await reload(false)};
+$('nextM').onclick=async()=>{shiftMonth(1); await reload(false)};
+document.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>ask(b.dataset.q));
 $('composer').addEventListener('submit',e=>{e.preventDefault(); ask()});
 $('question').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault(); ask()}});
-$('question').addEventListener('input',()=>{this.style&&($('question').style.height='auto'); $('question').style.height=Math.min($('question').scrollHeight,120)+'px'});
 $('pickBtn').onclick=()=>$('receipt').click();
 $('camBtn').onclick=()=>$('camera').click();
-$('receipt').addEventListener('change',e=>attachFile(e.target.files[0]));
-$('camera').addEventListener('change',e=>attachFile(e.target.files[0]));
-['dragenter','dragover'].forEach(ev=>$('composer').addEventListener(ev,e=>{e.preventDefault(); $('composer').classList.add('drag')}));
-['dragleave','drop'].forEach(ev=>$('composer').addEventListener(ev,e=>{e.preventDefault(); if(ev==='drop'){;} $('composer').classList.remove('drag')}));
+$('receipt').onchange=e=>attach(e.target.files[0]);
+$('camera').onchange=e=>attach(e.target.files[0]);
+$('composer').addEventListener('dragover',e=>e.preventDefault());
 $('composer').addEventListener('drop',e=>{
-  e.preventDefault(); $('composer').classList.remove('drag');
+  e.preventDefault();
   const f=[...e.dataTransfer.files].find(x=>x.type.startsWith('image/'));
-  if(f) attachFile(f);
+  if(f) attach(f);
 });
 document.addEventListener('paste',e=>{
   const item=[...e.clipboardData.items].find(x=>x.type.startsWith('image/'));
   if(!item) return;
-  const f=item.getAsFile(); if(f){ e.preventDefault(); attachFile(f) }
+  const f=item.getAsFile(); if(f){ e.preventDefault(); attach(f) }
 });
 $('date').value=new Date().toISOString().slice(0,10);
 $('form').addEventListener('submit',async e=>{
@@ -453,11 +421,11 @@ $('form').addEventListener('submit',async e=>{
   try{
     const r=await fetch(API_BASE+'/api/expenses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(item)});
     const j=await r.json(); if(!r.ok) throw Error(j.detail||j.error||'Erreur');
-    expenses.unshift(j.expense); fillMonths(); $('form').reset(); $('date').value=new Date().toISOString().slice(0,10); render();
+    expenses.unshift(j.expense); $('form').reset(); $('date').value=new Date().toISOString().slice(0,10); render();
   }catch(err){$('error').textContent=err.message;$('error').hidden=false}
   finally{$('submit').disabled=false}
 });
-load();
+reload(true);
 </script>
 </body>
 </html>
