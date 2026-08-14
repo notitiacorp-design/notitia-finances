@@ -217,39 +217,42 @@ def analyze_shopping_with_ai(items_list, month_str=None, history_expenses=None):
     month_str = month_str or current_month()
     history_expenses = history_expenses or []
     
-    # Analyze recurrent staples from past expenses/items
     recent_labels = [e.get("label", "") for e in history_expenses[-30:] if e.get("category") == "Courses"]
     
     prompt = (
-        f"Nous sommes au mois de {month_str} (France métropolitaine). "
-        f"Voici la liste des courses/achats du foyer Quentin & Jessica :\n"
-        f"{json.dumps(items_list, ensure_ascii=False)}\n\n"
-        f"Historique récent de leurs achats en courses : {json.dumps(recent_labels[:15], ensure_ascii=False)}\n\n"
-        f"RÈGLES NUTRITIONNELLES & PHILOSOPHIE DU FOYER :\n"
-        f"- Régime **Primal / Animal-Based** strict et sain (viandes de qualité, abats/foie, poissons sauvages, œufs plein air, beurre cru/clarifié/ghee, moelle, produits laitiers fermentés/fromages au lait cru, miel brut, fruits de saison bien mûrs). Très peu de légumes (légumes feuilles ou racines doux occasionnels, pas de forcing végétal, pas de graines/soja/huiles industrielles de graines).\n\n"
-        f"Génère une analyse structurée, percutante et chaleureuse en 4 sections claires avec émojis :\n\n"
-        f"1. 🥩 **Menu Hebdo Primal / Animal-Based (2 pers.)** : 3 à 4 idées de repas denses, savoureux et rapides basés sur des sources animales de qualité et fruits/miel de saison.\n"
-        f"2. 💶 **Estimation du Panier** : Fourchette de prix réaliste estimée pour cette liste (ex: 45 € – 55 €) avec astuce pour optimiser le ratio coût/densité nutritionnelle (ex: morceaux à mijoter, œufs par 30, caissettes boucher).\n"
-        f"3. 🏷️ **Optimisation Anti-Inflation & Alternatives Animales** : Morceaux économiques ultra-nutritifs (foie de bœuf, paleron, sardines fraîches, beurre de baratte AOP) et fruits de pleine saison moins chers ce mois-ci.\n"
-        f"4. 🥫 **Pense-Bête Placard & Récurrences** : 2 ou 3 basiques primaux essentiels à vérifier s'ils ne sont pas déjà dans la liste (ex: sel de Guérande, beurre/ghee, œufs de ferme, suif/graisse de canard, miel brut).\n\n"
-        f"Ton complice, concis, expert et motivant."
+        f"Mois : {month_str} (France).\n"
+        f"Articles listés par Quentin & Jessica : {json.dumps(items_list, ensure_ascii=False) if items_list else '[]'}\n"
+        f"Derniers achats : {json.dumps(recent_labels[:10], ensure_ascii=False)}\n\n"
+        f"Profil nutritionnel : STRICTEMENT PRIMAL / ANIMAL-BASED (viandes grasses, abats/foie, poissons sauvages, œufs plein air, beurre cru/ghee, moelle, fromages lait cru, miel brut, fruits de saison bien mûrs. Pas de légumes sauf rares accompagnements, pas de graines/soja/huiles végétales).\n\n"
+        f"Rédige ta réponse en respectant OBLIGATOIREMENT ces 4 sections avec leurs titres :\n\n"
+        f"🥩 **1. Idées Menu Primal & Animal-Based (2 pers.)**\n"
+        f"(2 à 3 propositions de repas denses, savoureux et rapides)\n\n"
+        f"💶 **2. Estimation du Panier**\n"
+        f"(Fourchette de prix estimée en € + conseil d'achat en volume/boucherie)\n\n"
+        f"🏷️ **3. Optimisation Anti-Inflation & Bons Morceaux**\n"
+        f"(Morceaux animaux ultra-nutritifs économiques et fruits de saison du mois)\n\n"
+        f"🥫 **4. Pense-Bête Placard & Récurrences**\n"
+        f"(2-3 indispensables primaux à vérifier)\n\n"
+        f"Sois percutant, concis et motivant."
     )
     if QWEN_KEY:
         try:
             answer = qwen_chat(
                 [
-                    {"role": "system", "content": "Tu es le copilote nutritionnel Primal Animal-Based et budget du foyer Quentin & Jessica."},
+                    {"role": "system", "content": "Tu es le copilote nutritionnel Primal Animal-Based du foyer Quentin & Jessica. Réponds toujours en français structuré avec les 4 rubriques demandées."},
                     {"role": "user", "content": prompt}
                 ],
                 QWEN_MODEL
             )
-            return extract_french(answer) or answer
+            if answer and len(answer.strip()) > 30:
+                return answer.strip()
         except Exception:
             pass
     return (
-        f"🥩 **Menu Primal ({month_str})** : Steaks hachés 15% aux œufs au plat au beurre cru, Foie de veau saisi & pêches rôties au miel brut, Pavé de saumon sauvage ou sardines.\n"
-        f"💶 **Estimation** : ~45 € – 60 € selon la boucherie.\n"
-        f"🥫 **Basiques à vérifier** : Beurre cru, œufs bio/fermiers, sel minéral de mer, miel de cru."
+        f"🥩 **1. Menu Primal Hebdo** : Steaks hachés 15% & œufs au plat au beurre cru, Foie de veau saisi & tranches de pêches rôties au miel brut, Pavé de saumon ou sardines grillées.\n\n"
+        f"💶 **2. Estimation du Panier** : ~45 € à 65 € selon le boucher/marché (pensez aux caissettes ou colis de viande pour réduire le prix au kilo).\n\n"
+        f"🏷️ **3. Optimisation Anti-Inflation** : Foie de bœuf/veau (le super-aliment le moins cher du rayon), paleron/plat de côtes mijoté à la moelle, beurre de baratte au lait cru en motte.\n\n"
+        f"🥫 **4. Pense-Bête Placard** : Sel de Guérande non raffiné, Beurre cru / Ghee, Œufs plein air (par 30), Miel brut non chauffé."
     )
 
 
