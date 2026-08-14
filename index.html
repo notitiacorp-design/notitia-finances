@@ -367,8 +367,16 @@ button{cursor:pointer;border:none;background:none}
 }
 .envelopes-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
   gap:16px;
+}
+.envelope-icon{
+  width:32px;
+  height:32px;
+  border-radius:10px;
+  display:grid;
+  place-items:center;
+  flex-shrink:0;
 }
 .envelope-box{
   background:var(--surface-card);
@@ -390,21 +398,20 @@ button{cursor:pointer;border:none;background:none}
   display:flex;
   justify-content:space-between;
   align-items:center;
+  gap:8px;
 }
 .envelope-cat{
   display:flex;
   align-items:center;
-  gap:10px;
+  gap:8px;
   font-weight:700;
-  font-size:15px;
+  font-size:14.5px;
+  min-width:0;
 }
-.envelope-icon{
-  width:32px;
-  height:32px;
-  border-radius:10px;
-  display:grid;
-  place-items:center;
-  font-size:16px;
+.envelope-cat span{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
 .envelope-budget-input-wrap{
@@ -414,6 +421,7 @@ button{cursor:pointer;border:none;background:none}
   font-size:12px;
   color:var(--text-muted);
   font-weight:600;
+  flex-shrink:0;
 }
 .envelope-input{
   width:68px;
@@ -475,6 +483,7 @@ button{cursor:pointer;border:none;background:none}
   color:var(--primary);
   font-size:10px;
   flex-shrink:0;
+  display:inline-block;
 }
 
 /* History Ledger */
