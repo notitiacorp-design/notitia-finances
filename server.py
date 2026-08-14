@@ -213,23 +213,32 @@ def delete_shopping_item(item_id):
     return True
 
 
-def analyze_shopping_with_ai(items_list, month_str=None):
+def analyze_shopping_with_ai(items_list, month_str=None, history_expenses=None):
     month_str = month_str or current_month()
+    history_expenses = history_expenses or []
+    
+    # Analyze recurrent staples from past expenses/items
+    recent_labels = [e.get("label", "") for e in history_expenses[-30:] if e.get("category") == "Courses"]
+    
     prompt = (
         f"Nous sommes au mois de {month_str} (France métropolitaine). "
-        f"Voici la liste des courses/achats prévue par le couple Quentin & Jessica :\n"
+        f"Voici la liste des courses/achats du foyer Quentin & Jessica :\n"
         f"{json.dumps(items_list, ensure_ascii=False)}\n\n"
-        f"Fais une analyse intelligente et bienveillante de cette liste en 3 points concis et percutants :\n"
-        f"1. 🍓 **Produits de saison & fraîcheur** : Quels fruits, légumes ou produits locaux privilégier ce mois-ci par rapport à la liste ou à ajouter (meilleur goût et prix bas).\n"
-        f"2. 💡 **Astuces budget & promotions de période** : Bons réflexes de saison (ex. vrac, arrivages, anti-gaspillage, rentrée ou été selon la période).\n"
-        f"3. ✨ **Suggestions d'idées repas/compléments malins** : 2 suggestions de repas simples et gourmands avec ces ingrédients.\n"
-        f"Reste très pratique, chaleureux et direct."
+        f"Historique récent de leurs achats en courses : {json.dumps(recent_labels[:15], ensure_ascii=False)}\n\n"
+        f"RÈGLES NUTRITIONNELLES & PHILOSOPHIE DU FOYER :\n"
+        f"- Régime **Primal / Animal-Based** strict et sain (viandes de qualité, abats/foie, poissons sauvages, œufs plein air, beurre cru/clarifié/ghee, moelle, produits laitiers fermentés/fromages au lait cru, miel brut, fruits de saison bien mûrs). Très peu de légumes (légumes feuilles ou racines doux occasionnels, pas de forcing végétal, pas de graines/soja/huiles industrielles de graines).\n\n"
+        f"Génère une analyse structurée, percutante et chaleureuse en 4 sections claires avec émojis :\n\n"
+        f"1. 🥩 **Menu Hebdo Primal / Animal-Based (2 pers.)** : 3 à 4 idées de repas denses, savoureux et rapides basés sur des sources animales de qualité et fruits/miel de saison.\n"
+        f"2. 💶 **Estimation du Panier** : Fourchette de prix réaliste estimée pour cette liste (ex: 45 € – 55 €) avec astuce pour optimiser le ratio coût/densité nutritionnelle (ex: morceaux à mijoter, œufs par 30, caissettes boucher).\n"
+        f"3. 🏷️ **Optimisation Anti-Inflation & Alternatives Animales** : Morceaux économiques ultra-nutritifs (foie de bœuf, paleron, sardines fraîches, beurre de baratte AOP) et fruits de pleine saison moins chers ce mois-ci.\n"
+        f"4. 🥫 **Pense-Bête Placard & Récurrences** : 2 ou 3 basiques primaux essentiels à vérifier s'ils ne sont pas déjà dans la liste (ex: sel de Guérande, beurre/ghee, œufs de ferme, suif/graisse de canard, miel brut).\n\n"
+        f"Ton complice, concis, expert et motivant."
     )
     if QWEN_KEY:
         try:
             answer = qwen_chat(
                 [
-                    {"role": "system", "content": "Tu es l'assistant de courses et de budget malin du foyer Quentin & Jessica."},
+                    {"role": "system", "content": "Tu es le copilote nutritionnel Primal Animal-Based et budget du foyer Quentin & Jessica."},
                     {"role": "user", "content": prompt}
                 ],
                 QWEN_MODEL
@@ -238,8 +247,9 @@ def analyze_shopping_with_ai(items_list, month_str=None):
         except Exception:
             pass
     return (
-        f"🌾 **Saison ({month_str})** : Privilégiez les fruits et légumes locaux de saison pour de meilleurs prix et saveurs. "
-        f"Achetez les basiques en formats familiaux ou vrac pour alléger le ticket final !"
+        f"🥩 **Menu Primal ({month_str})** : Steaks hachés 15% aux œufs au plat au beurre cru, Foie de veau saisi & pêches rôties au miel brut, Pavé de saumon sauvage ou sardines.\n"
+        f"💶 **Estimation** : ~45 € – 60 € selon la boucherie.\n"
+        f"🥫 **Basiques à vérifier** : Beurre cru, œufs bio/fermiers, sel minéral de mer, miel de cru."
     )
 
 
@@ -795,7 +805,7 @@ class Handler(SimpleHTTPRequestHandler):
                 body = self.read_json()
                 items = body.get("items") or [x.get("item") for x in get_shopping()]
                 month = str(body.get("month") or current_month())[:7]
-                analysis = analyze_shopping_with_ai(items, month)
+                analysis = analyze_shopping_with_ai(items, month, get_expenses())
                 return self.send_json(200, {"analysis": analysis, "month": month})
             except Exception as e:
                 return self.send_json(400, {"error": "Analyse impossible", "detail": str(e)})

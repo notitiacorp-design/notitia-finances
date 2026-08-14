@@ -658,6 +658,69 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
 }
 .btn-del-shop:hover{color:var(--coral)}
 
+/* Convert Shopping to Expense Gateway Bar */
+.finish-shopping-bar{
+  background:var(--primary-light);
+  border:1.5px solid var(--primary);
+  border-radius:var(--radius-lg);
+  padding:14px 16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+  box-shadow:0 4px 14px rgba(45,106,79,0.12);
+}
+.finish-shop-info{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.finish-shop-info strong{
+  font-size:14px;
+  color:var(--primary);
+}
+.finish-shop-info span{
+  font-size:12px;
+  color:var(--text-muted);
+}
+.finish-shop-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.finish-input{
+  width:130px;
+  padding:8px 10px;
+  border-radius:var(--radius-md);
+  border:1px solid var(--border);
+  background:white;
+  font-weight:700;
+  font-size:13.5px;
+}
+.finish-select{
+  padding:8px 10px;
+  border-radius:var(--radius-md);
+  border:1px solid var(--border);
+  background:white;
+  font-weight:700;
+  font-size:13px;
+}
+.btn-finish-record{
+  background:var(--primary);
+  color:white;
+  font-weight:700;
+  font-size:13px;
+  padding:8px 14px;
+  border-radius:var(--radius-md);
+  box-shadow:0 2px 6px rgba(45,106,79,0.25);
+  transition:background 0.2s;
+}
+.btn-finish-record:hover{
+  background:#23533e;
+}
+
 .ai-season-box{
   background:linear-gradient(135deg, #fbfcf9, #f4f8f4);
   border:1.5px dashed var(--primary);
@@ -1149,8 +1212,8 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
     <div class="card shopping-card" style="margin-bottom:20px;">
       <div class="card-header">
         <div>
-          <h2 class="card-title">Liste d'achats & Idées de saison</h2>
-          <p class="card-subtitle">Planifiez à deux et laissez l'IA vous souffler les bons plans du mois</p>
+          <h2 class="card-title">Liste d'achats & Copilote Primal</h2>
+          <p class="card-subtitle">Planifiez vos courses, menus animal-based denses et bons plans anti-inflation</p>
         </div>
       </div>
 
@@ -1168,7 +1231,21 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
         <!-- Injected via JS -->
       </div>
 
-      <!-- Seasonal & Promotions AI Insights Box -->
+      <!-- Convert To Expense Modal / Bar -->
+      <div class="finish-shopping-bar" id="finishShopBar" style="display:none;">
+        <div class="finish-shop-info">
+          <strong>🛍️ Courses terminées ?</strong>
+          <span id="finishShopCount">0 article coché</span>
+        </div>
+        <div class="finish-shop-actions">
+          <input type="number" id="finishShopAmount" step="0.01" min="0" placeholder="Montant payé (€)" class="finish-input">
+          <select id="finishShopPayer" class="finish-select">
+            <option value="Quentin">Quentin</option>
+            <option value="Jessica">Jessica</option>
+          </select>
+          <button type="button" class="btn-finish-record" id="btnFinishRecord">Enregistrer & Nettoyer</button>
+        </div>
+      </div>
       <div class="ai-season-box">
         <div class="ai-season-head">
           <div class="ai-season-title">
@@ -1181,7 +1258,7 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
           </button>
         </div>
         <div class="ai-season-content" id="shoppingAIContent">
-          Ajoutez vos articles ou cliquez sur <em>Actualiser l'analyse</em> pour obtenir les recommandations de saison, promotions et idées repas adaptées à ce mois !
+          Ajoutez vos articles ou cliquez sur <em>Actualiser l'analyse</em> pour générer votre menu de la semaine animal-based, l'estimation du panier, les morceaux anti-inflation et le pense-bête de placard !
         </div>
       </div>
     </div>
@@ -1514,6 +1591,18 @@ function renderUI(){
 
 function renderShoppingUI(){
   const grid = $('shoppingGrid');
+  const checkedItems = shopping.filter(x => x.checked);
+  const finishBar = $('finishShopBar');
+  
+  if(finishBar){
+    if(checkedItems.length > 0){
+      finishBar.style.display = 'flex';
+      $('finishShopCount').textContent = `${checkedItems.length} article${checkedItems.length>1?'s':''} coché${checkedItems.length>1?'s':''}`;
+    } else {
+      finishBar.style.display = 'none';
+    }
+  }
+
   if(!shopping.length){
     grid.innerHTML = '<div style="color:var(--text-dim);font-size:13.5px;padding:12px 0;grid-column:1/-1;">Aucun article dans la liste. Ajoutez vos envies de courses ci-dessus !</div>';
     return;
@@ -1828,6 +1917,53 @@ $('shoppingForm').onsubmit = e => {
   addShopItem($('shopInput').value.trim());
 };
 $('btnRefreshShopAI').onclick = fetchSeasonalAnalysis;
+
+// Convert finished shopping list to Expense
+if($('btnFinishRecord')){
+  $('btnFinishRecord').onclick = async () => {
+    const amountVal = parseFloat($('finishShopAmount').value || '0');
+    if(!amountVal || amountVal <= 0){
+      alert('Veuillez renseigner le montant total payé en caisse (€).');
+      return;
+    }
+    const payer = $('finishShopPayer').value || 'Quentin';
+    const checkedItems = shopping.filter(x => x.checked);
+    const summaryLabels = checkedItems.map(x => x.item).join(', ');
+
+    const newExp = {
+      label: 'Courses ' + (summaryLabels.length > 40 ? summaryLabels.slice(0,37) + '…' : summaryLabels),
+      amount: amountVal,
+      date: new Date().toISOString().slice(0,10),
+      category: 'Courses',
+      payer: payer,
+      shared: true,
+      note: 'Acheté: ' + summaryLabels
+    };
+
+    try{
+      const r = await fetch(API_BASE + '/api/expenses', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(newExp)
+      });
+      const j = await r.json();
+      if(!r.ok) throw Error(j.detail || j.error || 'Erreur');
+      
+      // Delete checked items from shopping list
+      for(const item of checkedItems){
+        await deleteShopItem(item.id);
+      }
+      $('finishShopAmount').value = '';
+      await loadState();
+      
+      // Notify & Switch to overview
+      document.querySelector('[data-tab="tab-overview"]').click();
+      addChatMessage('bot', `Dépense Courses de ${eur(amountVal)} enregistrée pour ${payer} et articles cochés archivés !`);
+    }catch(err){
+      alert('Erreur: ' + err.message);
+    }
+  };
+}
 
 // Tab switcher
 document.querySelectorAll('.tab-btn').forEach(btn => {
