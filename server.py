@@ -8,11 +8,11 @@ TABLE = os.getenv("AIRTABLE_TABLE", "Dépenses")
 TOKEN = os.getenv("AIRTABLE_API_KEY", "")
 # API key is intentionally read only from the process environment, never shipped to the client.
 
-DEMO = [
- {"id":"demo-1","date":"2026-08-14","label":"Courses semaine","category":"Courses","amount":86.40,"payer":"Quentin","shared":True,"status":"À équilibrer","note":""},
- {"id":"demo-2","date":"2026-08-12","label":"Internet","category":"Abonnements","amount":29.99,"payer":"Partenaire","shared":True,"status":"À équilibrer","note":""},
- {"id":"demo-3","date":"2026-08-08","label":"Restaurant","category":"Sorties","amount":54.00,"payer":"Quentin","shared":True,"status":"Réglé","note":""},
-]
+# No fictitious finance records are shipped. The app starts empty until Airtable is connected or a real expense is entered.
+LOCAL_EXPENSES = []
+QWEN_KEY = os.getenv("QWEN_API_KEY") or os.getenv("OPENROUTER_API_KEY", "")
+QWEN_MODEL = os.getenv("QWEN_MODEL", "qwen/qwen3.7-flash")
+QWEN_BASE = os.getenv("QWEN_BASE_URL", "https://openrouter.ai/api/v1")
 
 def airtable_request(method="GET", path="", payload=None):
     if not TOKEN or not BASE_ID: return None
@@ -28,14 +28,14 @@ def get_expenses():
     if TOKEN and BASE_ID:
         data=airtable_request("GET", f"{BASE_ID}/{urllib.parse.quote(TABLE)}?pageSize=100") or {}
         return [normalize(r.get("fields",{}),r.get("id")) for r in data.get("records",[])]
-    return DEMO
+    return LOCAL_EXPENSES
 
 def create_expense(item):
     if TOKEN and BASE_ID:
         fields={"Dépense":item["label"],"Date":item["date"],"Catégorie":item["category"],"Montant (€)":item["amount"],"Payé par":item["payer"],"Dépense commune":item["shared"],"Remboursement":item["status"],"Note":item.get("note","")}
         data=airtable_request("POST", f"{BASE_ID}/{urllib.parse.quote(TABLE)}", {"fields":fields})
         return normalize(data.get("fields",fields),data.get("id",""))
-    item["id"]="local-"+str(len(DEMO)+1); DEMO.insert(0,item); return item
+    item["id"]="local-"+str(len(LOCAL_EXPENSES)+1); LOCAL_EXPENSES.insert(0,item); return item
 
 def finance_context(expenses):
     shared=[x for x in expenses if x.get("shared",True)]
@@ -47,7 +47,26 @@ def finance_context(expenses):
     return {"count":len(shared),"total":round(total,2),"by_payer":{k:round(v,2) for k,v in by_payer.items()},"by_category":{k:round(v,2) for k,v in by_cat.items()},"balance_to_adjust":round(due,2)}
 
 def assistant_answer(question, expenses):
+    if QWEN_KEY:
+        try:
+            context=json.dumps(finance_context(expenses),ensure_ascii=False)
+            prompt=("Tu es l'assistant financier de Notitia. Réponds en français, de façon concise et factuelle. "
+                    "Utilise uniquement le contexte JSON fourni. Ne fabrique aucun chiffre. "
+                    "Ne donne pas de conseil d'investissement, de crédit ou d'action bancaire. "
+                    "Si les données sont insuffisantes, dis-le. Contexte: "+context+" Question: "+question)
+            payload={"model":QWEN_MODEL,"messages":[{"role":"user","content":prompt}],"temperature":0.1,"max_tokens":300}
+            req=urllib.request.Request(QWEN_BASE.rstrip("/")+"/chat/completions",data=json.dumps(payload).encode(),method="POST",headers={"Authorization":"Bearer "+QWEN_KEY,"Content-Type":"application/json","HTTP-Referer":"https://notitiacorp-design.github.io/notitia-finances/","X-Title":"Notitia Finance"})
+            with urllib.request.urlopen(req,timeout=20) as r:
+                data=json.loads(r.read()); answer=data["choices"][0]["message"]["content"].strip()
+                return answer, "qwen"
+        except Exception:
+            pass
     ctx=finance_context(expenses); q=question.lower(); total=ctx["total"]; cats=ctx["by_category"]; pay=ctx["by_payer"]
+    return deterministic_answer(q,ctx), "rules"
+
+def deterministic_answer(q,ctx):
+    total=ctx["total"]; cats=ctx["by_category"]; pay=ctx["by_payer"]
+    if not total: return "Aucune dépense réelle n'est encore enregistrée. Ajoutez vos premiers chiffres pour que je puisse analyser la situation."
     if any(w in q for w in ("combien", "total", "dépensé", "depense")) and any(w in q for w in ("course", "sortie", "logement", "transport", "abonnement", "santé")):
         found=next((v for k,v in cats.items() if k.lower() in q),None)
         if found is not None: return f"La catégorie demandée représente {found:.2f} €. Sur les données disponibles, le total commun est de {total:.2f} €."
@@ -76,7 +95,8 @@ class Handler(SimpleHTTPRequestHandler):
             try:
                 n=int(self.headers.get("Content-Length",0)); body=json.loads(self.rfile.read(n)); question=str(body.get("question","")).strip()
                 if not question: return self.send_json(400,{"error":"Question vide"})
-                return self.send_json(200,{"answer":assistant_answer(question,get_expenses()),"engine":"finance-rules-v1"})
+                answer, engine = assistant_answer(question,get_expenses())
+                return self.send_json(200,{"answer":answer,"engine":engine})
             except Exception as e: return self.send_json(400,{"error":"Question invalide","detail":str(e)})
         if self.path!="/api/expenses": return self.send_json(404,{"error":"Not found"})
         try:
