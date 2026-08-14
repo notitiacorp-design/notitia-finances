@@ -3,9 +3,10 @@ from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 
 ROOT = Path(__file__).parent
-BASE_ID = os.getenv("AIRTABLE_BASE_ID", "")
-TABLE = os.getenv("AIRTABLE_TABLE", "Dépenses Couple")
+BASE_ID = os.getenv("AIRTABLE_BASE_ID", "appEGVy9MVBGYmPQT")
+TABLE = os.getenv("AIRTABLE_TABLE", "Dépenses")
 TOKEN = os.getenv("AIRTABLE_API_KEY", "")
+# API key is intentionally read only from the process environment, never shipped to the client.
 
 DEMO = [
  {"id":"demo-1","date":"2026-08-14","label":"Courses semaine","category":"Courses","amount":86.40,"payer":"Quentin","shared":True,"status":"À équilibrer","note":""},
