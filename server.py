@@ -37,6 +37,30 @@ def create_expense(item):
         return normalize(data.get("fields",fields),data.get("id",""))
     item["id"]="local-"+str(len(DEMO)+1); DEMO.insert(0,item); return item
 
+def finance_context(expenses):
+    shared=[x for x in expenses if x.get("shared",True)]
+    total=sum(float(x.get("amount",0) or 0) for x in shared)
+    by_payer={p:sum(float(x.get("amount",0) or 0) for x in shared if x.get("payer")==p) for p in ("Quentin","Partenaire")}
+    by_cat={}
+    for x in shared: by_cat[x.get("category","Autres")]=by_cat.get(x.get("category","Autres"),0)+float(x.get("amount",0) or 0)
+    due=abs(by_payer["Quentin"]-by_payer["Partenaire"])/2
+    return {"count":len(shared),"total":round(total,2),"by_payer":{k:round(v,2) for k,v in by_payer.items()},"by_category":{k:round(v,2) for k,v in by_cat.items()},"balance_to_adjust":round(due,2)}
+
+def assistant_answer(question, expenses):
+    ctx=finance_context(expenses); q=question.lower(); total=ctx["total"]; cats=ctx["by_category"]; pay=ctx["by_payer"]
+    if any(w in q for w in ("combien", "total", "dépensé", "depense")) and any(w in q for w in ("course", "sortie", "logement", "transport", "abonnement", "santé")):
+        found=next((v for k,v in cats.items() if k.lower() in q),None)
+        if found is not None: return f"La catégorie demandée représente {found:.2f} €. Sur les données disponibles, le total commun est de {total:.2f} €."
+    if any(w in q for w in ("équilibr", "rembour", "doit", "doivent")):
+        if ctx["balance_to_adjust"]<0.01: return "Les contributions sont actuellement équilibrées sur les dépenses communes disponibles."
+        who="Partenaire" if pay["Quentin"]>pay["Partenaire"] else "Quentin"
+        return f"Pour une répartition à parts égales, {who} devrait prendre en charge environ {ctx['balance_to_adjust']:.2f} € sur les prochaines dépenses communes."
+    if any(w in q for w in ("catégorie", "categorie", "poste", "où", "ou")) and cats:
+        k,v=max(cats.items(),key=lambda item:item[1]); return f"Le poste le plus élevé est {k}, avec {v:.2f} €, soit {round(v/total*100) if total else 0} % du total commun."
+    if any(w in q for w in ("résumé", "resume", "situation", "état", "etat")):
+        return f"Résumé : {ctx['count']} dépenses communes, {total:.2f} € au total. Quentin a payé {pay['Quentin']:.2f} € et Partenaire {pay['Partenaire']:.2f} €. Écart à lisser : {ctx['balance_to_adjust']:.2f} €."
+    return "Je peux analyser les dépenses disponibles. Essayez : « Quel est le total ? », « Qui doit équilibrer ? », « Quelle catégorie coûte le plus ? » ou « Fais-moi un résumé »."
+
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self,*args,**kwargs): super().__init__(*args,directory=str(ROOT),**kwargs)
     def send_json(self,status,obj):
@@ -48,6 +72,12 @@ class Handler(SimpleHTTPRequestHandler):
             except Exception as e: return self.send_json(502,{"error":"Airtable indisponible","detail":str(e)})
         return super().do_GET()
     def do_POST(self):
+        if self.path=="/api/assistant":
+            try:
+                n=int(self.headers.get("Content-Length",0)); body=json.loads(self.rfile.read(n)); question=str(body.get("question","")).strip()
+                if not question: return self.send_json(400,{"error":"Question vide"})
+                return self.send_json(200,{"answer":assistant_answer(question,get_expenses()),"engine":"finance-rules-v1"})
+            except Exception as e: return self.send_json(400,{"error":"Question invalide","detail":str(e)})
         if self.path!="/api/expenses": return self.send_json(404,{"error":"Not found"})
         try:
             n=int(self.headers.get("Content-Length",0)); item=json.loads(self.rfile.read(n));
