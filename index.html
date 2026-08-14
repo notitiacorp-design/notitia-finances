@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Notitia · Budget Foyer</title>
+<title>DuoSpend · Finances & Sérénité à deux</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cabinet+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#fbf9f4;
+  --bg:#fbf8f3;
   --surface:#ffffff;
-  --surface-subtle:#f4f0e6;
-  --surface-card:#fdfcf9;
+  --surface-subtle:#f4efe6;
+  --surface-card:#fdfbf8;
   --text-main:#1c1917;
   --text-muted:#78716c;
   --text-dim:#a8a29e;
@@ -28,8 +28,8 @@
   --blue:#2563eb;
   --blue-light:#dbeafe;
   
-  --border:#e5e0d3;
-  --border-subtle:#eee9de;
+  --border:#e6dfd1;
+  --border-subtle:#eee8dc;
   --shadow-sm:0 2px 8px rgba(28,25,23,0.03);
   --shadow-md:0 12px 32px rgba(28,25,23,0.05);
   --shadow-lg:0 20px 48px rgba(28,25,23,0.08);
@@ -71,40 +71,47 @@ button{cursor:pointer;border:none;background:none}
 .brand-wrap{
   display:flex;
   align-items:center;
-  gap:14px;
+  gap:16px;
 }
 
-.avatar-pair{
-  display:flex;
-  position:relative;
-}
-.avatar{
-  width:44px;
-  height:44px;
-  border-radius:50%;
+.app-logo{
+  width:48px;
+  height:48px;
+  border-radius:16px;
+  background:linear-gradient(135deg, #2d6a4f, #d97706);
   display:grid;
   place-items:center;
-  font-weight:800;
-  font-size:15px;
   color:white;
-  box-shadow:0 4px 12px rgba(0,0,0,0.1);
-  border:3px solid var(--surface);
+  box-shadow:0 6px 18px rgba(45,106,79,0.25);
 }
-.avatar.q{background:linear-gradient(135deg, #2d6a4f, #52b788)}
-.avatar.j{background:linear-gradient(135deg, #d97706, #f59e0b);margin-left:-12px}
 
 .brand-titles h1{
   font-family:'Cabinet Grotesk',sans-serif;
   font-weight:900;
-  font-size:28px;
+  font-size:26px;
   letter-spacing:-0.03em;
   color:var(--text-main);
   line-height:1.1;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.badge-tag{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:11px;
+  font-weight:800;
+  background:var(--primary-light);
+  color:var(--primary);
+  padding:3px 8px;
+  border-radius:20px;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
 }
 .brand-titles p{
-  font-size:13px;
+  font-size:13.5px;
   color:var(--text-muted);
   font-weight:600;
+  margin-top:2px;
 }
 
 .month-picker{
@@ -293,7 +300,6 @@ button{cursor:pointer;border:none;background:none}
   line-height:1.4;
   font-weight:500;
 }
-.balance-status-tag.jessica-due{border-left-color:var(--amber)}
 
 /* Donut Chart Visuals */
 .donut-section{
@@ -805,13 +811,12 @@ button{cursor:pointer;border:none;background:none}
   <!-- Header -->
   <header class="header">
     <div class="brand-wrap">
-      <div class="avatar-pair">
-        <div class="avatar q">Q</div>
-        <div class="avatar j">J</div>
+      <div class="app-logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"/><path d="M16 10a4 4 0 0 0-8 0v4a4 4 0 0 0 8 0"/></svg>
       </div>
       <div class="brand-titles">
-        <h1>Quentin & Jessica</h1>
-        <p>Budget & Équilibre du foyer</p>
+        <h1>DuoSpend <span class="badge-tag">IA & Foyer</span></h1>
+        <p>Quentin & Jessica · Vision partagée & Sérénité financière</p>
       </div>
     </div>
 
@@ -843,8 +848,8 @@ button{cursor:pointer;border:none;background:none}
     <div class="card">
       <div class="card-header">
         <div>
-          <h2 class="card-title">Équilibre des comptes</h2>
-          <p class="card-subtitle">Répartition 50/50 des dépenses communes</p>
+          <h2 class="card-title">Avances du couple</h2>
+          <p class="card-subtitle">Répartition indicative des paiements communs</p>
         </div>
       </div>
 
@@ -854,7 +859,7 @@ button{cursor:pointer;border:none;background:none}
           <span class="person-amount" id="qtotal">0 €</span>
         </div>
         <div class="balance-vs">
-          <span class="vs-pill">50 / 50</span>
+          <span class="vs-pill">Partage</span>
         </div>
         <div class="person-col j right">
           <span class="person-name">Jessica</span>
@@ -877,7 +882,7 @@ button{cursor:pointer;border:none;background:none}
       <div class="card-header">
         <div>
           <h2 class="card-title">Répartition par poste</h2>
-          <p class="card-subtitle">Dépenses réelles observées</p>
+          <p class="card-subtitle">Où va l'argent ce mois-ci</p>
         </div>
       </div>
 
@@ -903,7 +908,7 @@ button{cursor:pointer;border:none;background:none}
     <div class="card-header">
       <div>
         <h2 class="card-title">Enveloppes Budgétaires du Mois</h2>
-        <p class="card-subtitle">Ajustez vos plafonds, les commentaires d'analyse s'adaptent automatiquement</p>
+        <p class="card-subtitle">Fixez ou ajustez vos repères par poste de vie</p>
       </div>
     </div>
 
@@ -932,8 +937,8 @@ button{cursor:pointer;border:none;background:none}
     <div class="card chat-drawer">
       <div class="card-header">
         <div>
-          <h2 class="card-title">Conseiller Notitia</h2>
-          <p class="card-subtitle">Déposez un e-ticket, une capture ou posez une question</p>
+          <h2 class="card-title">Assistant DuoSpend</h2>
+          <p class="card-subtitle">Déposez un e-ticket, une capture bancaire ou posez une question</p>
         </div>
       </div>
 
@@ -944,9 +949,9 @@ button{cursor:pointer;border:none;background:none}
       <div id="suggestionBox" hidden></div>
 
       <div class="quick-prompts">
-        <button class="quick-btn" data-q="Fais-moi un bilan complet de notre budget ce mois-ci.">Bilan général</button>
-        <button class="quick-btn" data-q="Qui doit rembourser qui et combien ?">Équilibre 50/50</button>
-        <button class="quick-btn" data-q="Quelles enveloppes risquent de déborder ?">Alertes budget</button>
+        <button class="quick-btn" data-q="Fais-moi un point global sur notre rythme de dépenses ce mois-ci.">Faire le point</button>
+        <button class="quick-btn" data-q="Comment se répartissent les paiements entre Quentin et Jessica ?">Répartition</button>
+        <button class="quick-btn" data-q="Quelles enveloppes méritent notre attention ?">Point enveloppes</button>
         <button class="quick-btn" data-q="Suggère un ajustement de budget pour le mois en cours.">Ajuster budgets</button>
       </div>
 
@@ -1125,17 +1130,13 @@ function renderUI(){
   const due = Math.abs(q - j) / 2;
   const tag = $('balanceText');
   if(!monthRows.length){
-    tag.textContent = "Aucune dépense commune enregistrée ce mois-ci.";
-    tag.className = "balance-status-tag";
+    tag.textContent = "Aucune dépense enregistrée ce mois-ci.";
   } else if(due < 0.05){
-    tag.textContent = "Les contributions de Quentin et Jessica sont parfaitement équilibrées.";
-    tag.className = "balance-status-tag";
+    tag.textContent = "Paiements équitablement partagés ce mois-ci.";
   } else if(q > j){
-    tag.innerHTML = `<strong>Équilibre 50/50 :</strong> Jessica doit compenser de <strong>${eur(due)}</strong> sur les prochains paiements communs.`;
-    tag.className = "balance-status-tag jessica-due";
+    tag.innerHTML = `Quentin a avancé <strong>${eur(q)}</strong> et Jessica <strong>${eur(j)}</strong> (écart indicatif de ${eur(due)}).`;
   } else {
-    tag.innerHTML = `<strong>Équilibre 50/50 :</strong> Quentin doit compenser de <strong>${eur(due)}</strong> sur les prochains paiements communs.`;
-    tag.className = "balance-status-tag";
+    tag.innerHTML = `Jessica a avancé <strong>${eur(j)}</strong> et Quentin <strong>${eur(q)}</strong> (écart indicatif de ${eur(due)}).`;
   }
 
   // Category map for donut
@@ -1160,14 +1161,14 @@ function renderUI(){
       aiNote = "Pas de plafond défini pour ce mois.";
     } else if(spent > cap){
       statusCls = 'over';
-      aiNote = `Dépassement de ${eur(spent - cap)} sur le plafond fixé.`;
+      aiNote = `Dépassement de ${eur(spent - cap)} sur le repère fixé.`;
     } else if(ratio > 0.85){
       statusCls = 'warning';
-      aiNote = `Attention : ${Math.round(ratio*100)}% consommé, reste ${eur(cap - spent)}.`;
+      aiNote = `Repère presque atteint : reste ${eur(cap - spent)}.`;
     } else if(spent > 0){
-      aiNote = `Sous contrôle : reste ${eur(cap - spent)} disponible.`;
+      aiNote = `Rythme maîtrisé : reste ${eur(cap - spent)} sur ce poste.`;
     } else {
-      aiNote = `Enveloppe intacte (${eur(cap)} disponible).`;
+      aiNote = `Enveloppe disponible (${eur(cap)}).`;
     }
 
     return `
@@ -1178,7 +1179,7 @@ function renderUI(){
             <span>${esc(e.category)}</span>
           </div>
           <div class="envelope-budget-input-wrap">
-            <span>Budget:</span>
+            <span>Repère:</span>
             <input class="envelope-input" data-cat="${esc(e.category)}" type="number" min="0" step="10" value="${cap || ''}" placeholder="—">
             <span>€</span>
           </div>
@@ -1187,7 +1188,7 @@ function renderUI(){
         <div class="envelope-inputs">
           <div class="envelope-spent" style="color:${statusCls==='over'?'var(--coral)':'var(--text-main)'}">${eur(spent)}</div>
           <div style="font-size:12px;font-weight:700;color:${statusCls==='over'?'var(--coral)':(statusCls==='warning'?'var(--amber)':'var(--text-muted)')}">
-            ${cap > 0 ? `${pct}% utilisé` : 'Illimité'}
+            ${cap > 0 ? `${pct}% engagé` : 'Suivi libre'}
           </div>
         </div>
 
@@ -1242,14 +1243,14 @@ function renderUI(){
   const overEnvelopes = envelopes.filter(e => e.budget > 0 && e.spent > e.budget);
   if(!monthRows.length){
     aiTitle.textContent = "Foyer prêt pour " + monthName(currentMonth);
-    aiText.textContent = "Aucune dépense n'est encore saisie. Déposez vos premiers tickets ou screenshots pour lancer le suivi.";
+    aiText.textContent = "Aucune dépense n'est encore saisie. Déposez vos tickets ou captures pour faire le point.";
   } else if(overEnvelopes.length > 0){
     const cats = overEnvelopes.map(e => e.category).join(', ');
-    aiTitle.textContent = `Alerte Budget sur ${cats}`;
-    aiText.textContent = `Les dépenses en ${cats} dépassent l'enveloppe allouée. ${due > 0.1 ? `Par ailleurs, ${q > j ? 'Jessica' : 'Quentin'} a ${eur(due)} à compenser pour équilibrer.` : 'Les comptes restent équilibrés.'}`;
+    aiTitle.textContent = `Point d'attention sur ${cats}`;
+    aiText.textContent = `Les dépenses en ${cats} dépassent le repère fixé pour ce mois. Au total, ${eur(total)} a été avancé par le foyer.`;
   } else {
-    aiTitle.textContent = "Budget sous contrôle";
-    aiText.textContent = `Total de ${eur(total)} engagé sur le mois. ${due > 0.1 ? `Pour équilibrer à 50/50, ${q > j ? 'Jessica' : 'Quentin'} doit couvrir les prochains ${eur(due)}.` : 'Quentin et Jessica sont à l\'équilibre parfait.'}`;
+    aiTitle.textContent = "Vue d'ensemble du mois";
+    aiText.textContent = `Total de ${eur(total)} engagé sur le mois. Quentin a avancé ${eur(q)} et Jessica ${eur(j)}.`;
   }
 }
 
@@ -1265,7 +1266,7 @@ async function updateBudget(category, amount){
     if(r.ok){
       envelopes = j.envelopes || envelopes;
       renderUI();
-      addChatMessage('bot', `Budget pour ${category} ajusté à ${eur(amount)}.`);
+      addChatMessage('bot', `Repère budgétaire pour ${category} mis à jour à ${eur(amount)}.`);
     }
   }catch(e){
     console.error(e);
@@ -1311,9 +1312,9 @@ function showAISuggestions(sug, bud){
   }
   if(bud){
     html += `
-      <h5 style="margin-top:${sug?'14px':'0'}">💡 Suggestion d'ajustement Budget</h5>
-      <p>Proposer <strong>${eur(bud.amount)}</strong> sur <strong>${esc(bud.category)}</strong> (${esc(bud.reason || 'recommandé')}).</p>
-      <button type="button" class="btn-confirm" id="btnConfirmBud">Appliquer ce budget</button>
+      <h5 style="margin-top:${sug?'14px':'0'}">💡 Proposition de repère Budget</h5>
+      <p>Ajuster à <strong>${eur(bud.amount)}</strong> sur <strong>${esc(bud.category)}</strong> (${esc(bud.reason || 'recommandé')}).</p>
+      <button type="button" class="btn-confirm" id="btnConfirmBud">Appliquer ce repère</button>
     `;
   }
   box.innerHTML = html;
@@ -1353,7 +1354,7 @@ async function sendChat(questionText){
 
   const img = pendingImage;
   addChatMessage('user', q || 'Analyse cette image de dépense.', img);
-  const botMsg = addChatMessage('bot', 'Analyse en cours avec le conseiller…');
+  const botMsg = addChatMessage('bot', 'Analyse en cours avec DuoSpend…');
 
   $('chatInput').value = '';
   clearAttachment();
@@ -1490,7 +1491,7 @@ document.addEventListener('paste', e => {
 
 // Init
 loadState().then(() => {
-  addChatMessage('bot', 'Bonjour Quentin & Jessica ! Je suis votre conseiller foyer. Vos enveloppes et votre équilibre 50/50 sont à jour. Posez-moi une question ou envoyez un ticket à tout moment.');
+  addChatMessage('bot', 'Bonjour Quentin & Jessica ! Je suis DuoSpend. Je vous aide à avoir une vue claire et sereine de vos dépenses de foyer. Déposez un ticket, une capture ou posez vos questions à tout moment.');
 });
 </script>
 </body>

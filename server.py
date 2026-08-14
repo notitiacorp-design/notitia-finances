@@ -20,19 +20,19 @@ CATEGORIES = ("Courses", "Logement", "Transport", "Sorties", "Abonnements", "San
 PAYERS = ("Quentin", "Jessica")
 BUDGET_MARK = "kind=budget"
 
-SYSTEM_PROMPT = """Tu es le conseiller du foyer de Quentin et Jessica.
-Réponds en français, simplement, comme quelqu'un qui connaît leurs comptes.
-Tu n'es pas un conseiller agréé. Pas d'investissement, de crédit, ni de produit bancaire.
+SYSTEM_PROMPT = """Tu es l'assistant et observateur financier bienveillant du foyer de Quentin et Jessica (application Duopaye / Notitia).
+Réponds en français, simplement, avec un ton complice, chaleureux et constructif.
+Tu n'es pas un comptable rigide ni un contrôleur fiscal : le but n'est pas d'imposer un 50/50 strict ou d'exiger des remboursements au centime près, mais d'offrir une vision limpide, sereine et partagée des dépenses communes.
 Règles:
 - Utilise uniquement le contexte JSON et, le cas échéant, l'image jointe.
-- Ne fabrique aucun revenu, dépense, solde ou budget.
+- Ne fabrique aucun revenu, dépense, solde ou budget fictif.
 - Un budget à 0 signifie « pas encore fixé », jamais un plafond réel.
 - Distingue faits, calculs et suggestions.
-- Répartition à parts égales, sauf décision contraire du couple.
+- Quand tu parles de la répartition, présente-la comme un point de repère informatif (« pour information, l'écart actuel est de... ») et non comme une dette impérative à solder immédiatement.
 - Si une image est fournie (ticket, e-ticket, capture), extrais seulement le lisible.
 - Ne crée ni dépense ni budget tout seul: propose, l'humain confirme.
 - Si on te demande d'ajuster un budget, propose le nouveau montant et attends la confirmation.
-- Réponds à Quentin et Jessica, jamais en anglais technique, sans exposer ton raisonnement."""
+- Réponds à Quentin et Jessica, jamais en anglais technique, sans exposer ton raisonnement interne."""
 
 
 def current_month():
@@ -353,18 +353,18 @@ def deterministic_answer(q, ctx):
         return "Les enveloppes fixées tiennent pour le moment."
     if not total:
         return "Aucune dépense n'est encore enregistrée ce mois-ci pour Quentin et Jessica."
-    if any(w in q for w in ("équilibr", "rembour", "doit", "doivent")):
+    if any(w in q for w in ("équilibr", "rembour", "doit", "doivent", "répart", "repart")):
         if ctx["balance_to_adjust"] < 0.01:
-            return "Quentin et Jessica sont à l'équilibre sur les dépenses communes de ce mois."
-        who = ctx["who_should_cover"] or "l'un des deux"
-        return f"Pour rester à parts égales, {who} peut prendre environ {ctx['balance_to_adjust']:.2f} € sur les prochaines dépenses communes."
-    if any(w in q for w in ("résumé", "resume", "situation", "état", "etat")):
+            return "Les contributions de Quentin et Jessica sont parfaitement alignées ce mois-ci."
+        higher = "Quentin" if pay["Quentin"] > pay["Jessica"] else "Jessica"
+        lower = "Jessica" if higher == "Quentin" else "Quentin"
+        return f"Sur ce mois, {higher} a avancé {pay[higher]:.2f} € et {lower} {pay[lower]:.2f} € (écart d'environ {ctx['balance_to_adjust']:.2f} € pour information, sans obligation d'équilibrer)."
+    if any(w in q for w in ("résumé", "resume", "situation", "état", "etat", "point")):
         return (
-            f"{ctx['count']} dépenses communes en {ctx['month']}, {total:.2f} €. "
-            f"Quentin {pay['Quentin']:.2f} €, Jessica {pay['Jessica']:.2f} €. "
-            f"Écart à lisser : {ctx['balance_to_adjust']:.2f} €."
+            f"Point d'étape en {ctx['month']} : {ctx['count']} dépenses communes pour un total de {total:.2f} €. "
+            f"Quentin a avancé {pay['Quentin']:.2f} € et Jessica {pay['Jessica']:.2f} €."
         )
-    return "Je peux lire un ticket, suivre les enveloppes du mois, ou vous dire où en sont Quentin et Jessica."
+    return "Je peux analyser les dépenses, lire un ticket ou faire le point sur vos enveloppes du mois."
 
 
 def sanitize_image(image):
