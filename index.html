@@ -1,127 +1,301 @@
 <!doctype html>
 <html lang="fr">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Notitia · Finances</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,620&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#20231f;--muted:#70766d;--paper:#f5f3ed;--surface:#fffdf8;--line:#e3e0d7;--accent:#c66b43;--green:#39745b;--soft:#edf5ef;--shadow:0 14px 40px #2731260d}
-*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,sans-serif}
-.shell{max-width:1220px;margin:auto;padding:28px 24px 70px}
-.top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px}
-.eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:11px;color:var(--accent);font-weight:700}
-.brand{font:600 28px Georgia,serif;margin:5px 0}.sub{color:var(--muted);max-width:600px}
-.mode{font-size:12px;color:var(--green);border:1px solid #bcd4c6;padding:6px 10px;border-radius:20px;background:#f4fbf6}
-.dashboard{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr);gap:18px}
-.panel{background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:12px;padding:22px}
-.panel h2{font:600 22px Georgia,serif;margin:0 0 4px}.panel h3{font:600 16px Georgia,serif;margin:0 0 5px}
-.panel p{color:var(--muted);margin:0 0 16px}
-.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0 22px}
-.metric{border-top:2px solid var(--line);padding-top:9px}.metric b{display:block;font:600 23px Georgia,serif}
-.metric span{color:var(--muted);font-size:12px}.metric.attn{border-color:var(--accent)}
-.insight{display:flex;gap:12px;align-items:flex-start;background:var(--soft);border:1px solid #d7e8da;padding:14px;border-radius:9px;margin-bottom:22px}
-.insight strong{display:block;margin-bottom:2px}.insight p{margin:0;font-size:13px}
-.spark{width:28px;height:28px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-weight:700;flex:none}
-.section-head{display:flex;justify-content:space-between;align-items:end;gap:12px}
-.filters{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}
-.filters select,.filters input,.field input,.field select,textarea{border:1px solid var(--line);background:#fff;border-radius:8px;padding:9px 10px;font:inherit;width:100%}
-.filters select,.filters input{width:auto;min-width:140px}
-.row{display:grid;grid-template-columns:1.4fr .7fr .8fr .6fr;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);align-items:center}
-.amount{text-align:right;font-weight:600}.pill{display:inline-block;border:1px solid var(--line);border-radius:20px;padding:2px 8px;font-size:12px}
-.muted{color:var(--muted);font-size:13px}.empty{color:var(--muted);padding:18px 0}
-.barline{display:flex;justify-content:space-between;margin:10px 0 4px}.bar{height:7px;background:#efece4;border-radius:99px}
-.bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
-.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field.wide,.actions.wide,.error.wide{grid-column:1/-1}
-.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
-.button{background:var(--ink);color:#fff;border:0;border-radius:8px;padding:11px 14px;font:600 14px inherit;cursor:pointer}
-.quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.quick button{border:1px solid var(--line);background:#fff;border-radius:20px;padding:6px 10px;cursor:pointer;font:13px inherit}
-.error{color:#9a3b2f;font-size:13px}.hide-mobile{display:block}
-.chat{display:flex;flex-direction:column;gap:10px;max-height:340px;overflow:auto;margin:0 0 12px}
-.bubble{padding:10px 12px;border-radius:10px;font-size:14px;white-space:pre-wrap}
-.bubble.user{background:#efece4;align-self:flex-end;max-width:90%}
-.bubble.bot{background:var(--soft);border:1px solid #d7e8da;align-self:flex-start}
-.preview{max-width:160px;border-radius:8px;margin-top:6px;border:1px solid var(--line)}
-.suggest{border:1px dashed #bcd4c6;border-radius:10px;padding:12px;margin-top:10px;background:#f8fcf9}
-@media(max-width:900px){.dashboard{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr auto}.hide-mobile{display:none}.form{grid-template-columns:1fr}}
+:root{
+  --void:#110e0c; --ink:#f3ebe1; --muted:#b6a89a; --dim:#7d7166;
+  --ember:#e7a25c; --copper:#c4783a; --moss:#7ea47a; --rose:#d27a62;
+  --panel:#1b1714ee; --panel-solid:#1c1815; --line:#3a322bcc;
+  --glow:rgba(231,162,92,.18);
+  --radius:22px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; color:var(--ink);
+  font:15.5px/1.5 Manrope,ui-sans-serif,system-ui,sans-serif;
+  background:
+    radial-gradient(900px 520px at 12% -10%, rgba(231,162,92,.16), transparent 55%),
+    radial-gradient(700px 480px at 110% 8%, rgba(126,164,122,.12), transparent 50%),
+    radial-gradient(800px 600px at 70% 120%, rgba(210,122,98,.08), transparent 45%),
+    var(--void);
+  min-height:100%;
+}
+body:before{
+  content:""; position:fixed; inset:0; pointer-events:none; opacity:.09; z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.app{position:relative; z-index:1; max-width:1280px; margin:0 auto; padding:18px 18px 28px; min-height:100%}
+.top{
+  display:flex; justify-content:space-between; align-items:flex-end; gap:16px;
+  padding:8px 8px 22px;
+}
+.mark{display:flex; align-items:center; gap:12px}
+.orb{
+  width:42px; height:42px; border-radius:50%;
+  background:
+    conic-gradient(from 210deg, var(--ember), #7ea47a 40%, #d27a62 72%, var(--ember));
+  mask:radial-gradient(circle 13px at 50% 50%, transparent 98%, #000 100%);
+  box-shadow:0 0 28px var(--glow);
+}
+.eyebrow{letter-spacing:.22em; text-transform:uppercase; font-size:10px; color:var(--ember); font-weight:700}
+.brand{font:620 30px/1 Fraunces,Georgia,serif; margin:2px 0 0}
+.sub{color:var(--muted); max-width:34rem; margin:6px 0 0}
+.mode{
+  font-size:12px; color:#ead9c4; border:1px solid var(--line);
+  padding:8px 12px; border-radius:999px; background:#241f1bcc; white-space:nowrap;
+}
+.stage{display:grid; grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr); gap:16px}
+.halo{
+  position:relative; overflow:hidden;
+  background:linear-gradient(180deg,#221c18cc,#171310d9);
+  border:1px solid var(--line); border-radius:28px; padding:22px 22px 18px;
+  box-shadow:0 20px 60px #0006;
+}
+.halo h2,.panel h2,.panel h3{font:620 22px/1.15 Fraunces,Georgia,serif; margin:0}
+.halo p,.lede{color:var(--muted); margin:6px 0 0}
+.orbit-wrap{display:grid; grid-template-columns:180px 1fr; gap:22px; align-items:center; margin-top:18px}
+.orbit{position:relative; width:168px; height:168px; margin:auto}
+.orbit svg{width:100%; height:100%; transform:rotate(-90deg)}
+.orbit .center{
+  position:absolute; inset:0; display:grid; place-content:center; text-align:center;
+}
+.orbit .center b{font:620 22px/1 Fraunces,Georgia,serif}
+.orbit .center span{display:block; color:var(--dim); font-size:11px; letter-spacing:.08em; text-transform:uppercase; margin-top:4px}
+.metrics{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.metric{
+  padding:12px 14px; border-radius:16px;
+  background:#100d0bb0; border:1px solid #3a322b66;
+}
+.metric b{display:block; font:620 22px/1 Fraunces,Georgia,serif}
+.metric span{color:var(--dim); font-size:12px}
+.metric.attn b{color:var(--ember)}
+.insight{
+  margin-top:16px; padding:14px 16px; border-radius:16px;
+  background:linear-gradient(90deg, rgba(231,162,92,.1), transparent 70%);
+  border:1px solid #e7a25c33;
+}
+.insight strong{display:block; font:600 14px Manrope,sans-serif; margin-bottom:3px}
+.insight p{margin:0; color:var(--muted); font-size:13.5px}
+.panel{
+  background:var(--panel); border:1px solid var(--line); border-radius:28px;
+  padding:18px; box-shadow:0 18px 50px #0005;
+}
+.chat-panel{display:flex; flex-direction:column; min-height:640px; padding:0; overflow:hidden}
+.chat-head{padding:18px 18px 10px; border-bottom:1px solid #3a322b55}
+.chat-head p{margin:6px 0 10px}
+.chips{display:flex; flex-wrap:wrap; gap:8px}
+.chip{
+  border:1px solid #4a403866; background:#2a231ecc; color:var(--ink);
+  border-radius:999px; padding:8px 12px; font:600 12.5px Manrope,sans-serif;
+  cursor:pointer; min-height:40px;
+}
+.chip:hover{border-color:var(--ember); color:#fff}
+.thread{
+  flex:1; overflow:auto; padding:16px 16px 8px;
+  display:flex; flex-direction:column; gap:12px;
+  background:
+    radial-gradient(420px 180px at 80% 0%, rgba(231,162,92,.06), transparent 60%);
+}
+.msg{max-width:86%; display:flex; flex-direction:column; gap:6px}
+.msg.user{align-self:flex-end; align-items:flex-end}
+.msg.bot{align-self:flex-start}
+.bubble{
+  padding:11px 13px; border-radius:18px; white-space:pre-wrap; font-size:14.5px;
+}
+.msg.user .bubble{background:#e7a25c; color:#1a120c; border-bottom-right-radius:6px}
+.msg.bot .bubble{background:#2a241f; border:1px solid #4a403855; border-bottom-left-radius:6px}
+.thumb{max-width:210px; border-radius:14px; display:block; border:1px solid #4a403866}
+.suggest{
+  margin:0 16px 10px; padding:12px 14px; border-radius:16px;
+  background:#1f2a1dcc; border:1px solid #7ea47a55;
+}
+.suggest p{margin:6px 0 10px; color:#d7e4d4}
+.composer{
+  margin:0 12px 12px; padding:10px; border-radius:22px;
+  background:#100d0b; border:1px solid #4a403877;
+  box-shadow:0 0 0 1px #0004 inset;
+}
+.drop-hint{
+  display:none; text-align:center; color:var(--ember); font-size:13px; padding:8px 4px 2px;
+}
+.composer.drag .drop-hint{display:block}
+.attach-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px}
+.attach-chip{
+  display:flex; align-items:center; gap:8px; padding:6px 8px;
+  background:#2a231e; border:1px solid #4a403866; border-radius:12px;
+}
+.attach-chip img{width:42px; height:42px; object-fit:cover; border-radius:8px}
+.attach-chip button{border:0; background:transparent; color:var(--muted); cursor:pointer; font-size:16px}
+.compose-line{display:flex; align-items:flex-end; gap:8px}
+.icon-btn,.send{
+  width:44px; height:44px; flex:none; border:0; border-radius:14px; cursor:pointer;
+}
+.icon-btn{background:#2a231e; color:var(--ink); border:1px solid #4a403866}
+.send{background:var(--ember); color:#1a120c; font-weight:700}
+.send:disabled{opacity:.45; cursor:not-allowed}
+textarea{
+  flex:1; resize:none; min-height:44px; max-height:120px;
+  border:0; background:transparent; color:var(--ink); font:inherit; padding:11px 4px;
+  outline:none;
+}
+.hidden-file{position:absolute; width:1px; height:1px; opacity:0; pointer-events:none}
+.ledger{display:flex; flex-direction:column; gap:16px}
+.section-head{display:flex; justify-content:space-between; align-items:end; gap:10px; margin-bottom:10px}
+.filters{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0}
+select, input[type=text], input[type=number], input[type=date], .field input, .field select{
+  border:1px solid #4a403866; background:#100d0b; color:var(--ink);
+  border-radius:12px; padding:10px 11px; font:inherit;
+}
+.filters select,.filters input{min-width:0; flex:1}
+.row{
+  display:grid; grid-template-columns:1.3fr .7fr .6fr; gap:8px;
+  padding:11px 2px; border-bottom:1px solid #3a322b55; align-items:center;
+}
+.amount{text-align:right; font-weight:700}
+.pill{display:inline-block; border:1px solid #4a403866; border-radius:999px; padding:2px 8px; font-size:12px; color:var(--muted)}
+.empty{color:var(--dim); padding:16px 2px}
+.barline{display:flex; justify-content:space-between; margin:10px 0 4px; font-size:13px}
+.bar{height:6px; background:#2a231e; border-radius:99px}
+.bar i{display:block; height:100%; background:linear-gradient(90deg,var(--copper),var(--ember)); border-radius:99px}
+.form{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.field.wide,.actions.wide,.error{grid-column:1/-1}
+.field label{display:block; font-size:12px; color:var(--dim); margin-bottom:5px}
+.button{
+  width:100%; border:0; border-radius:14px; padding:12px 14px; cursor:pointer;
+  background:var(--ink); color:#161310; font:700 14px Manrope,sans-serif;
+}
+.error{color:#f0b2a4; font-size:13px}
+.tabs{display:none}
+@media(max-width:920px){
+  .stage{grid-template-columns:1fr}
+  .orbit-wrap{grid-template-columns:1fr; justify-items:center; text-align:center}
+  .metrics{width:100%}
+  .chat-panel{min-height:72vh}
+  .tabs{display:flex; gap:8px; margin:0 0 12px}
+  .tabs button{flex:1; min-height:44px; border-radius:14px; border:1px solid #4a403866; background:#1c1815; color:var(--ink); font:600 13px Manrope,sans-serif}
+  .tabs button.on{background:var(--ember); color:#1a120c; border-color:transparent}
+  .pane{display:none}
+  .pane.on{display:block}
+  .chat-pane.on{display:flex}
+  .form{grid-template-columns:1fr}
+  .row{grid-template-columns:1fr auto}
+  .hide-mobile{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  *{transition:none!important; animation:none!important}
+}
 </style>
 </head>
 <body>
-<main class="shell">
-<header class="top">
-  <div>
-    <div class="eyebrow">Notitia / finance</div>
-    <div class="brand">Les dépenses, sans brouillard.</div>
-    <div class="sub">Un espace partagé pour saisir, comprendre et équilibrer les dépenses du couple.</div>
-  </div>
-  <div id="mode" class="mode">Connexion…</div>
-</header>
-<section class="dashboard">
-  <div>
-    <section class="panel">
-      <div class="section-head">
-        <div><h2>Vue d’ensemble</h2><p id="period">Chargement…</p></div>
-        <select id="month" aria-label="Période"><option value="all">Toutes les dépenses</option><option value="2026-08">Août 2026</option></select>
+<div class="app">
+  <header class="top">
+    <div class="mark">
+      <div class="orb" aria-hidden="true"></div>
+      <div>
+        <div class="eyebrow">Notitia</div>
+        <div class="brand">Le foyer, en clair.</div>
+        <p class="sub">Parlez, envoyez un ticket, une capture ou une photo. Les comptes se mettent à jour ensemble.</p>
       </div>
-      <div class="metrics">
-        <div class="metric"><b id="total">0 €</b><span>Total commun</span></div>
-        <div class="metric"><b id="qtotal">0 €</b><span>Payé par Quentin</span></div>
-        <div class="metric"><b id="ptotal">0 €</b><span>Payé par partenaire</span></div>
-        <div class="metric attn"><b id="balance">0 €</b><span>À équilibrer</span></div>
-      </div>
-      <div class="insight"><div class="spark">✦</div><div><strong id="insightTitle">Lecture en cours</strong><p id="insightText">Le conseiller analyse les dépenses visibles.</p></div></div>
-      <div class="section-head"><h3>Historique</h3><span class="muted" id="count"></span></div>
-      <div class="filters">
-        <input id="search" placeholder="Rechercher une dépense…" aria-label="Rechercher">
-        <select id="catFilter" aria-label="Filtrer par catégorie"><option value="all">Toutes les catégories</option></select>
-        <select id="payerFilter" aria-label="Filtrer par payeur"><option value="all">Tout le monde</option><option>Quentin</option><option>Partenaire</option></select>
-      </div>
-      <div id="list"></div>
-    </section>
-    <section class="panel category">
-      <h3>Où part l'argent ?</h3>
-      <p>Répartition des dépenses communes affichées.</p>
-      <div id="categories"></div>
-    </section>
-    <section class="panel category">
-      <h3>Conseiller Qwen</h3>
-      <p>Posez une question, ou envoyez la photo d’un ticket. Il lit les chiffres disponibles, sans inventer.</p>
-      <div class="chat" id="chat"></div>
-      <div class="field"><label for="question">Votre question</label><textarea id="question" rows="2" placeholder="Ex. Peut-on tenir 200 € de courses ce mois-ci ?"></textarea></div>
-      <div class="field" style="margin-top:10px"><label for="receipt">Ticket ou capture</label><input id="receipt" type="file" accept="image/*"></div>
-      <div id="previewWrap" hidden><img id="preview" class="preview" alt="Aperçu du ticket"></div>
-      <div class="quick">
-        <button type="button" data-question="Fais-moi un résumé">Résumé</button>
-        <button type="button" data-question="Qui doit équilibrer ?">Équilibre</button>
-        <button type="button" data-question="Quelle catégorie coûte le plus ?">Catégorie principale</button>
-        <button type="button" id="askBtn" class="button">Demander à Qwen</button>
-      </div>
-      <div id="suggestBox" class="suggest" hidden></div>
-    </section>
-  </div>
-  <aside class="panel">
-    <h2>Ajouter une dépense</h2>
-    <p>Une ligne suffit. Le reste se calcule automatiquement.</p>
-    <form id="form" class="form">
-      <div class="field wide"><label for="label">Dépense</label><input id="label" required placeholder="Ex. Courses semaine"></div>
-      <div class="field"><label for="amount">Montant (€)</label><input id="amount" type="number" min="0" step="0.01" required placeholder="0,00"></div>
-      <div class="field"><label for="date">Date</label><input id="date" type="date" required></div>
-      <div class="field"><label for="category">Catégorie</label>
-        <select id="category"><option>Courses</option><option>Logement</option><option>Transport</option><option>Sorties</option><option>Abonnements</option><option>Santé</option><option>Autres</option></select>
-      </div>
-      <div class="field"><label for="payer">Payé par</label><select id="payer"><option>Quentin</option><option>Partenaire</option></select></div>
-      <div class="field wide"><label for="note">Note (facultatif)</label><input id="note" placeholder="Précision ou justificatif à retrouver"></div>
-      <div class="actions wide"><button class="button" id="submit">Ajouter la dépense</button></div>
-      <div id="error" class="error wide" hidden></div>
-    </form>
-    <div class="quick">
-      <button type="button" data-fill="Courses">Courses</button>
-      <button type="button" data-fill="Logement">Logement</button>
-      <button type="button" data-fill="Transport">Transport</button>
-      <button type="button" data-fill="Sorties">Sorties</button>
     </div>
-  </aside>
-</section>
-</main>
+    <div id="mode" class="mode">Connexion…</div>
+  </header>
+
+  <nav class="tabs" aria-label="Navigation">
+    <button type="button" data-tab="talk" class="on">Parler</button>
+    <button type="button" data-tab="books">Comptes</button>
+    <button type="button" data-tab="add">Ajouter</button>
+  </nav>
+
+  <section class="stage">
+    <section class="panel chat-panel pane chat-pane on" id="talk">
+      <div class="chat-head">
+        <h2>Conseiller</h2>
+        <p class="lede">Photo de ticket, e-ticket, capture d’écran ou une simple question. Il lit, propose, vous confirmez.</p>
+        <div class="chips">
+          <button class="chip" data-question="Fais-moi un résumé">Résumé</button>
+          <button class="chip" data-question="Qui doit équilibrer ?">Équilibre</button>
+          <button class="chip" data-question="Quelle catégorie coûte le plus ?">Où part l’argent</button>
+          <button class="chip" data-question="Lis ce ticket et prépare la dépense à confirmer.">Lire un ticket</button>
+        </div>
+      </div>
+      <div class="thread" id="chat"></div>
+      <div id="suggestBox" class="suggest" hidden></div>
+      <form class="composer" id="composer">
+        <div class="drop-hint">Déposez le ticket ici</div>
+        <div class="attach-row" id="attachRow" hidden></div>
+        <div class="compose-line">
+          <button type="button" class="icon-btn" id="pickBtn" title="Joindre une image" aria-label="Joindre une image">＋</button>
+          <button type="button" class="icon-btn" id="camBtn" title="Prendre une photo" aria-label="Prendre une photo">◎</button>
+          <textarea id="question" rows="1" placeholder="Écrivez, collez une capture, ou joignez un ticket…"></textarea>
+          <button type="submit" class="send" id="askBtn" aria-label="Envoyer">↑</button>
+        </div>
+        <input class="hidden-file" id="receipt" type="file" accept="image/*,.pdf" >
+        <input class="hidden-file" id="camera" type="file" accept="image/*" capture="environment">
+      </form>
+    </section>
+
+    <aside class="ledger">
+      <section class="halo pane" id="books">
+        <div class="section-head">
+          <div>
+            <h2>Le foyer ce mois</h2>
+            <p class="lede" id="period">Chargement…</p>
+          </div>
+          <select id="month" aria-label="Période"><option value="all">Tout</option></select>
+        </div>
+        <div class="orbit-wrap">
+          <div class="orbit" aria-hidden="true">
+            <svg viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="46" fill="none" stroke="#2a231e" stroke-width="10"/>
+              <circle id="arcQ" cx="60" cy="60" r="46" fill="none" stroke="#e7a25c" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 289"/>
+              <circle id="arcP" cx="60" cy="60" r="46" fill="none" stroke="#7ea47a" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 289"/>
+            </svg>
+            <div class="center"><b id="total">0 €</b><span>commun</span></div>
+          </div>
+          <div class="metrics">
+            <div class="metric"><b id="qtotal">0 €</b><span>Quentin</span></div>
+            <div class="metric"><b id="ptotal">0 €</b><span>Partenaire</span></div>
+            <div class="metric attn"><b id="balance">0 €</b><span>À lisser</span></div>
+            <div class="metric"><b id="count">0</b><span>Lignes</span></div>
+          </div>
+        </div>
+        <div class="insight"><strong id="insightTitle">Lecture en cours</strong><p id="insightText">Le foyer s’éclaire dès qu’une dépense arrive.</p></div>
+        <div class="filters">
+          <input id="search" type="text" placeholder="Rechercher…" aria-label="Rechercher">
+          <select id="catFilter" aria-label="Catégorie"><option value="all">Catégories</option></select>
+          <select id="payerFilter" aria-label="Payeur"><option value="all">Qui a payé</option><option>Quentin</option><option>Partenaire</option></select>
+        </div>
+        <div id="list"></div>
+        <h3 style="margin:18px 0 4px">Où part l’argent</h3>
+        <div id="categories"></div>
+      </section>
+
+      <section class="panel pane" id="add">
+        <h2>Saisie manuelle</h2>
+        <p class="lede">Si vous préférez écrire la ligne vous-même.</p>
+        <form id="form" class="form" style="margin-top:14px">
+          <div class="field wide"><label for="label">Dépense</label><input id="label" required placeholder="Courses, loyer, train…"></div>
+          <div class="field"><label for="amount">Montant</label><input id="amount" type="number" min="0" step="0.01" required placeholder="0,00"></div>
+          <div class="field"><label for="date">Date</label><input id="date" type="date" required></div>
+          <div class="field"><label for="category">Catégorie</label>
+            <select id="category"><option>Courses</option><option>Logement</option><option>Transport</option><option>Sorties</option><option>Abonnements</option><option>Santé</option><option>Autres</option></select>
+          </div>
+          <div class="field"><label for="payer">Payé par</label><select id="payer"><option>Quentin</option><option>Partenaire</option></select></div>
+          <div class="field wide"><label for="note">Note</label><input id="note" placeholder="Facultatif"></div>
+          <div class="actions wide"><button class="button" id="submit">Ajouter</button></div>
+          <div id="error" class="error" hidden></div>
+        </form>
+      </section>
+    </aside>
+  </section>
+</div>
 <script>
 const API_BASE = window.NOTITIA_API || '';
 const $ = id => document.getElementById(id);
@@ -134,89 +308,152 @@ function visible(){
   const m=$('month').value, term=$('search').value.trim().toLowerCase(), cat=$('catFilter').value, pay=$('payerFilter').value;
   return expenses.filter(x => (m==='all'||String(x.date).startsWith(m)) && (!term||String(x.label).toLowerCase().includes(term)||String(x.category).toLowerCase().includes(term)) && (cat==='all'||x.category===cat) && (pay==='all'||x.payer===pay));
 }
+function setArc(el, start, frac){
+  const c=289, len=Math.max(0,Math.min(1,frac))*c;
+  el.setAttribute('stroke-dasharray', `${len} ${c}`);
+  el.setAttribute('stroke-dashoffset', String(-start*c));
+}
+function fillMonths(){
+  const sel=$('month'), cur=sel.value;
+  const months=[...new Set(expenses.map(x=>String(x.date||'').slice(0,7)).filter(Boolean))].sort().reverse();
+  sel.innerHTML='<option value="all">Tout</option>'+months.map(m=>{
+    const [y,mo]=m.split('-'); const label=new Date(`${m}-01T00:00:00`).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+    return `<option value="${esc(m)}">${esc(label)}</option>`;
+  }).join('');
+  if([...sel.options].some(o=>o.value===cur)) sel.value=cur;
+}
 function render(){
   const rows=visible(), total=rows.filter(x=>x.shared).reduce((a,x)=>a+Number(x.amount||0),0);
   const q=rows.filter(x=>x.shared&&x.payer==='Quentin').reduce((a,x)=>a+Number(x.amount||0),0);
   const p=rows.filter(x=>x.shared&&x.payer==='Partenaire').reduce((a,x)=>a+Number(x.amount||0),0);
   const due=Math.abs(q-p)/2;
   $('total').textContent=eur(total); $('qtotal').textContent=eur(q); $('ptotal').textContent=eur(p); $('balance').textContent=eur(due);
-  $('period').textContent=(rows.length+' dépense'+(rows.length>1?'s':'')+' affichée'+(rows.length>1?'s':'')+' · partage à parts égales');
-  $('count').textContent=rows.length+' ligne'+(rows.length>1?'s':'');
-  $('list').innerHTML=rows.length?rows.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(x=>`<div class="row"><div><b>${esc(x.label)}</b><br><small>${esc(x.date)} · ${esc(x.category)}</small></div><div class="hide-mobile"><span class="pill">${esc(x.payer)}</span></div><div class="hide-mobile muted">${esc(x.status||'À équilibrer')}</div><div class="amount">${eur(x.amount)}</div></div>`).join(''):'<div class="empty">Aucune dépense ne correspond à ces filtres.</div>';
+  $('period').textContent=(rows.length+' dépense'+(rows.length>1?'s':'')+' · parts égales');
+  $('count').textContent=String(rows.length);
+  const qf=total?q/total:0, pf=total?p/total:0;
+  setArc($('arcQ'), 0, qf); setArc($('arcP'), qf, pf);
+  $('list').innerHTML=rows.length?rows.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(x=>`<div class="row"><div><b>${esc(x.label)}</b><br><small class="pill">${esc(x.date)} · ${esc(x.category)}</small></div><div class="hide-mobile"><span class="pill">${esc(x.payer)}</span></div><div class="amount">${eur(x.amount)}</div></div>`).join(''):'<div class="empty">Aucune dépense sur cette vue.</div>';
   const cats={}; rows.forEach(x=>{if(x.shared)cats[x.category]=(cats[x.category]||0)+Number(x.amount||0)});
   const max=Math.max(1,...Object.values(cats));
   $('categories').innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="barline"><span>${esc(k)}</span><b>${eur(v)}</b></div><div class="bar"><i style="width:${v/max*100}%"></i></div>`).join('')||'<div class="empty">Pas encore de catégorie.</div>';
-  const over=total>0?Math.max(...Object.values(cats),0)/total:0;
-  if(!rows.length){$('insightTitle').textContent='Aucune dépense à analyser';$('insightText').textContent='Ajoutez une dépense, ou envoyez un ticket au conseiller.'}
-  else if(due<.01){$('insightTitle').textContent='Équilibre atteint';$('insightText').textContent='Les contributions sont équilibrées sur la sélection actuelle.'}
-  else if(over>.55){const top=Object.entries(cats).sort((a,b)=>b[1]-a[1])[0];$('insightTitle').textContent='Un poste concentre l’attention';$('insightText').textContent=`${top[0]} représente ${Math.round(over*100)} % des dépenses affichées. À surveiller si ce niveau se répète.`}
-  else{$('insightTitle').textContent='Prochaine action';$('insightText').textContent=`Pour équilibrer, ${q>p?'Partenaire':'Quentin'} devrait prendre en charge ${eur(due)}.`}
+  if(!rows.length){$('insightTitle').textContent='Le foyer est encore silencieux';$('insightText').textContent='Envoyez un ticket, une capture, ou ajoutez une première ligne.'}
+  else if(due<.01){$('insightTitle').textContent='Équilibre';$('insightText').textContent='Les contributions sont alignées sur cette sélection.'}
+  else{$('insightTitle').textContent='À lisser';$('insightText').textContent=`${q>p?'Partenaire':'Quentin'} peut prendre ${eur(due)} sur les prochaines dépenses communes.`}
 }
 function addMsg(role, text, img){
-  const box=document.createElement('div');
-  box.className='bubble '+role;
-  box.innerHTML=esc(text)+(img?`<br><img class="preview" src="${img}" alt="Ticket envoyé">`:'');
-  $('chat').appendChild(box); $('chat').scrollTop=$('chat').scrollHeight;
+  const wrap=document.createElement('div');
+  wrap.className='msg '+role;
+  if(img){const im=document.createElement('img'); im.className='thumb'; im.alt='Pièce jointe'; im.src=img; wrap.appendChild(im)}
+  const b=document.createElement('div'); b.className='bubble'; b.textContent=text; wrap.appendChild(b);
+  $('chat').appendChild(wrap); $('chat').scrollTop=$('chat').scrollHeight;
+  return b;
 }
 function showSuggestion(s){
   if(!s){$('suggestBox').hidden=true;return}
   $('suggestBox').hidden=false;
-  $('suggestBox').innerHTML=`<strong>Ticket lu, à confirmer</strong><p>${esc(s.label)} · ${eur(s.amount)} · ${esc(s.category)} · ${esc(s.date||'date à préciser')} · ${esc(s.payer)}</p><button type="button" class="button" id="confirmSug">Enregistrer cette dépense</button>`;
+  $('suggestBox').innerHTML=`<strong>Lu, à confirmer</strong><p>${esc(s.label)} · ${eur(s.amount)} · ${esc(s.category)} · ${esc(s.date||'date à préciser')} · ${esc(s.payer)}</p><button type="button" class="button" id="confirmSug">Enregistrer cette dépense</button>`;
   $('confirmSug').onclick=async()=>{
     if(!s.date) s.date=new Date().toISOString().slice(0,10);
     try{
       const r=await fetch(API_BASE+'/api/expenses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(s)});
-      const j=await r.json(); if(!r.ok) throw Error(j.error||'Erreur');
-      expenses.unshift(j.expense); render(); $('suggestBox').hidden=true;
-      addMsg('bot','Dépense enregistrée. Je pourrai maintenant l’inclure dans les prochains conseils.');
-    }catch(e){addMsg('bot','Je n’ai pas pu l’enregistrer: '+e.message)}
+      const j=await r.json(); if(!r.ok) throw Error(j.detail||j.error||'Erreur');
+      expenses.unshift(j.expense); fillMonths(); render(); $('suggestBox').hidden=true;
+      addMsg('bot','C’est noté. Cette dépense entre dans le foyer.');
+    }catch(e){addMsg('bot','Je n’ai pas pu l’enregistrer : '+e.message)}
   };
+}
+function showAttach(dataUrl, name){
+  pendingImage=dataUrl;
+  $('attachRow').hidden=false;
+  $('attachRow').innerHTML=`<div class="attach-chip"><img src="${dataUrl}" alt=""><span>${esc(name||'Pièce jointe')}</span><button type="button" id="clearAtt" aria-label="Retirer">✕</button></div>`;
+  $('clearAtt').onclick=clearAttach;
+}
+function clearAttach(){
+  pendingImage=null; $('attachRow').hidden=true; $('attachRow').innerHTML='';
+  $('receipt').value=''; $('camera').value='';
+}
+function compressImage(file){
+  return new Promise((resolve,reject)=>{
+    if(file.type==='application/pdf'){
+      reject(new Error('Envoyez plutôt une capture ou une photo du e-ticket.')); return;
+    }
+    const img=new Image(); const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      const max=1400; let w=img.width,h=img.height;
+      if(w>max||h>max){const s=Math.min(max/w,max/h); w=Math.round(w*s); h=Math.round(h*s)}
+      const c=document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg',0.82));
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url); reject(new Error('Image illisible'))};
+    img.src=url;
+  });
+}
+async function attachFile(file){
+  if(!file) return;
+  try{ showAttach(await compressImage(file), file.name) }
+  catch(e){ addMsg('bot', e.message) }
 }
 async function ask(question){
   const q=(question||$('question').value||'').trim();
   if(!q && !pendingImage) return;
-  addMsg('user', q||'Voici un ticket.', pendingImage);
-  addMsg('bot','Analyse en cours…');
-  const last=$('chat').lastChild;
+  const img=pendingImage;
+  addMsg('user', q||'Voici le justificatif.', img);
+  const pending=addMsg('bot','Je lis…');
+  $('question').value=''; clearAttach();
   try{
-    const r=await fetch(API_BASE+'/api/assistant',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,image:pendingImage})});
-    const j=await r.json(); if(!r.ok) throw Error(j.error||j.detail||'Assistant indisponible');
-    last.textContent=j.answer; showSuggestion(j.suggestion);
-  }catch(e){last.textContent='Assistant indisponible. '+e.message}
-  $('question').value=''; pendingImage=null; $('receipt').value=''; $('previewWrap').hidden=true;
+    const r=await fetch(API_BASE+'/api/assistant',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,image:img})});
+    const j=await r.json(); if(!r.ok) throw Error(j.detail||j.error||'Assistant indisponible');
+    pending.textContent=j.answer; showSuggestion(j.suggestion);
+  }catch(e){pending.textContent='Je n’ai pas pu répondre. '+e.message}
 }
 async function load(){
   try{
     const r=await fetch(API_BASE+'/api/health'); const h=await r.json();
-    $('mode').textContent=h.mode==='airtable'?(h.assistant==='qwen'?'Airtable + Qwen':'Airtable connecté'):'Serveur local';
+    $('mode').textContent=h.mode==='airtable'?'Foyer relié':'Hors-ligne';
     const d=await fetch(API_BASE+'/api/expenses'); const j=await d.json();
-    if(!d.ok) throw Error(j.detail||j.error||'Lecture Airtable impossible');
+    if(!d.ok) throw Error(j.detail||j.error||'Lecture impossible');
     expenses=j.expenses||[];
-  }catch(e){$('mode').textContent='Connexion indisponible'; expenses=[]; addMsg('bot','Je n’arrive pas à lire les dépenses pour l’instant.')}
+  }catch(e){$('mode').textContent='Connexion coupée'; expenses=[]; addMsg('bot','Je n’arrive pas à lire les dépenses pour l’instant.')}
   const cats=[...new Set(expenses.map(x=>x.category))].sort();
-  cats.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;$('catFilter').appendChild(o)});
-  render();
+  cats.forEach(c=>{const o=document.createElement('option'); o.value=c; o.textContent=c; $('catFilter').appendChild(o)});
+  fillMonths(); render();
+  if(!$('chat').children.length) addMsg('bot','Déposez un ticket, collez une capture, ou posez une question. Je ne crée rien sans votre feu vert.');
 }
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('on',x===b));
+  ['talk','books','add'].forEach(id=>$(id).classList.toggle('on', id===b.dataset.tab));
+});
 ['month','search','catFilter','payerFilter'].forEach(id=>$(id).addEventListener('input',render));
 document.querySelectorAll('[data-question]').forEach(b=>b.onclick=()=>ask(b.dataset.question));
-$('askBtn').onclick=()=>ask();
-$('question').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask()}});
-$('receipt').addEventListener('change',()=>{
-  const f=$('receipt').files[0]; if(!f){pendingImage=null;$('previewWrap').hidden=true;return}
-  if(f.size>2_400_000){alert('Image trop lourde. Essayez une photo plus légère.');$('receipt').value='';return}
-  const reader=new FileReader();
-  reader.onload=()=>{pendingImage=reader.result;$('preview').src=pendingImage;$('previewWrap').hidden=false};
-  reader.readAsDataURL(f);
+$('composer').addEventListener('submit',e=>{e.preventDefault(); ask()});
+$('question').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault(); ask()}});
+$('question').addEventListener('input',()=>{this.style&&($('question').style.height='auto'); $('question').style.height=Math.min($('question').scrollHeight,120)+'px'});
+$('pickBtn').onclick=()=>$('receipt').click();
+$('camBtn').onclick=()=>$('camera').click();
+$('receipt').addEventListener('change',e=>attachFile(e.target.files[0]));
+$('camera').addEventListener('change',e=>attachFile(e.target.files[0]));
+['dragenter','dragover'].forEach(ev=>$('composer').addEventListener(ev,e=>{e.preventDefault(); $('composer').classList.add('drag')}));
+['dragleave','drop'].forEach(ev=>$('composer').addEventListener(ev,e=>{e.preventDefault(); if(ev==='drop'){;} $('composer').classList.remove('drag')}));
+$('composer').addEventListener('drop',e=>{
+  e.preventDefault(); $('composer').classList.remove('drag');
+  const f=[...e.dataTransfer.files].find(x=>x.type.startsWith('image/'));
+  if(f) attachFile(f);
+});
+document.addEventListener('paste',e=>{
+  const item=[...e.clipboardData.items].find(x=>x.type.startsWith('image/'));
+  if(!item) return;
+  const f=item.getAsFile(); if(f){ e.preventDefault(); attachFile(f) }
 });
 $('date').value=new Date().toISOString().slice(0,10);
-document.querySelectorAll('[data-fill]').forEach(b=>b.onclick=()=>{$('category').value=b.dataset.fill;$('label').focus()});
 $('form').addEventListener('submit',async e=>{
   e.preventDefault(); $('submit').disabled=true; $('error').hidden=true;
   const item={label:$('label').value,date:$('date').value,amount:$('amount').value,category:$('category').value,payer:$('payer').value,shared:true,status:'À équilibrer',note:$('note').value};
   try{
     const r=await fetch(API_BASE+'/api/expenses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(item)});
     const j=await r.json(); if(!r.ok) throw Error(j.detail||j.error||'Erreur');
-    expenses.unshift(j.expense); $('form').reset(); $('date').value=new Date().toISOString().slice(0,10); render();
+    expenses.unshift(j.expense); fillMonths(); $('form').reset(); $('date').value=new Date().toISOString().slice(0,10); render();
   }catch(err){$('error').textContent=err.message;$('error').hidden=false}
   finally{$('submit').disabled=false}
 });
