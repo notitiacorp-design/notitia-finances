@@ -4,20 +4,223 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Notitia · Finances</title>
 <style>
-:root{--ink:#20231f;--muted:#70766d;--paper:#f5f3ed;--surface:#fffdf8;--line:#e3e0d7;--accent:#c66b43;--green:#39745b;--soft:#edf5ef;--shadow:0 14px 40px #2731260d}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,sans-serif}.shell{max-width:1220px;margin:auto;padding:28px 24px 70px}.top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px}.eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:11px;color:var(--accent);font-weight:700}.brand{font:600 28px Georgia,serif;margin:5px 0}.sub{color:var(--muted);max-width:600px}.mode{font-size:12px;color:var(--green);border:1px solid #bcd4c6;padding:6px 10px;border-radius:20px;background:#f4fbf6}.dashboard{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr);gap:18px}.panel{background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:12px;padding:22px}.panel h2{font:600 22px Georgia,serif;margin:0 0 4px}.panel h3{font:600 16px Georgia,serif;margin:0 0 5px}.panel p{color:var(--muted);margin:0 0 16px}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0 22px}.metric{border-top:2px solid var(--line);padding-top:9px}.metric b{display:block;font:600 23px Georgia,serif}.metric span{color:var(--muted);font-size:12px}.metric.good{border-color:var(--green)}.metric.attn{border-color:var(--accent)}.insight{display:flex;gap:12px;align-items:flex-start;background:var(--soft);border:1px solid #d7e8da;padding:14px;border-radius:9px;margin-bottom:22px}.insight strong{display:block;margin-bottom:2px}.insight p{margin:0;font-size:13px}.spark{width:28px;height:28px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-weight:700;flex:none}.section-head{display:flex;justify-content:space-between;align-items:end;gap:12px}.filters{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}.filters select,.filters input,.field input,.field select{border:1px solid var(--line);border-radius:7px;padding:9px;background:#fff;font:inherit;color:var(--ink)}.filters input{min-width:170px}.row{display:grid;grid-template-columns:1.3fr .8fr .75fr .65fr;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}.row small,.muted{color:var(--muted)}.amount{text-align:right;font-weight:700}.pill{font-size:11px;color:var(--green);background:#edf6ef;padding:4px 7px;border-radius:12px;justify-self:start}.empty{text-align:center;padding:30px;color:var(--muted)}.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}.field input,.field select{width:100%}.wide{grid-column:1/-1}.actions{display:flex;justify-content:flex-end;margin-top:12px}.button{border:0;border-radius:7px;padding:11px 16px;background:var(--ink);color:#fff;font-weight:600;cursor:pointer}.button:disabled{opacity:.5}.category{margin-top:24px}.barline{display:flex;justify-content:space-between;font-size:12px;margin:10px 0 4px}.bar{height:6px;background:#ebe8df;border-radius:10px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent);border-radius:10px}.quick{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px}.quick button{border:1px solid var(--line);background:#fff;border-radius:20px;padding:7px 10px;cursor:pointer;font:12px inherit}.error{color:#a33b2b;background:#fff1ed;border:1px solid #f0c9bf;padding:10px;border-radius:7px;margin-top:12px}@media(max-width:850px){.shell{padding:20px 14px}.top{display:block}.mode{display:inline-block;margin-top:12px}.dashboard{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr 1fr}.hide-mobile{display:none}.amount{text-align:left}}
-</style></head>
-<body><main class="shell">
-<header class="top"><div><div class="eyebrow">Notitia / finance</div><div class="brand">Les dépenses, sans brouillard.</div><div class="sub">Un espace partagé pour saisir, comprendre et équilibrer les dépenses du couple.</div></div><div id="mode" class="mode">Connexion…</div></header>
-<section class="dashboard"><div>
-<section class="panel"><div class="section-head"><div><h2>Vue d’ensemble</h2><p id="period">Chargement…</p></div><select id="month" aria-label="Période"><option value="all">Toutes les dépenses</option><option value="2026-08">Août 2026</option></select></div>
-<div class="metrics"><div class="metric"><b id="total">0 €</b><span>Total commun</span></div><div class="metric"><b id="qtotal">0 €</b><span>Payé par Quentin</span></div><div class="metric"><b id="ptotal">0 €</b><span>Payé par partenaire</span></div><div class="metric attn"><b id="balance">0 €</b><span>À équilibrer</span></div></div>
-<div class="insight"><div class="spark">✦</div><div><strong id="insightTitle">Lecture en cours</strong><p id="insightText">Le coach analyse les dépenses visibles.</p></div></div>
-<div class="section-head"><h3>Historique</h3><span class="muted" id="count"></span></div><div class="filters"><input id="search" placeholder="Rechercher une dépense…" aria-label="Rechercher"><select id="catFilter" aria-label="Filtrer par catégorie"><option value="all">Toutes les catégories</option></select><select id="payerFilter" aria-label="Filtrer par payeur"><option value="all">Tout le monde</option><option>Quentin</option><option>Partenaire</option></select></div><div id="list"></div>
+:root{--ink:#20231f;--muted:#70766d;--paper:#f5f3ed;--surface:#fffdf8;--line:#e3e0d7;--accent:#c66b43;--green:#39745b;--soft:#edf5ef;--shadow:0 14px 40px #2731260d}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,sans-serif}
+.shell{max-width:1220px;margin:auto;padding:28px 24px 70px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px}
+.eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:11px;color:var(--accent);font-weight:700}
+.brand{font:600 28px Georgia,serif;margin:5px 0}.sub{color:var(--muted);max-width:600px}
+.mode{font-size:12px;color:var(--green);border:1px solid #bcd4c6;padding:6px 10px;border-radius:20px;background:#f4fbf6}
+.dashboard{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr);gap:18px}
+.panel{background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:12px;padding:22px}
+.panel h2{font:600 22px Georgia,serif;margin:0 0 4px}.panel h3{font:600 16px Georgia,serif;margin:0 0 5px}
+.panel p{color:var(--muted);margin:0 0 16px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0 22px}
+.metric{border-top:2px solid var(--line);padding-top:9px}.metric b{display:block;font:600 23px Georgia,serif}
+.metric span{color:var(--muted);font-size:12px}.metric.attn{border-color:var(--accent)}
+.insight{display:flex;gap:12px;align-items:flex-start;background:var(--soft);border:1px solid #d7e8da;padding:14px;border-radius:9px;margin-bottom:22px}
+.insight strong{display:block;margin-bottom:2px}.insight p{margin:0;font-size:13px}
+.spark{width:28px;height:28px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-weight:700;flex:none}
+.section-head{display:flex;justify-content:space-between;align-items:end;gap:12px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}
+.filters select,.filters input,.field input,.field select,textarea{border:1px solid var(--line);background:#fff;border-radius:8px;padding:9px 10px;font:inherit;width:100%}
+.filters select,.filters input{width:auto;min-width:140px}
+.row{display:grid;grid-template-columns:1.4fr .7fr .8fr .6fr;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);align-items:center}
+.amount{text-align:right;font-weight:600}.pill{display:inline-block;border:1px solid var(--line);border-radius:20px;padding:2px 8px;font-size:12px}
+.muted{color:var(--muted);font-size:13px}.empty{color:var(--muted);padding:18px 0}
+.barline{display:flex;justify-content:space-between;margin:10px 0 4px}.bar{height:7px;background:#efece4;border-radius:99px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field.wide,.actions.wide,.error.wide{grid-column:1/-1}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+.button{background:var(--ink);color:#fff;border:0;border-radius:8px;padding:11px 14px;font:600 14px inherit;cursor:pointer}
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.quick button{border:1px solid var(--line);background:#fff;border-radius:20px;padding:6px 10px;cursor:pointer;font:13px inherit}
+.error{color:#9a3b2f;font-size:13px}.hide-mobile{display:block}
+.chat{display:flex;flex-direction:column;gap:10px;max-height:340px;overflow:auto;margin:0 0 12px}
+.bubble{padding:10px 12px;border-radius:10px;font-size:14px;white-space:pre-wrap}
+.bubble.user{background:#efece4;align-self:flex-end;max-width:90%}
+.bubble.bot{background:var(--soft);border:1px solid #d7e8da;align-self:flex-start}
+.preview{max-width:160px;border-radius:8px;margin-top:6px;border:1px solid var(--line)}
+.suggest{border:1px dashed #bcd4c6;border-radius:10px;padding:12px;margin-top:10px;background:#f8fcf9}
+@media(max-width:900px){.dashboard{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr auto}.hide-mobile{display:none}.form{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="shell">
+<header class="top">
+  <div>
+    <div class="eyebrow">Notitia / finance</div>
+    <div class="brand">Les dépenses, sans brouillard.</div>
+    <div class="sub">Un espace partagé pour saisir, comprendre et équilibrer les dépenses du couple.</div>
+  </div>
+  <div id="mode" class="mode">Connexion…</div>
+</header>
+<section class="dashboard">
+  <div>
+    <section class="panel">
+      <div class="section-head">
+        <div><h2>Vue d’ensemble</h2><p id="period">Chargement…</p></div>
+        <select id="month" aria-label="Période"><option value="all">Toutes les dépenses</option><option value="2026-08">Août 2026</option></select>
+      </div>
+      <div class="metrics">
+        <div class="metric"><b id="total">0 €</b><span>Total commun</span></div>
+        <div class="metric"><b id="qtotal">0 €</b><span>Payé par Quentin</span></div>
+        <div class="metric"><b id="ptotal">0 €</b><span>Payé par partenaire</span></div>
+        <div class="metric attn"><b id="balance">0 €</b><span>À équilibrer</span></div>
+      </div>
+      <div class="insight"><div class="spark">✦</div><div><strong id="insightTitle">Lecture en cours</strong><p id="insightText">Le conseiller analyse les dépenses visibles.</p></div></div>
+      <div class="section-head"><h3>Historique</h3><span class="muted" id="count"></span></div>
+      <div class="filters">
+        <input id="search" placeholder="Rechercher une dépense…" aria-label="Rechercher">
+        <select id="catFilter" aria-label="Filtrer par catégorie"><option value="all">Toutes les catégories</option></select>
+        <select id="payerFilter" aria-label="Filtrer par payeur"><option value="all">Tout le monde</option><option>Quentin</option><option>Partenaire</option></select>
+      </div>
+      <div id="list"></div>
+    </section>
+    <section class="panel category">
+      <h3>Où part l'argent ?</h3>
+      <p>Répartition des dépenses communes affichées.</p>
+      <div id="categories"></div>
+    </section>
+    <section class="panel category">
+      <h3>Conseiller Qwen</h3>
+      <p>Posez une question, ou envoyez la photo d’un ticket. Il lit les chiffres disponibles, sans inventer.</p>
+      <div class="chat" id="chat"></div>
+      <div class="field"><label for="question">Votre question</label><textarea id="question" rows="2" placeholder="Ex. Peut-on tenir 200 € de courses ce mois-ci ?"></textarea></div>
+      <div class="field" style="margin-top:10px"><label for="receipt">Ticket ou capture</label><input id="receipt" type="file" accept="image/*"></div>
+      <div id="previewWrap" hidden><img id="preview" class="preview" alt="Aperçu du ticket"></div>
+      <div class="quick">
+        <button type="button" data-question="Fais-moi un résumé">Résumé</button>
+        <button type="button" data-question="Qui doit équilibrer ?">Équilibre</button>
+        <button type="button" data-question="Quelle catégorie coûte le plus ?">Catégorie principale</button>
+        <button type="button" id="askBtn" class="button">Demander à Qwen</button>
+      </div>
+      <div id="suggestBox" class="suggest" hidden></div>
+    </section>
+  </div>
+  <aside class="panel">
+    <h2>Ajouter une dépense</h2>
+    <p>Une ligne suffit. Le reste se calcule automatiquement.</p>
+    <form id="form" class="form">
+      <div class="field wide"><label for="label">Dépense</label><input id="label" required placeholder="Ex. Courses semaine"></div>
+      <div class="field"><label for="amount">Montant (€)</label><input id="amount" type="number" min="0" step="0.01" required placeholder="0,00"></div>
+      <div class="field"><label for="date">Date</label><input id="date" type="date" required></div>
+      <div class="field"><label for="category">Catégorie</label>
+        <select id="category"><option>Courses</option><option>Logement</option><option>Transport</option><option>Sorties</option><option>Abonnements</option><option>Santé</option><option>Autres</option></select>
+      </div>
+      <div class="field"><label for="payer">Payé par</label><select id="payer"><option>Quentin</option><option>Partenaire</option></select></div>
+      <div class="field wide"><label for="note">Note (facultatif)</label><input id="note" placeholder="Précision ou justificatif à retrouver"></div>
+      <div class="actions wide"><button class="button" id="submit">Ajouter la dépense</button></div>
+      <div id="error" class="error wide" hidden></div>
+    </form>
+    <div class="quick">
+      <button type="button" data-fill="Courses">Courses</button>
+      <button type="button" data-fill="Logement">Logement</button>
+      <button type="button" data-fill="Transport">Transport</button>
+      <button type="button" data-fill="Sorties">Sorties</button>
+    </div>
+  </aside>
 </section>
-<section class="panel category"><h3>Où part l'argent ?</h3><p>Répartition des dépenses communes affichées.</p><div id="categories"></div></section><section class="panel category"><h3>Assistant finance</h3><p>Posez une question sur les données disponibles. Les réponses sont calculées côté serveur.</p><div class="field"><label for="question">Votre question</label><input id="question" placeholder="Ex. Qui doit équilibrer ?"></div><div class="quick"><button data-question="Fais-moi un résumé">Résumé</button><button data-question="Qui doit équilibrer ?">Équilibre</button><button data-question="Quelle catégorie coûte le plus ?">Catégorie principale</button></div><div class="insight" id="answerBox" style="margin-top:14px"><div class="spark">?</div><div><strong>Assistant prêt</strong><p id="answer">Posez une question pour obtenir une lecture des dépenses.</p></div></div></section>
-</div><aside class="panel"><h2>Ajouter une dépense</h2><p>Une ligne suffit. Le reste se calcule automatiquement.</p><form id="form" class="form"><div class="field wide"><label for="label">Dépense</label><input id="label" required placeholder="Ex. Courses semaine"></div><div class="field"><label for="amount">Montant (€)</label><input id="amount" type="number" min="0" step="0.01" required placeholder="0,00"></div><div class="field"><label for="date">Date</label><input id="date" type="date" required></div><div class="field"><label for="category">Catégorie</label><select id="category"><option>Courses</option><option>Logement</option><option>Transport</option><option>Sorties</option><option>Abonnements</option><option>Santé</option><option>Autres</option></select></div><div class="field"><label for="payer">Payé par</label><select id="payer"><option>Quentin</option><option>Partenaire</option></select></div><div class="field wide"><label for="note">Note (facultatif)</label><input id="note" placeholder="Précision ou justificatif à retrouver"></div><div class="actions wide"><button class="button" id="submit">Ajouter la dépense</button></div><div id="error" class="error wide" hidden></div></form><div class="quick"><button data-fill="Courses">Courses</button><button data-fill="Logement">Logement</button><button data-fill="Transport">Transport</button><button data-fill="Sorties">Sorties</button></div></aside></section>
-</main><script>
-const $=id=>document.getElementById(id);let expenses=[];let demoMode=false;const eur=n=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(n);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-function visible(){const m=$('month').value,term=$('search').value.trim().toLowerCase(),cat=$('catFilter').value,pay=$('payerFilter').value;return expenses.filter(x=>(m==='all'||x.date.startsWith(m))&&(!term||x.label.toLowerCase().includes(term)||x.category.toLowerCase().includes(term))&&(cat==='all'||x.category===cat)&&(pay==='all'||x.payer===pay))}function render(){const rows=visible(),total=rows.filter(x=>x.shared).reduce((a,x)=>a+x.amount,0),q=rows.filter(x=>x.shared&&x.payer==='Quentin').reduce((a,x)=>a+x.amount,0),p=rows.filter(x=>x.shared&&x.payer==='Partenaire').reduce((a,x)=>a+x.amount,0),due=Math.abs(q-p)/2;$('total').textContent=eur(total);$('qtotal').textContent=eur(q);$('ptotal').textContent=eur(p);$('balance').textContent=eur(due);$('period').textContent=(rows.length+' dépense'+(rows.length>1?'s':'')+' affichée'+(rows.length>1?'s':'')+' · partage à parts égales');$('count').textContent=rows.length+' ligne'+(rows.length>1?'s':'');$('list').innerHTML=rows.length?rows.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<div class="row"><div><b>${esc(x.label)}</b><br><small>${esc(x.date)} · ${esc(x.category)}</small></div><div class="hide-mobile"><span class="pill">${esc(x.payer)}</span></div><div class="hide-mobile muted">${esc(x.status||'À équilibrer')}</div><div class="amount">${eur(x.amount)}</div></div>`).join(''):'<div class="empty">Aucune dépense ne correspond à ces filtres.</div>';const cats={};rows.forEach(x=>{if(x.shared)cats[x.category]=(cats[x.category]||0)+x.amount});const max=Math.max(1,...Object.values(cats));$('categories').innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="barline"><span>${esc(k)}</span><b>${eur(v)}</b></div><div class="bar"><i style="width:${v/max*100}%"></i></div>`).join('')||'<div class="empty">Pas encore de catégorie.</div>';const over=total>0?Math.max(...Object.values(cats),0)/total:0;if(!rows.length){$('insightTitle').textContent='Aucune dépense à analyser';$('insightText').textContent='Ajoutez une dépense ou élargissez la période.'}else if(due<.01){$('insightTitle').textContent='Équilibre atteint';$('insightText').textContent='Les contributions sont équilibrées sur la sélection actuelle.'}else if(over>.55){const top=Object.entries(cats).sort((a,b)=>b[1]-a[1])[0];$('insightTitle').textContent='Un poste concentre l’attention';$('insightText').textContent=`${top[0]} représente ${Math.round(over*100)} % des dépenses affichées. À surveiller si ce niveau se répète.`}else{$('insightTitle').textContent='Prochaine action';$('insightText').textContent=`Pour équilibrer, ${q>p?'Partenaire':'Quentin'} devrait prendre en charge ${eur(due)}.`}}
-async function load(){try{const r=await fetch('/api/health');const h=await r.json();demoMode=false;$('mode').textContent=h.mode==='airtable'?'Airtable connecté':'Serveur local';const d=await fetch('/api/expenses');const j=await d.json();expenses=j.expenses||[]}catch(e){demoMode=false;$('mode').textContent='Connexion indisponible';expenses=[]}const cats=[...new Set(expenses.map(x=>x.category))].sort();cats.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;$('catFilter').appendChild(o)});render()}['month','search','catFilter','payerFilter'].forEach(id=>$(id).addEventListener('input',render));document.querySelectorAll('[data-question]').forEach(b=>b.onclick=()=>ask(b.dataset.question));$('question').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();ask($('question').value)}});async function ask(question){if(!question.trim())return;$('answer').textContent='Analyse en cours…';try{const r=await fetch('/api/assistant',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question})});const j=await r.json();if(!r.ok)throw Error(j.error||'Assistant indisponible');$('answer').textContent=j.answer}catch(e){$('answer').textContent='Assistant indisponible. Vérifiez que le serveur privé est lancé.'}}$('date').value=new Date().toISOString().slice(0,10);document.querySelectorAll('[data-fill]').forEach(b=>b.onclick=()=>{$('category').value=b.dataset.fill;$('label').focus()});$('form').addEventListener('submit',async e=>{e.preventDefault();$('submit').disabled=true;$('error').hidden=true;const item={label:$('label').value,date:$('date').value,amount:$('amount').value,category:$('category').value,payer:$('payer').value,shared:true,status:'À équilibrer',note:$('note').value};try{if(demoMode){item.id='local-'+Date.now();expenses.unshift({...item,amount:Number(item.amount)});$('form').reset();$('date').value=new Date().toISOString().slice(0,10);render();return}const r=await fetch('/api/expenses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(item)});const j=await r.json();if(!r.ok)throw Error(j.error||'Erreur');expenses.unshift(j.expense);$('form').reset();$('date').value=new Date().toISOString().slice(0,10);render()}catch(err){$('error').textContent=err.message;$('error').hidden=false}finally{$('submit').disabled=false}});load();
-</script></body></html>
+</main>
+<script>
+const API_BASE = window.NOTITIA_API || '';
+const $ = id => document.getElementById(id);
+let expenses = [];
+let pendingImage = null;
+const eur = n => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(n);
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+
+function visible(){
+  const m=$('month').value, term=$('search').value.trim().toLowerCase(), cat=$('catFilter').value, pay=$('payerFilter').value;
+  return expenses.filter(x => (m==='all'||String(x.date).startsWith(m)) && (!term||String(x.label).toLowerCase().includes(term)||String(x.category).toLowerCase().includes(term)) && (cat==='all'||x.category===cat) && (pay==='all'||x.payer===pay));
+}
+function render(){
+  const rows=visible(), total=rows.filter(x=>x.shared).reduce((a,x)=>a+Number(x.amount||0),0);
+  const q=rows.filter(x=>x.shared&&x.payer==='Quentin').reduce((a,x)=>a+Number(x.amount||0),0);
+  const p=rows.filter(x=>x.shared&&x.payer==='Partenaire').reduce((a,x)=>a+Number(x.amount||0),0);
+  const due=Math.abs(q-p)/2;
+  $('total').textContent=eur(total); $('qtotal').textContent=eur(q); $('ptotal').textContent=eur(p); $('balance').textContent=eur(due);
+  $('period').textContent=(rows.length+' dépense'+(rows.length>1?'s':'')+' affichée'+(rows.length>1?'s':'')+' · partage à parts égales');
+  $('count').textContent=rows.length+' ligne'+(rows.length>1?'s':'');
+  $('list').innerHTML=rows.length?rows.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(x=>`<div class="row"><div><b>${esc(x.label)}</b><br><small>${esc(x.date)} · ${esc(x.category)}</small></div><div class="hide-mobile"><span class="pill">${esc(x.payer)}</span></div><div class="hide-mobile muted">${esc(x.status||'À équilibrer')}</div><div class="amount">${eur(x.amount)}</div></div>`).join(''):'<div class="empty">Aucune dépense ne correspond à ces filtres.</div>';
+  const cats={}; rows.forEach(x=>{if(x.shared)cats[x.category]=(cats[x.category]||0)+Number(x.amount||0)});
+  const max=Math.max(1,...Object.values(cats));
+  $('categories').innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="barline"><span>${esc(k)}</span><b>${eur(v)}</b></div><div class="bar"><i style="width:${v/max*100}%"></i></div>`).join('')||'<div class="empty">Pas encore de catégorie.</div>';
+  const over=total>0?Math.max(...Object.values(cats),0)/total:0;
+  if(!rows.length){$('insightTitle').textContent='Aucune dépense à analyser';$('insightText').textContent='Ajoutez une dépense, ou envoyez un ticket au conseiller.'}
+  else if(due<.01){$('insightTitle').textContent='Équilibre atteint';$('insightText').textContent='Les contributions sont équilibrées sur la sélection actuelle.'}
+  else if(over>.55){const top=Object.entries(cats).sort((a,b)=>b[1]-a[1])[0];$('insightTitle').textContent='Un poste concentre l’attention';$('insightText').textContent=`${top[0]} représente ${Math.round(over*100)} % des dépenses affichées. À surveiller si ce niveau se répète.`}
+  else{$('insightTitle').textContent='Prochaine action';$('insightText').textContent=`Pour équilibrer, ${q>p?'Partenaire':'Quentin'} devrait prendre en charge ${eur(due)}.`}
+}
+function addMsg(role, text, img){
+  const box=document.createElement('div');
+  box.className='bubble '+role;
+  box.innerHTML=esc(text)+(img?`<br><img class="preview" src="${img}" alt="Ticket envoyé">`:'');
+  $('chat').appendChild(box); $('chat').scrollTop=$('chat').scrollHeight;
+}
+function showSuggestion(s){
+  if(!s){$('suggestBox').hidden=true;return}
+  $('suggestBox').hidden=false;
+  $('suggestBox').innerHTML=`<strong>Ticket lu, à confirmer</strong><p>${esc(s.label)} · ${eur(s.amount)} · ${esc(s.category)} · ${esc(s.date||'date à préciser')} · ${esc(s.payer)}</p><button type="button" class="button" id="confirmSug">Enregistrer cette dépense</button>`;
+  $('confirmSug').onclick=async()=>{
+    if(!s.date) s.date=new Date().toISOString().slice(0,10);
+    try{
+      const r=await fetch(API_BASE+'/api/expenses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(s)});
+      const j=await r.json(); if(!r.ok) throw Error(j.error||'Erreur');
+      expenses.unshift(j.expense); render(); $('suggestBox').hidden=true;
+      addMsg('bot','Dépense enregistrée. Je pourrai maintenant l’inclure dans les prochains conseils.');
+    }catch(e){addMsg('bot','Je n’ai pas pu l’enregistrer: '+e.message)}
+  };
+}
+async function ask(question){
+  const q=(question||$('question').value||'').trim();
+  if(!q && !pendingImage) return;
+  addMsg('user', q||'Voici un ticket.', pendingImage);
+  addMsg('bot','Analyse en cours…');
+  const last=$('chat').lastChild;
+  try{
+    const r=await fetch(API_BASE+'/api/assistant',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,image:pendingImage})});
+    const j=await r.json(); if(!r.ok) throw Error(j.error||j.detail||'Assistant indisponible');
+    last.textContent=j.answer; showSuggestion(j.suggestion);
+  }catch(e){last.textContent='Assistant indisponible. '+e.message}
+  $('question').value=''; pendingImage=null; $('receipt').value=''; $('previewWrap').hidden=true;
+}
+async function load(){
+  try{
+    const r=await fetch(API_BASE+'/api/health'); const h=await r.json();
+    $('mode').textContent=h.mode==='airtable'?(h.assistant==='qwen'?'Airtable + Qwen':'Airtable connecté'):'Serveur local';
+    const d=await fetch(API_BASE+'/api/expenses'); const j=await d.json();
+    if(!d.ok) throw Error(j.detail||j.error||'Lecture Airtable impossible');
+    expenses=j.expenses||[];
+  }catch(e){$('mode').textContent='Connexion indisponible'; expenses=[]; addMsg('bot','Je n’arrive pas à lire les dépenses pour l’instant.')}
+  const cats=[...new Set(expenses.map(x=>x.category))].sort();
+  cats.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;$('catFilter').appendChild(o)});
+  render();
+}
+['month','search','catFilter','payerFilter'].forEach(id=>$(id).addEventListener('input',render));
+document.querySelectorAll('[data-question]').forEach(b=>b.onclick=()=>ask(b.dataset.question));
+$('askBtn').onclick=()=>ask();
+$('question').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask()}});
+$('receipt').addEventListener('change',()=>{
+  const f=$('receipt').files[0]; if(!f){pendingImage=null;$('previewWrap').hidden=true;return}
+  if(f.size>2_400_000){alert('Image trop lourde. Essayez une photo plus légère.');$('receipt').value='';return}
+  const reader=new FileReader();
+  reader.onload=()=>{pendingImage=reader.result;$('preview').src=pendingImage;$('previewWrap').hidden=false};
+  reader.readAsDataURL(f);
+});
+$('date').value=new Date().toISOString().slice(0,10);
+document.querySelectorAll('[data-fill]').forEach(b=>b.onclick=()=>{$('category').value=b.dataset.fill;$('label').focus()});
+$('form').addEventListener('submit',async e=>{
+  e.preventDefault(); $('submit').disabled=true; $('error').hidden=true;
+  const item={label:$('label').value,date:$('date').value,amount:$('amount').value,category:$('category').value,payer:$('payer').value,shared:true,status:'À équilibrer',note:$('note').value};
+  try{
+    const r=await fetch(API_BASE+'/api/expenses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(item)});
+    const j=await r.json(); if(!r.ok) throw Error(j.detail||j.error||'Erreur');
+    expenses.unshift(j.expense); $('form').reset(); $('date').value=new Date().toISOString().slice(0,10); render();
+  }catch(err){$('error').textContent=err.message;$('error').hidden=false}
+  finally{$('submit').disabled=false}
+});
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+.vercel
+__pycache__/
+*.pyc
+.env
+uv.lock
+.python-version

@@ -1,23 +1,32 @@
 # Notitia Finances
 
-MVP de l’interface de suivi des dépenses du couple. L’interface fonctionne immédiatement en **mode aperçu** avec des données locales. Elle bascule sur Airtable quand les variables d’environnement sont présentes.
+Suivi des dépenses du couple, avec un conseiller Qwen côté serveur.
 
-## Lancer
+- Frontend public : saisie, totaux, équilibre, questions, lecture de tickets.
+- Backend privé : Airtable + Qwen. Aucune clé n’est exposée dans le navigateur.
+
+## Lancer en local
 
 ```bash
 cd /home/openclaw/notitia-finances
 PORT=8787 python3 server.py
 ```
 
-Puis ouvrir http://127.0.0.1:8787
-
-## Airtable
+## Variables d’environnement
 
 ```bash
-export AIRTABLE_API_KEY='[REDACTED]'
-export AIRTABLE_BASE_ID='[BASE_ID]'
-export AIRTABLE_TABLE='Dépenses Couple'
-PORT=8787 python3 server.py
+AIRTABLE_API_KEY=
+AIRTABLE_BASE_ID=appEGVy9MVBGYmPQT
+AIRTABLE_TABLE=Dépenses
+OPENROUTER_API_KEY=
+QWEN_MODEL=qwen/qwen3.7-flash
+QWEN_VISION_MODEL=qwen/qwen2.5-vl-32b-instruct
+QWEN_BASE_URL=https://openrouter.ai/api/v1
+PUBLIC_ORIGIN=https://notitia-finances.vercel.app
 ```
 
-Le jeton ne doit jamais être placé dans `index.html` ni publié sur GitHub Pages. Le serveur Python sert d’adaptateur privé. La base Airtable séparée reste à créer ; la table créée par erreur dans Ménage Béziers Express n’est pas utilisée par défaut.
+Le jeton Airtable ne doit jamais être placé dans `index.html` ni publié sur GitHub Pages.
+
+## Production
+
+https://notitia-finances.vercel.app
