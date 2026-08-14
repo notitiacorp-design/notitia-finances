@@ -11,6 +11,8 @@ BUDGET_TABLE = os.getenv("AIRTABLE_BUDGET_TABLE", "Budgets")
 TOKEN = os.getenv("AIRTABLE_API_KEY", "")
 LOCAL_EXPENSES = []
 LOCAL_BUDGETS = []
+LOCAL_SHOPPING = []
+SHOPPING_TABLE = os.getenv("AIRTABLE_SHOPPING_TABLE", "Shopping")
 QWEN_KEY = os.getenv("QWEN_API_KEY") or os.getenv("OPENROUTER_API_KEY", "")
 QWEN_MODEL = os.getenv("QWEN_MODEL", "qwen/qwen-2.5-72b-instruct")
 QWEN_VISION_MODEL = os.getenv("QWEN_VISION_MODEL", "qwen/qwen2.5-vl-72b-instruct")
@@ -110,6 +112,135 @@ def get_all_records():
 
 def get_expenses():
     return [x for x in get_all_records() if not x.get("is_budget")]
+
+def delete_expense(record_id):
+    if TOKEN and BASE_ID:
+        try:
+            airtable_request("DELETE", f"{BASE_ID}/{urllib.parse.quote(TABLE)}/{record_id}")
+            return True
+        except Exception:
+            return False
+    global LOCAL_EXPENSES
+    LOCAL_EXPENSES = [x for x in LOCAL_EXPENSES if x.get("id") != record_id]
+    return True
+
+def clear_all_expenses():
+    deleted = 0
+    if TOKEN and BASE_ID:
+        records = list_table(TABLE) or []
+        for r in records:
+            norm = normalize_expense(r.get("fields", {}), r.get("id"))
+            if not norm.get("is_budget"):
+                try:
+                    airtable_request("DELETE", f"{BASE_ID}/{urllib.parse.quote(TABLE)}/{r['id']}")
+                    deleted += 1
+                except Exception:
+                    pass
+    global LOCAL_EXPENSES
+    LOCAL_EXPENSES = []
+    return deleted
+
+def get_shopping():
+    if TOKEN and BASE_ID:
+        try:
+            records = list_table(SHOPPING_TABLE) or []
+            return [
+                {
+                    "id": r["id"],
+                    "item": r.get("fields", {}).get("Article", ""),
+                    "category": r.get("fields", {}).get("Catégorie", "Courses"),
+                    "checked": bool(r.get("fields", {}).get("Acheté", False)),
+                    "season_tip": r.get("fields", {}).get("Conseil Saison", ""),
+                }
+                for r in records
+                if r.get("fields", {}).get("Article")
+            ]
+        except Exception:
+            pass
+    return list(LOCAL_SHOPPING)
+
+
+def add_shopping_item(item, category="Courses"):
+    item = str(item or "").strip()[:100]
+    if not item:
+        raise ValueError("Article vide")
+    if TOKEN and BASE_ID:
+        try:
+            fields = {"Article": item, "Catégorie": category, "Acheté": False}
+            data = airtable_request("POST", f"{BASE_ID}/{urllib.parse.quote(SHOPPING_TABLE)}", {"fields": fields, "typecast": True})
+            if data and isinstance(data, dict):
+                return {
+                    "id": data.get("id", ""),
+                    "item": item,
+                    "category": category,
+                    "checked": False,
+                    "season_tip": "",
+                }
+        except Exception:
+            pass
+    row = {"id": f"shop-{len(LOCAL_SHOPPING)+1}", "item": item, "category": category, "checked": False, "season_tip": ""}
+    LOCAL_SHOPPING.append(row)
+    return row
+
+
+def toggle_shopping_item(item_id, checked=None):
+    if TOKEN and BASE_ID:
+        try:
+            current = airtable_request("GET", f"{BASE_ID}/{urllib.parse.quote(SHOPPING_TABLE)}/{item_id}")
+            if current and isinstance(current, dict):
+                cur_val = bool(current.get("fields", {}).get("Acheté", False))
+                new_val = not cur_val if checked is None else bool(checked)
+                airtable_request("PATCH", f"{BASE_ID}/{urllib.parse.quote(SHOPPING_TABLE)}/{item_id}", {"fields": {"Acheté": new_val}})
+                return new_val
+        except Exception:
+            pass
+    for x in LOCAL_SHOPPING:
+        if x["id"] == item_id:
+            x["checked"] = not x["checked"] if checked is None else bool(checked)
+            return x["checked"]
+    return False
+
+
+def delete_shopping_item(item_id):
+    if TOKEN and BASE_ID:
+        try:
+            airtable_request("DELETE", f"{BASE_ID}/{urllib.parse.quote(SHOPPING_TABLE)}/{item_id}")
+            return True
+        except Exception:
+            pass
+    global LOCAL_SHOPPING
+    LOCAL_SHOPPING = [x for x in LOCAL_SHOPPING if x["id"] != item_id]
+    return True
+
+
+def analyze_shopping_with_ai(items_list, month_str=None):
+    month_str = month_str or current_month()
+    prompt = (
+        f"Nous sommes au mois de {month_str} (France métropolitaine). "
+        f"Voici la liste des courses/achats prévue par le couple Quentin & Jessica :\n"
+        f"{json.dumps(items_list, ensure_ascii=False)}\n\n"
+        f"Fais une analyse intelligente et bienveillante de cette liste en 3 points concis et percutants :\n"
+        f"1. 🍓 **Produits de saison & fraîcheur** : Quels fruits, légumes ou produits locaux privilégier ce mois-ci par rapport à la liste ou à ajouter (meilleur goût et prix bas).\n"
+        f"2. 💡 **Astuces budget & promotions de période** : Bons réflexes de saison (ex. vrac, arrivages, anti-gaspillage, rentrée ou été selon la période).\n"
+        f"3. ✨ **Suggestions d'idées repas/compléments malins** : 2 suggestions de repas simples et gourmands avec ces ingrédients.\n"
+        f"Reste très pratique, chaleureux et direct."
+    )
+    if QWEN_KEY:
+        try:
+            answer = qwen_chat(
+                [
+                    {"role": "system", "content": "Tu es l'assistant de courses et de budget malin du foyer Quentin & Jessica."},
+                    {"role": "user", "content": prompt}
+                ],
+                QWEN_MODEL
+            )
+            return extract_french(answer) or answer
+        except Exception:
+            pass
+    return (
+        f"🌾 **Saison ({month_str})** : Privilégiez les fruits et légumes locaux de saison pour de meilleurs prix et saveurs. "
+        f"Achetez les basiques en formats familiaux ou vrac pour alléger le ticket final !"
+    )
 
 
 def create_expense(item):
@@ -602,19 +733,22 @@ class Handler(SimpleHTTPRequestHandler):
                     "people": list(PAYERS),
                 },
             )
-        if path in ("/api/state", "/api/expenses", "/api/budgets"):
+        if path in ("/api/state", "/api/expenses", "/api/budgets", "/api/shopping"):
             try:
                 month = self.query().get("month") or current_month()
                 expenses = get_expenses()
                 budgets = get_budgets(month)
+                shopping = get_shopping()
                 ctx = finance_context(expenses, month)
                 if path == "/api/expenses":
                     return self.send_json(200, {"expenses": expenses})
                 if path == "/api/budgets":
                     return self.send_json(200, {"month": month, "budgets": budgets, "envelopes": ctx["envelopes"]})
+                if path == "/api/shopping":
+                    return self.send_json(200, {"shopping": shopping})
                 return self.send_json(
                     200,
-                    {"month": month, "expenses": expenses, "budgets": budgets, "envelopes": ctx["envelopes"], "facts": ctx},
+                    {"month": month, "expenses": expenses, "budgets": budgets, "envelopes": ctx["envelopes"], "shopping": shopping, "facts": ctx},
                 )
             except Exception as e:
                 return self.send_json(502, {"error": "Données indisponibles", "detail": str(e)})
@@ -656,6 +790,47 @@ class Handler(SimpleHTTPRequestHandler):
                 )
             except Exception as e:
                 return self.send_json(400, {"error": "Budget invalide", "detail": str(e)})
+        if path == "/api/shopping/analyze":
+            try:
+                body = self.read_json()
+                items = body.get("items") or [x.get("item") for x in get_shopping()]
+                month = str(body.get("month") or current_month())[:7]
+                analysis = analyze_shopping_with_ai(items, month)
+                return self.send_json(200, {"analysis": analysis, "month": month})
+            except Exception as e:
+                return self.send_json(400, {"error": "Analyse impossible", "detail": str(e)})
+        if path == "/api/shopping":
+            try:
+                body = self.read_json()
+                action = body.get("action", "add")
+                if action == "add":
+                    item = add_shopping_item(body.get("item"), body.get("category", "Courses"))
+                    return self.send_json(201, {"item": item, "shopping": get_shopping()})
+                if action == "toggle":
+                    toggle_shopping_item(body.get("id"), body.get("checked"))
+                    return self.send_json(200, {"shopping": get_shopping()})
+                if action == "delete":
+                    delete_shopping_item(body.get("id"))
+                    return self.send_json(200, {"shopping": get_shopping()})
+                return self.send_json(400, {"error": "Action inconnue"})
+            except Exception as e:
+                return self.send_json(400, {"error": "Opération shopping impossible", "detail": str(e)})
+        if path == "/api/expenses/clear":
+            try:
+                count = clear_all_expenses()
+                return self.send_json(200, {"ok": True, "deleted": count, "expenses": get_expenses()})
+            except Exception as e:
+                return self.send_json(500, {"error": "Erreur suppression", "detail": str(e)})
+        if path == "/api/expenses/delete":
+            try:
+                body = self.read_json()
+                rid = body.get("id")
+                if not rid:
+                    return self.send_json(400, {"error": "ID manquant"})
+                delete_expense(rid)
+                return self.send_json(200, {"ok": True, "expenses": get_expenses()})
+            except Exception as e:
+                return self.send_json(500, {"error": "Erreur suppression", "detail": str(e)})
         if path != "/api/expenses":
             return self.send_json(404, {"error": "Not found"})
         try:
