@@ -173,6 +173,8 @@ def sanitize_image(image):
 def parse_suggestion(text):
     match = re.search(r"SUGGESTION_JSON\s*(\{.*?\})", text, re.S)
     if not match:
+        match = re.search(r"(\{\s*\"(?:label|amount|merchant)\"\s*:.*?\})", text, re.S)
+    if not match:
         return None
     try:
         raw = json.loads(match.group(1))
@@ -234,7 +236,7 @@ def qwen_chat(messages, model, max_tokens=700):
         content = extract_french(str(msg.get("reasoning") or ""))
     if not content:
         raise RuntimeError("Réponse Qwen vide")
-    return clean_answer(content)
+    return content
 
 
 def extract_french(text):
@@ -266,9 +268,9 @@ def assistant_answer(question, expenses, image=None):
         + json.dumps(ctx, ensure_ascii=False)
         + "\n\nQuestion: "
         + (question or "Analyse ce ticket et dis-moi ce qu'il faut en retenir.")
-        + "\n\nSi tu lis un ticket, termine par une ligne du type:\n"
+        + "Si une image est jointe, termine OBLIGATOIREMENT par une ligne:\n"
         + 'SUGGESTION_JSON {"label":"...","amount":12.5,"date":"2026-08-14","category":"Courses","payer":"Quentin","confidence":"medium","note":"..."}\n'
-        + "Omets cette ligne s'il n'y a pas de ticket lisible."
+        + "Omets cette ligne seulement si rien n'est lisible."
     )
     if QWEN_KEY:
         try:
@@ -285,7 +287,7 @@ def assistant_answer(question, expenses, image=None):
                 model,
             )
             suggestion = parse_suggestion(answer)
-            clean = re.sub(r"\s*SUGGESTION_JSON\s*\{.*?\}", "", answer, flags=re.S).strip()
+            clean = clean_answer(answer)
             return clean, "qwen", suggestion, ctx
         except Exception as e:
             if image:
