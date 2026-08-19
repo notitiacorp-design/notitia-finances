@@ -124,6 +124,35 @@ def delete_expense(record_id):
     LOCAL_EXPENSES = [x for x in LOCAL_EXPENSES if x.get("id") != record_id]
     return True
 
+def update_expense(record_id, item):
+    item = dict(item)
+    item["payer"] = display_payer(item.get("payer"))
+    fields = {
+        "Dépense": item["label"],
+        "Date": item["date"],
+        "Catégorie": item["category"],
+        "Montant (€)": float(item["amount"]),
+        "Payé par": item["payer"],
+    }
+    if "shared" in item:
+        fields["Dépense commune"] = bool(item.pop("shared"))
+    if item.get("status"):
+        fields["Remboursement"] = item["status"]
+    if item.get("note"):
+        fields["Note"] = item["note"]
+    if TOKEN and BASE_ID:
+        data = airtable_request(
+            "PATCH",
+            f"{BASE_ID}/{urllib.parse.quote(TABLE)}/{record_id}",
+            {"fields": fields, "typecast": True},
+        )
+        return normalize_expense(data.get("fields", fields), data.get("id", record_id))
+    for x in LOCAL_EXPENSES:
+        if x.get("id") == record_id:
+            x.update(item)
+            return x
+    raise ValueError("Dépense introuvable")
+
 def clear_all_expenses():
     deleted = 0
     if TOKEN and BASE_ID:
@@ -844,6 +873,16 @@ class Handler(SimpleHTTPRequestHandler):
                 return self.send_json(200, {"ok": True, "expenses": get_expenses()})
             except Exception as e:
                 return self.send_json(500, {"error": "Erreur suppression", "detail": str(e)})
+        if path == "/api/expenses/update":
+            try:
+                body = self.read_json()
+                rid = body.get("id")
+                if not rid:
+                    return self.send_json(400, {"error": "ID manquant"})
+                update_expense(rid, body)
+                return self.send_json(200, {"ok": True, "expenses": get_expenses()})
+            except Exception as e:
+                return self.send_json(500, {"error": "Erreur mise à jour", "detail": str(e)})
         if path != "/api/expenses":
             return self.send_json(404, {"error": "Not found"})
         try:

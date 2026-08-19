@@ -583,6 +583,31 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
   text-align:right;
   flex-shrink:0;
 }
+.tx-right{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-shrink:0;
+}
+.tx-actions{
+  display:flex;
+  gap:4px;
+}
+.tx-act{
+  width:27px;height:27px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid var(--border-subtle);
+  background:var(--surface-subtle);
+  border-radius:7px;
+  cursor:pointer;
+  font-size:13px;
+  color:var(--text-dim);
+  transition:all 0.15s;
+  padding:0;
+  line-height:1;
+}
+.tx-act:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+.tx-act.del:hover{background:#d94848;border-color:#d94848}
 
 /* SMART SHOPPING LIST & SEASONAL AI */
 .shopping-card{
@@ -1321,8 +1346,9 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
 <!-- Manual Add Modal -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-box">
-    <h3 class="modal-title">Ajouter une dépense</h3>
+    <h3 class="modal-title" id="modalTitle">Ajouter une dépense</h3>
     <form id="manualForm">
+      <input type="hidden" id="f_id">
       <div class="form-group">
         <label for="f_label">Libellé</label>
         <input type="text" id="f_label" required placeholder="Ex. Supermarché, Facture EDF…">
@@ -1383,6 +1409,7 @@ const CATEGORY_META = {
 };
 
 let expenses = [];
+let editingShared = true;
 let envelopes = [];
 let shopping = [];
 let currentMonth = new Date().toISOString().slice(0,7);
@@ -1563,7 +1590,13 @@ function renderUI(){
               </div>
             </div>
           </div>
-          <div class="tx-amount">${eur(t.amount)}</div>
+          <div class="tx-right">
+            <div class="tx-amount">${eur(t.amount)}</div>
+            <div class="tx-actions">
+              <button class="tx-act" title="Modifier" onclick="openEditExpense('${t.id}')">&#9998;</button>
+              <button class="tx-act del" title="Supprimer" onclick="deleteExpense('${t.id}')">&#128465;</button>
+            </div>
+          </div>
         </div>
       `;
     }).join('');
@@ -1866,6 +1899,8 @@ async function loadState(){
 
 // Modal Handlers
 $('btnOpenModal').onclick = () => {
+  $('modalTitle').textContent = 'Ajouter une dépense';
+  $('f_id').value = '';
   $('f_date').value = new Date().toISOString().slice(0,10);
   $('modalOverlay').classList.add('open');
 };
@@ -1880,15 +1915,17 @@ $('manualForm').onsubmit = async e => {
     payer: $('f_payer').value,
     shared: true
   };
+  const editId = $('f_id').value;
+  const finalItem = editId ? {...item, shared: editingShared} : item;
   try{
-    const r = await fetch(API_BASE + '/api/expenses', {
+    const url = editId ? (API_BASE + '/api/expenses/update') : (API_BASE + '/api/expenses');
+    const r = await fetch(url, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(item)
+      body:JSON.stringify(editId ? {id:editId, ...finalItem} : finalItem)
     });
     const j = await r.json();
     if(!r.ok) throw Error(j.detail || j.error || 'Erreur');
-    expenses.unshift(j.expense);
     $('manualForm').reset();
     $('modalOverlay').classList.remove('open');
     await loadState();
@@ -1896,6 +1933,34 @@ $('manualForm').onsubmit = async e => {
     alert('Erreur: ' + err.message);
   }
 };
+function openEditExpense(id){
+  const t = expenses.find(x => String(x.id) === String(id));
+  if(!t) return;
+  $('modalTitle').textContent = 'Modifier la dépense';
+  $('f_id').value = id;
+  editingShared = t.shared !== false;
+  $('f_label').value = t.label || '';
+  $('f_amount').value = t.amount || '';
+  $('f_date').value = (t.date || '').slice(0,10);
+  $('f_cat').value = t.category && CATEGORY_META[t.category] ? t.category : 'Autres';
+  $('f_payer').value = t.payer === 'Jessica' ? 'Jessica' : 'Quentin';
+  $('modalOverlay').classList.add('open');
+}
+async function deleteExpense(id){
+  if(!confirm('Supprimer cette dépense ? Cette action est définitive.')) return;
+  try{
+    const r = await fetch(API_BASE + '/api/expenses/delete', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({id})
+    });
+    const j = await r.json();
+    if(!r.ok) throw Error(j.detail || j.error || 'Erreur');
+    await loadState();
+  }catch(err){
+    alert('Erreur: ' + err.message);
+  }
+}
 
 // Events Binding
 $('prevM').onclick = () => shiftMonth(-1);
