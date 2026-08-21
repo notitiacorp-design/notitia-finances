@@ -2,11 +2,16 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
 <title>DuoSpend · Finances & Sérénité à deux</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#fbf8f3">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cabinet+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
@@ -36,51 +41,70 @@
   --shadow-sm:0 2px 8px rgba(28,25,23,0.03);
   --shadow-md:0 12px 32px rgba(28,25,23,0.05);
   --shadow-lg:0 20px 48px rgba(28,25,23,0.08);
+  --shadow-glow-primary:0 8px 24px rgba(45,106,79,0.18);
+  --shadow-glow-amber:0 8px 24px rgba(217,119,6,0.18);
   --radius-xl:24px;
   --radius-lg:18px;
   --radius-md:12px;
 }
 
-*{box-sizing:border-box;margin:0;padding:0}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 html,body{
   min-height:100%;
   background:var(--bg);
   color:var(--text-main);
   font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;
   -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  touch-action:manipulation;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+@media(max-width:880px){
+  input, select, textarea{
+    font-size:16px !important; /* Prevents auto-zoom in Safari iOS */
+  }
 }
 
 body{
   background-image:
-    radial-gradient(at 0% 0%, rgba(45,106,79,0.06) 0px, transparent 40%),
-    radial-gradient(at 100% 0%, rgba(217,119,6,0.06) 0px, transparent 40%),
-    radial-gradient(at 50% 100%, rgba(124,58,237,0.04) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(45,106,79,0.08) 0px, transparent 45%),
+    radial-gradient(at 100% 0%, rgba(217,119,6,0.08) 0px, transparent 45%),
+    radial-gradient(at 50% 100%, rgba(124,58,237,0.05) 0px, transparent 50%);
   background-attachment:fixed;
+  overflow-x:hidden;
 }
 
-button,input,select,textarea{font:inherit;color:inherit}
-button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:transparent}
-
-.container{
-  max-width:1280px;
-  margin:0 auto;
-  padding:28px 24px 100px;
+/* Micro-interactions & animations */
+.btn-press{
+  transition:transform 0.15s cubic-bezier(0.16,1,0.3,1), box-shadow 0.15s ease, background 0.2s ease;
+}
+.btn-press:active{
+  transform:scale(0.96) !important;
 }
 
-/* Header */
-.header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:20px;
-  gap:16px;
-  flex-wrap:wrap;
+.hover-lift{
+  transition:transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.25s ease;
+}
+.hover-lift:hover{
+  transform:translateY(-3px);
+  box-shadow:var(--shadow-lg);
 }
 
 .brand-wrap{
   display:flex;
   align-items:center;
   gap:14px;
+  transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);
+  cursor:pointer;
+}
+.brand-wrap:hover{
+  transform:scale(1.02);
+}
+.brand-wrap:hover .app-logo{
+  transform:rotate(-6deg) scale(1.08);
+  box-shadow:0 8px 24px rgba(45,106,79,0.35);
 }
 
 .app-logo{
@@ -93,29 +117,54 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
   color:white;
   box-shadow:0 6px 18px rgba(45,106,79,0.22);
   flex-shrink:0;
+  transition:all 0.3s cubic-bezier(0.16,1,0.3,1);
 }
 
-.brand-titles h1{
-  font-family:'Cabinet Grotesk',sans-serif;
-  font-weight:900;
-  font-size:24px;
-  letter-spacing:-0.03em;
-  color:var(--text-main);
-  line-height:1.1;
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
 .badge-tag{
   font-family:'Plus Jakarta Sans',sans-serif;
   font-size:10.5px;
   font-weight:800;
   background:var(--primary-light);
   color:var(--primary);
-  padding:2px 7px;
+  padding:2px 8px;
   border-radius:20px;
   text-transform:uppercase;
   letter-spacing:0.06em;
+  border:1px solid rgba(45,106,79,0.2);
+  animation:floatBadge 3.5s ease-in-out infinite;
+}
+
+.month-picker{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  background:var(--surface);
+  padding:4px 6px;
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-sm);
+  border:1px solid var(--border);
+  transition:all 0.25s cubic-bezier(0.16,1,0.3,1);
+}
+.month-picker:hover{
+  border-color:var(--text-dim);
+  box-shadow:0 4px 16px rgba(0,0,0,0.06);
+}
+.month-btn{
+  width:36px;
+  height:36px;
+  border-radius:var(--radius-md);
+  display:grid;
+  place-items:center;
+  color:var(--text-muted);
+  transition:all 0.2s cubic-bezier(0.16,1,0.3,1);
+}
+.month-btn:hover{
+  background:var(--surface-subtle);
+  color:var(--text-main);
+  transform:scale(1.1);
+}
+.month-btn:active{
+  transform:scale(0.92);
 }
 .brand-titles p{
   font-size:13px;
@@ -182,16 +231,29 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
   justify-content:center;
   gap:8px;
   white-space:nowrap;
+  position:relative;
+}
+.tab-btn svg{
+  transition:transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .tab-btn:hover{
   color:var(--text-main);
   background:rgba(0,0,0,0.03);
+}
+.tab-btn:hover svg{
+  transform:scale(1.15);
+}
+.tab-btn:active{
+  transform:scale(0.96);
 }
 .tab-btn.active{
   background:var(--text-main);
   color:white;
   box-shadow:0 4px 14px rgba(28,25,23,0.15);
   transform:translateY(-1px);
+}
+.tab-btn.active svg{
+  transform:scale(1.08);
 }
 
 .tab-pane{
@@ -202,17 +264,17 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
   to{opacity:1;transform:translateY(0)}
 }
 
-/* AI Floating Banner */
+/* AI Floating Banner & Moka Companion */
 .ai-summary-card{
   background:var(--surface);
   border:1px solid var(--border);
   border-radius:var(--radius-xl);
-  padding:16px 18px;
+  padding:14px 18px;
   margin-bottom:24px;
   box-shadow:var(--shadow-md);
   display:flex;
   align-items:center;
-  gap:14px;
+  gap:16px;
   position:relative;
   overflow:hidden;
 }
@@ -225,15 +287,639 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
   width:4px;
   background:linear-gradient(180deg, var(--primary), var(--amber));
 }
-.ai-icon-badge{
-  width:38px;
-  height:38px;
+
+/* Moka Companion Avatar & Animations */
+.moka-avatar-wrap{
+  position:relative;
+  width:64px;
+  height:64px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  flex-shrink:0;
+  border-radius:18px;
+  background:linear-gradient(135deg, #F4EFEB, #E8DFD8);
+  border:2px solid rgba(45,106,79,0.25);
+  box-shadow:0 4px 14px rgba(45,106,79,0.12);
+  transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow:hidden;
+}
+.moka-avatar-wrap:hover{
+  transform:scale(1.08);
+  border-color:var(--primary);
+  box-shadow:0 8px 20px -4px rgba(45,106,79,0.3);
+}
+.moka-avatar-wrap:active{
+  transform:scale(0.95);
+}
+.moka-img-avatar{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border-radius:16px;
+  transition:transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.moka-stage-img{
+  width:145px;
+  height:145px;
+  object-fit:cover;
+  border-radius:24px;
+  box-shadow:0 10px 25px -6px rgba(0,0,0,0.2);
+  transition:transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.moka-svg{
+  overflow:visible;
+  animation:mokaBreathe 4s ease-in-out infinite;
+  transform-origin:bottom center;
+}
+.moka-stage-svg{
+  overflow:visible;
+  animation:mokaBreathe 4.5s ease-in-out infinite;
+  transform-origin:bottom center;
+}
+
+/* Keyframes animations de Moka (subtiles & premium) */
+@keyframes mokaBreathe{
+  0%, 100%{ transform:scale(1) translateY(0); }
+  50%{ transform:scale(1.02, 0.98) translateY(-1px); }
+}
+@keyframes mokaTailWag{
+  0%, 100%{ transform:rotate(0deg); }
+  50%{ transform:rotate(8deg); }
+}
+.moka-tail{
+  transform-origin:82px 85px;
+  animation:mokaTailWag 3.5s ease-in-out infinite;
+}
+@keyframes mokaEarTwitchL{
+  0%, 90%, 100%{ transform:rotate(0deg); }
+  92%{ transform:rotate(-4deg); }
+  96%{ transform:rotate(2deg); }
+}
+@keyframes mokaEarTwitchR{
+  0%, 88%, 100%{ transform:rotate(0deg); }
+  90%{ transform:rotate(4deg); }
+  94%{ transform:rotate(-2deg); }
+}
+.moka-ear-l{
+  transform-origin:48px 36px;
+  animation:mokaEarTwitchL 6s ease-in-out infinite;
+}
+.moka-ear-r{
+  transform-origin:72px 36px;
+  animation:mokaEarTwitchR 7s ease-in-out infinite;
+}
+@keyframes mokaBlink{
+  0%, 94%, 98%, 100%{ transform:scaleY(1); }
+  96%{ transform:scaleY(0.1); }
+}
+.moka-eyes{
+  transform-origin:60px 49px;
+  animation:mokaBlink 5s infinite;
+}
+.moka-stage-svg .moka-eyes{
+  transform-origin:80px 64px;
+}
+.moka-paw-l, .moka-paw-r{
+  transition:transform 0.2s ease;
+}
+
+/* Classes d'états d'animation Moka */
+.moka-happy .moka-svg, .moka-happy .moka-stage-svg{
+  animation:mokaJump 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+@keyframes mokaJump{
+  0%{ transform:scale(1) translateY(0); }
+  30%{ transform:scale(1.12, 0.88) translateY(-10px); }
+  60%{ transform:scale(0.95, 1.05) translateY(2px); }
+  100%{ transform:scale(1) translateY(0); }
+}
+.moka-nod .moka-svg, .moka-nod .moka-stage-svg{
+  animation:mokaNodding 1s ease-in-out !important;
+}
+@keyframes mokaNodding{
+  0%, 100%{ transform:rotate(0deg); }
+  25%{ transform:rotate(-5deg) translateY(-2px); }
+  50%{ transform:rotate(4deg) translateY(2px); }
+  75%{ transform:rotate(-2deg); }
+}
+.moka-shrug .moka-paw-r{
+  transform:translateY(-8px) rotate(-15deg);
+}
+
+/* --- MEMES & MOODS DUOPAWS (INTERNET CULTURE & DBZ AURA) --- */
+
+/* 1. Dramatic Slow Zoom / Side Eye */
+.moka-sideeye .moka-eyes{
+  transform:translateX(5px) scaleY(0.85) !important;
+}
+.moka-sideeye .moka-svg{
+  animation:mokaDramaticZoom 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
+}
+@keyframes mokaDramaticZoom{
+  0%{ transform:scale(1); }
+  60%{ transform:scale(1.3) translateY(4px); }
+  100%{ transform:scale(1.25) translateY(3px); }
+}
+
+/* 2. Shocked / Disbelief (O_O meme) */
+.moka-shocked .moka-eyes{
+  transform:scale(1.5) !important;
+  transform-origin:60px 49px;
+}
+.moka-shocked .moka-svg{
+  animation:mokaShakeShock 0.8s ease-in-out !important;
+}
+@keyframes mokaShakeShock{
+  0%, 100%{ transform:scale(1) translateY(0); }
+  15%{ transform:scale(1.15) translateY(-8px) rotate(-3deg); }
+  30%{ transform:scale(1.15) translateY(4px) rotate(3deg); }
+  45%{ transform:scale(1.1) translateY(-4px) rotate(-2deg); }
+  60%{ transform:scale(1.05) translateY(2px) rotate(1deg); }
+}
+
+/* 3. DBZ Maximum Aura (Super Saiyan Mode) */
+.moka-dbz{
+  position:relative;
+}
+.moka-dbz::after{
+  content:"";
+  position:absolute;
+  inset:-14px;
+  border-radius:24px;
+  background:radial-gradient(circle, rgba(245, 158, 11, 0.45) 0%, rgba(239, 68, 68, 0.25) 50%, transparent 75%);
+  filter:blur(6px);
+  animation:dbzAuraPulse 0.4s ease-in-out infinite alternate;
+  pointer-events:none;
+  z-index:1;
+}
+@keyframes dbzAuraPulse{
+  0%{ transform:scale(0.95); opacity:0.7; }
+  100%{ transform:scale(1.22); opacity:1; filter:blur(10px); }
+}
+.moka-dbz .moka-svg, .moka-dbz .moka-stage-svg{
+  animation:mokaSuperSaiyan 0.35s ease-in-out infinite alternate !important;
+  filter:drop-shadow(0 0 12px rgba(245,158,11,0.9));
+  z-index:2;
+}
+@keyframes mokaSuperSaiyan{
+  0%{ transform:scale(1.1) translateY(-3px) rotate(-1deg); }
+  100%{ transform:scale(1.13) translateY(-6px) rotate(1deg); }
+}
+
+/* 4. Floor Meltdown / Exhaused (Budget massacré) */
+.moka-flat .moka-svg, .moka-flat .moka-stage-svg{
+  animation:mokaFlatten 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+@keyframes mokaFlatten{
+  0%{ transform:scale(1); }
+  40%{ transform:scale(1.2, 0.6) translateY(12px); }
+  100%{ transform:scale(1.3, 0.4) translateY(16px); }
+}
+
+/* 5. Suspicious / Fry meme */
+.moka-suspicious .moka-eyes{
+  transform:scaleY(0.25) scaleX(1.1) !important;
+}
+.moka-suspicious .moka-ear-r{
+  transform:rotate(12deg) !important;
+}
+
+/* 6. Sleepy / AFK Mode */
+.moka-sleepy .moka-eyes{
+  transform:scaleY(0.1) !important;
+}
+.moka-sleepy .moka-svg{
+  animation:mokaSleepZzz 3.5s ease-in-out infinite !important;
+}
+@keyframes mokaSleepZzz{
+  0%, 100%{ transform:translateY(0) rotate(0deg); }
+  50%{ transform:translateY(3px) rotate(2deg); }
+}
+
+/* Meme Toast Overlay Banner (Cut-meme de 1.5s) */
+.meme-cut-card{
+  position:fixed;
+  top:80px;
+  left:50%;
+  transform:translateX(-50%) scale(0.9);
+  background:rgba(20, 24, 22, 0.94);
+  backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,0.15);
+  color:#ffffff;
+  padding:14px 22px;
+  border-radius:20px;
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  box-shadow:0 20px 50px -10px rgba(0,0,0,0.5), 0 0 30px rgba(45,106,79,0.3);
+  opacity:0;
+  pointer-events:none;
+  transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.meme-cut-card.show{
+  opacity:1;
+  transform:translateX(-50%) scale(1);
+}
+.meme-cut-text{
+  display:flex;
+  flex-direction:column;
+}
+.meme-cut-title{
+  font-size:0.78rem;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:#52B788;
+}
+.meme-cut-caption{
+  font-size:1.05rem;
+  font-weight:700;
+  color:#ffffff;
+  margin-top:2px;
+}
+.meme-cut-badge{
+  font-family:var(--font-mono);
+  font-size:0.72rem;
+  background:rgba(245,158,11,0.25);
+  color:#F59E0B;
+  padding:3px 8px;
+  border-radius:6px;
+  border:1px solid rgba(245,158,11,0.4);
+}
+
+.moka-mood-dot{
+  position:absolute;
+  bottom:3px;
+  right:3px;
+  width:11px;
+  height:11px;
+  border-radius:50%;
+  background:#52B788;
+  border:2px solid #ffffff;
+  box-shadow:0 0 0 1px rgba(0,0,0,0.06);
+}
+.badge-moka{
+  display:inline-flex;
+  align-items:center;
+  padding:2px 8px;
+  border-radius:999px;
+  font-size:0.7rem;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+  background:linear-gradient(135deg, rgba(45,106,79,0.12), rgba(217,119,6,0.12));
+  color:var(--primary);
+  border:1px solid rgba(45,106,79,0.2);
+}
+.moka-mini-act-btn{
+  margin-left:auto;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 12px;
+  border-radius:var(--radius-md);
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--text-main);
+  font-size:0.8rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:all 0.2s ease;
+  white-space:nowrap;
+}
+.moka-mini-act-btn:hover{
+  background:var(--primary-light);
+  color:var(--primary);
+  border-color:var(--primary);
+}
+
+/* Quests & Moka Room Styling */
+.quests-container{
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+}
+.moka-room-card{
+  display:grid;
+  grid-template-columns:300px 1fr;
+  gap:28px;
+  align-items:center;
+  padding:26px;
+  background:radial-gradient(circle at top left, rgba(232,223,216,0.35), var(--surface) 70%);
+}
+.moka-room-visual{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  position:relative;
+}
+.moka-room-badge{
+  font-size:0.75rem;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.05em;
+  padding:4px 12px;
+  border-radius:999px;
+  background:rgba(45,106,79,0.1);
+  color:var(--primary);
+  margin-bottom:12px;
+}
+.moka-stage-platform{
+  width:170px;
+  height:170px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(244,239,235,0.9), rgba(218,207,199,0.4) 70%, transparent 100%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:transform 0.3s ease;
+}
+.moka-stage-platform:hover{
+  transform:scale(1.04);
+}
+.moka-speech-bubble{
+  position:relative;
+  margin-top:14px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  padding:12px 16px;
+  border-radius:16px;
+  font-size:0.88rem;
+  line-height:1.4;
+  color:var(--text-main);
+  box-shadow:var(--shadow-sm);
+  text-align:center;
+  max-width:280px;
+}
+.moka-speech-bubble::after{
+  content:"";
+  position:absolute;
+  top:-6px;
+  left:50%;
+  transform:translateX(-50%) rotate(45deg);
+  width:10px;
+  height:10px;
+  background:var(--surface);
+  border-top:1px solid var(--border);
+  border-left:1px solid var(--border);
+}
+
+.moka-stats-section{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.serenity-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.serenity-title{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:1.15rem;
+  font-weight:700;
+  color:var(--text-main);
+}
+.serenity-title svg{
+  color:var(--coral);
+}
+.serenity-sub{
+  font-size:0.85rem;
+  color:var(--text-muted);
+  margin-top:2px;
+}
+.serenity-score-box{
+  font-family:var(--font-mono);
+  font-weight:800;
+}
+.serenity-score{
+  font-size:1.7rem;
+  color:var(--primary);
+}
+.serenity-max{
+  font-size:0.95rem;
+  color:var(--text-muted);
+}
+.serenity-bar-track{
+  height:12px;
+  background:var(--border-subtle);
+  border-radius:999px;
+  overflow:hidden;
+  position:relative;
+}
+.serenity-bar-fill{
+  height:100%;
+  background:linear-gradient(90deg, #52B788, #2D6A4F, #D97706);
+  border-radius:999px;
+  transition:width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.levels-roadmap{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:10px;
+  margin-top:8px;
+}
+.level-step{
+  background:var(--surface-sunken);
+  border:1px solid var(--border);
   border-radius:12px;
-  background:linear-gradient(135deg, var(--primary-light), var(--amber-light));
+  padding:10px 12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  opacity:0.6;
+  transition:all 0.2s ease;
+}
+.level-step.active{
+  opacity:1;
+  background:var(--surface);
+  border-color:var(--primary);
+  box-shadow:0 4px 12px -3px rgba(45,106,79,0.15);
+}
+.level-step.done{
+  opacity:0.9;
+  border-color:#52B788;
+}
+.step-dot{
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  background:var(--border);
+  display:grid;
+  place-items:center;
+  font-size:0.75rem;
+  font-weight:700;
+  color:var(--text-muted);
+  flex-shrink:0;
+}
+.level-step.active .step-dot{
+  background:var(--primary);
+  color:#ffffff;
+}
+.level-step.done .step-dot{
+  background:#52B788;
+  color:#ffffff;
+}
+.step-info{
+  display:flex;
+  flex-direction:column;
+}
+.step-name{
+  font-size:0.78rem;
+  font-weight:700;
+  color:var(--text-main);
+}
+.step-unlock{
+  font-size:0.7rem;
+  color:var(--text-muted);
+}
+
+/* Quests List */
+.quests-list{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-top:14px;
+}
+.quest-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:14px 18px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  transition:all 0.2s ease;
+}
+.quest-item:hover{
+  border-color:var(--primary);
+  transform:translateY(-1px);
+}
+.quest-left{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.quest-icon{
+  font-size:1.4rem;
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  background:var(--surface-sunken);
   display:grid;
   place-items:center;
   flex-shrink:0;
-  color:var(--primary);
+}
+.quest-title{
+  font-size:0.92rem;
+  font-weight:700;
+  color:var(--text-main);
+  margin-bottom:2px;
+}
+.quest-desc{
+  font-size:0.8rem;
+  color:var(--text-muted);
+}
+.quest-right{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.quest-xp{
+  font-family:var(--font-mono);
+  font-size:0.82rem;
+  font-weight:700;
+  color:var(--amber);
+  background:var(--amber-light);
+  padding:3px 8px;
+  border-radius:6px;
+}
+.quest-btn{
+  padding:6px 14px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  font-size:0.82rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:all 0.2s ease;
+}
+.quest-btn:hover{
+  background:var(--primary);
+  color:#ffffff;
+  border-color:var(--primary);
+}
+.quest-btn.completed{
+  background:#52B788;
+  color:#ffffff;
+  border-color:#52B788;
+  cursor:default;
+}
+
+/* Meal Roulette */
+.roulette-box{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:16px;
+  padding:24px;
+  background:radial-gradient(circle, var(--surface-sunken), var(--surface));
+  border-radius:var(--radius-lg);
+  border:1px dashed var(--border);
+  text-align:center;
+}
+.roulette-display{
+  font-size:1.15rem;
+  font-weight:700;
+  color:var(--text-main);
+  padding:14px 24px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  box-shadow:var(--shadow-sm);
+  min-width:280px;
+  transition:all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-roulette{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 20px;
+  border-radius:12px;
+  background:var(--primary);
+  color:#ffffff;
+  font-size:0.9rem;
+  font-weight:700;
+  border:none;
+  cursor:pointer;
+  transition:all 0.2s ease;
+  box-shadow:0 4px 14px -3px rgba(45,106,79,0.35);
+}
+.btn-roulette:hover{
+  background:var(--primary-dark);
+  transform:translateY(-1px);
+}
+.btn-roulette:active{
+  transform:scale(0.97);
+}
+
+@media(max-width:880px){
+  .moka-room-card{
+    grid-template-columns:1fr;
+    gap:18px;
+    padding:18px;
+  }
+  .levels-roadmap{
+    grid-template-columns:repeat(2, 1fr);
+  }
 }
 .ai-summary-content{
   flex:1;
@@ -271,6 +957,11 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
   flex-direction:column;
   gap:16px;
   position:relative;
+  transition:all 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+.card:hover{
+  border-color:rgba(0,0,0,0.12);
+  box-shadow:var(--shadow-lg);
 }
 
 .card-header{
@@ -427,12 +1118,13 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
   display:flex;
   flex-direction:column;
   gap:10px;
-  transition:all 0.2s ease;
+  transition:all 0.25s cubic-bezier(0.16,1,0.3,1);
   position:relative;
 }
 .envelope-box:hover{
   border-color:var(--text-dim);
-  box-shadow:var(--shadow-sm);
+  box-shadow:0 8px 24px rgba(0,0,0,0.06);
+  transform:translateY(-2px);
 }
 .envelope-top{
   display:flex;
@@ -549,19 +1241,35 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:11px 13px;
+  padding:12px 14px;
   background:var(--surface-card);
   border:1px solid var(--border-subtle);
   border-radius:var(--radius-md);
-  transition:all 0.2s;
+  transition:all 0.25s cubic-bezier(0.16,1,0.3,1);
   gap:8px;
 }
 .tx-info{
   display:flex;
   align-items:center;
-  gap:10px;
+  gap:12px;
   min-width:0;
   flex:1;
+}
+.tx-icon{
+  width:38px;
+  height:38px;
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  font-size:18px;
+  background:var(--surface-subtle);
+  font-family:'Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji',sans-serif;
+  line-height:1;
+  flex-shrink:0;
+  transition:transform 0.25s cubic-bezier(0.16,1,0.3,1);
+}
+.tx-row:hover .tx-icon{
+  transform:scale(1.1) rotate(4deg);
 }
 .tx-label{
   font-weight:700;
@@ -597,6 +1305,9 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
   font-size:16px;
   text-align:right;
   flex-shrink:0;
+}
+.person-amount, .envelope-spent, .donut-center-total, .tx-amount{
+  font-variant-numeric:tabular-nums;
 }
 .tx-right{
   display:flex;
@@ -804,6 +1515,18 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
   from{opacity:0;transform:translateY(12px)}
   to{opacity:1;transform:translateY(0)}
 }
+@keyframes spin{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+@keyframes pulseGlow{
+  0%,100%{box-shadow:0 0 0 0 rgba(45,106,79,0.2)}
+  50%{box-shadow:0 0 0 8px rgba(45,106,79,0)}
+}
+@keyframes floatBadge{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-2px)}
+}
 .finish-shop-info{
   display:flex;
   flex-direction:column;
@@ -907,7 +1630,49 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
   font-size:13.5px;
   line-height:1.55;
   color:var(--text-main);
-  white-space:pre-wrap;
+}
+.ai-season-content .ai-card-section{
+  background:white;
+  border-radius:var(--radius-md);
+  padding:14px 16px;
+  margin-bottom:12px;
+  border:1px solid var(--border-subtle);
+  box-shadow:0 2px 8px rgba(0,0,0,0.03);
+  transition:all 0.2s ease;
+}
+.ai-season-content .ai-card-section:last-child{
+  margin-bottom:0;
+}
+.ai-season-content .ai-card-section:hover{
+  border-color:rgba(45,106,79,0.25);
+  box-shadow:0 4px 14px rgba(45,106,79,0.08);
+}
+.ai-season-content .ai-card-title{
+  font-family:'Cabinet Grotesk',sans-serif;
+  font-size:14.5px;
+  font-weight:800;
+  color:var(--primary);
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-bottom:8px;
+  padding-bottom:6px;
+  border-bottom:1.5px solid var(--primary-light);
+}
+.ai-season-content ul, .ai-season-content ol{
+  margin:6px 0 6px 18px;
+  padding:0;
+}
+.ai-season-content li{
+  margin-bottom:6px;
+  line-height:1.45;
+}
+.ai-season-content strong{
+  color:var(--text-main);
+  font-weight:700;
+}
+.ai-season-content p{
+  margin:4px 0 8px;
 }
 
 /* Assistant Interactive Drawer */
@@ -938,8 +1703,12 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
   border-radius:16px;
   font-size:13px;
   line-height:1.45;
-  white-space:pre-wrap;
 }
+.chat-bubble p{margin:0 0 6px;}
+.chat-bubble p:last-child{margin:0;}
+.chat-bubble ul, .chat-bubble ol{margin:4px 0 6px 16px;padding:0;}
+.chat-bubble li{margin-bottom:3px;}
+.chat-bubble strong{font-weight:700;}
 .chat-msg.user .chat-bubble{
   background:var(--text-main);
   color:white;
@@ -994,12 +1763,23 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
   font-size:11.5px;
   font-weight:600;
   background:var(--surface-subtle);
-  padding:5px 9px;
+  padding:6px 12px;
   border-radius:14px;
   white-space:nowrap;
   border:1px solid var(--border-subtle);
-  transition:all 0.2s;
+  transition:all 0.2s cubic-bezier(0.16,1,0.3,1);
   flex-shrink:0;
+  cursor:pointer;
+}
+.quick-btn:hover{
+  background:white;
+  color:var(--primary);
+  border-color:var(--primary);
+  transform:translateY(-1.5px);
+  box-shadow:0 3px 8px rgba(0,0,0,0.06);
+}
+.quick-btn:active{
+  transform:scale(0.95);
 }
 
 .chat-input-bar{
@@ -1142,60 +1922,293 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
   position:fixed;
   bottom:24px;
   right:20px;
-  background:var(--primary);
+  background:linear-gradient(135deg, var(--primary), #1b4332);
   color:white;
-  padding:12px 18px;
+  padding:13px 20px;
   border-radius:40px;
   font-weight:700;
   font-size:14px;
-  box-shadow:0 8px 24px rgba(45,106,79,0.28);
+  box-shadow:0 8px 24px rgba(45,106,79,0.35);
   display:flex;
   align-items:center;
-  gap:6px;
+  gap:8px;
   z-index:90;
-  transition:transform 0.2s;
+  transition:all 0.25s cubic-bezier(0.16,1,0.3,1);
+  animation:pulseGlow 4s infinite;
+}
+.fab-add:hover{
+  transform:translateY(-3px) scale(1.05);
+  box-shadow:0 12px 30px rgba(45,106,79,0.45);
+}
+.fab-add:active{
+  transform:scale(0.95);
 }
 
-/* Responsive Rules */
+/* Responsive & Mobile Safari (iOS) Optimization */
 @media(max-width:880px){
+  :root{
+    --radius-xl:20px;
+    --radius-lg:16px;
+    --radius-md:12px;
+  }
   .container{
-    padding:16px 14px 90px;
+    padding:12px 12px calc(90px + env(safe-area-inset-bottom, 20px));
   }
   .header{
-    margin-bottom:14px;
+    margin-bottom:12px;
+    gap:10px;
+  }
+  .brand-wrap{
+    gap:10px;
+  }
+  .app-logo{
+    width:40px;
+    height:40px;
+    border-radius:12px;
   }
   .brand-titles h1{
     font-size:20px;
   }
+  .brand-titles p{
+    font-size:12px;
+  }
   .month-picker{
     width:100%;
     justify-content:space-between;
+    padding:3px 5px;
   }
   .month-text{
     flex:1;
+    font-size:14px;
+    min-width:auto;
+  }
+
+  /* Fixed Bottom Tab Bar on Mobile for thumb ergonomic reach */
+  .nav-tabs{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    margin-bottom:0;
+    border-radius:24px 24px 0 0;
+    border-bottom:none;
+    border-left:none;
+    border-right:none;
+    padding:6px 8px calc(12px + env(safe-area-inset-bottom, 12px));
+    background:rgba(255,255,255,0.95);
+    backdrop-filter:blur(24px);
+    -webkit-backdrop-filter:blur(24px);
+    z-index:100;
+    box-shadow:0 -4px 24px rgba(28,25,23,0.09);
+    gap:4px;
+    justify-content:space-between;
+    overflow:hidden;
+  }
+  .tab-btn{
+    min-width:0;
+    flex:1;
+    padding:6px 2px;
+    font-size:10.5px;
+    font-weight:700;
+    flex-direction:column;
+    gap:3px;
+    border-radius:12px;
+    white-space:nowrap;
+    letter-spacing:-0.02em;
+  }
+  .tab-btn span{
+    display:block;
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .tab-btn svg{
+    width:18px;
+    height:18px;
+  }
+
+  .ai-summary-card{
+    padding:13px 15px;
+    margin-bottom:16px;
+    gap:12px;
+  }
+  .ai-icon-badge{
+    width:34px;
+    height:34px;
+    border-radius:10px;
+  }
+  .ai-summary-content p{
+    font-size:12.5px;
   }
 
   .dashboard-grid{
     grid-template-columns:1fr;
-    gap:16px;
-    margin-bottom:16px;
+    gap:14px;
+    margin-bottom:14px;
   }
   
+  .card{
+    padding:16px;
+    gap:14px;
+    border-radius:var(--radius-lg);
+  }
+  .card-title{
+    font-size:17px;
+  }
+  .card-subtitle{
+    font-size:12px;
+  }
+
+  .balance-hero{
+    padding:12px 14px;
+    gap:8px;
+  }
+  .person-amount{
+    font-size:19px;
+  }
+
   .donut-section{
     flex-direction:column;
     align-items:center;
+    gap:14px;
+  }
+  .donut-wrap{
+    width:115px;
+    height:115px;
+  }
+  .donut-center-total{
+    font-size:16px;
   }
   .legend-grid{
     width:100%;
+    grid-template-columns:1fr 1fr;
+    gap:6px 10px;
+  }
+  .legend-item{
+    font-size:12px;
   }
 
+  /* Transactions Mobile Styling */
+  .tx-row{
+    padding:11px 12px;
+    gap:6px;
+  }
+  .tx-info{
+    gap:10px;
+  }
+  .tx-icon{
+    width:34px;
+    height:34px;
+    font-size:16px;
+    border-radius:10px;
+  }
+  .tx-label{
+    font-size:13.5px;
+  }
+  .tx-sub{
+    font-size:11px;
+    gap:4px;
+  }
+  .tx-amount{
+    font-size:15px;
+  }
+  .tx-act{
+    width:30px;
+    height:30px;
+    font-size:14px;
+  }
+
+  /* Envelopes Mobile */
   .envelopes-grid{
     grid-template-columns:1fr;
     gap:10px;
   }
+  .envelope-box{
+    padding:13px 14px;
+    gap:8px;
+  }
+  .envelope-spent{
+    font-size:18px;
+  }
 
+  /* Shopping Mobile */
+  .shopping-card{
+    gap:14px;
+  }
+  .shopping-form{
+    gap:6px;
+  }
+  .shopping-input{
+    padding:11px 14px;
+    font-size:14px;
+  }
+  .btn-add-shop{
+    padding:0 16px;
+    font-size:13.5px;
+  }
+  .shopping-items-grid{
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+  .shopping-item-box{
+    padding:12px 14px;
+  }
+  .shop-item-name{
+    font-size:14px;
+  }
+  .finish-shopping-bar{
+    padding:14px 16px;
+    flex-direction:column;
+    align-items:stretch;
+    gap:12px;
+  }
+  .finish-shop-actions{
+    flex-direction:column;
+    align-items:stretch;
+    width:100%;
+    gap:8px;
+  }
+  .finish-input, .finish-select, .btn-finish-record{
+    width:100%;
+    text-align:center;
+  }
+  .btn-finish-record{
+    padding:12px;
+    font-size:14px;
+  }
+
+  /* Floating Add Button adjusted above bottom tab bar */
+  .fab-add{
+    bottom:calc(74px + env(safe-area-inset-bottom, 12px));
+    right:14px;
+    padding:11px 18px;
+    font-size:13.5px;
+    box-shadow:0 6px 20px rgba(45,106,79,0.4);
+    z-index:90;
+  }
+
+  /* Modal Mobile */
+  .modal-overlay{
+    padding:12px;
+    align-items:flex-end;
+    padding-bottom:calc(16px + env(safe-area-inset-bottom, 16px));
+  }
+  .modal-box{
+    padding:20px 18px;
+    border-radius:24px 24px 16px 16px;
+    max-height:85vh;
+    box-shadow:0 -10px 40px rgba(0,0,0,0.25);
+  }
+
+  /* Chat Mobile */
   .chat-drawer{
-    height:480px;
+    height:calc(100vh - 210px);
+    min-height:380px;
+  }
+  .chat-bubble{
+    padding:9px 12px;
+    font-size:12.5px;
   }
 }
 </style>
@@ -1229,32 +2242,44 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
   <!-- Universal View Switcher Tabs -->
   <nav class="nav-tabs" aria-label="Sections principales">
     <button type="button" class="tab-btn active" data-tab="tab-overview">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      Vue Globale
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>Vue Globale</span>
     </button>
     <button type="button" class="tab-btn" data-tab="tab-envelopes">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-      Enveloppes
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      <span>Enveloppes</span>
     </button>
     <button type="button" class="tab-btn" data-tab="tab-shopping">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-      Liste d'achats & IA
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <span>Courses</span>
     </button>
     <button type="button" class="tab-btn" data-tab="tab-assistant">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-      Assistant
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+      <span>Assistant</span>
+    </button>
+    <button type="button" class="tab-btn" data-tab="tab-quests">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <span>Moka</span>
     </button>
   </nav>
 
-  <!-- AI Instant Insights Bar -->
-  <section class="ai-summary-card">
-    <div class="ai-icon-badge">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+  <!-- AI Instant Insights Bar & Moka Companion Header -->
+  <section class="ai-summary-card" id="mokaCompanionHeader">
+    <div class="moka-avatar-wrap" id="mokaHeaderAvatar" onclick="triggerMokaReaction('click')" title="Cliquer pour papouiller Moka !">
+      <img src="assets/moka-avatar.png" class="moka-img-avatar" id="mokaHeaderImg" alt="Moka Maine Coon">
+      <div class="moka-mood-dot" id="mokaMoodDot" title="Humeur complice"></div>
     </div>
     <div class="ai-summary-content">
-      <h4 id="aiStatusTitle">Synthèse du mois</h4>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+        <span class="badge-moka" id="mokaLevelBadge">Niv. 2 · Duo Complice</span>
+        <h4 id="aiStatusTitle" style="margin:0;font-size:0.95rem;">Moka veille sur vos dépenses</h4>
+      </div>
       <p id="aiStatusText">Chargement des dépenses…</p>
     </div>
+    <button class="moka-mini-act-btn" onclick="openMokaQuests()" title="Voir les défis du couple">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <span>Défis</span>
+    </button>
   </section>
 
   <!-- PANE 1 : Overview & Balance -->
@@ -1454,6 +2479,111 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
       <input type="file" id="cameraInput" class="file-hidden" accept="image/*" capture="environment">
     </div>
   </div>
+
+  <!-- PANE 5 : Duo Quests & Moka Room -->
+  <div class="tab-pane" id="tab-quests" style="display:none;">
+    <div class="quests-container">
+      
+      <!-- Cozy Moka Hero Spotlight Card -->
+      <section class="card moka-room-card">
+        <div class="moka-room-visual">
+          <div class="moka-room-badge" id="mokaRoomStageBadge">Niveau 2 · Duo Complice</div>
+          <div class="moka-stage-platform" onclick="triggerMokaReaction('happy')">
+            <img src="assets/moka-happy.png" class="moka-stage-img" id="mokaStageImg" alt="Moka Maine Coon">
+          </div>
+          
+          <div class="moka-speech-bubble" id="mokaSpeechBubble">
+            <span id="mokaBubbleText">« Salut Quentin & Jessica ! Je veille sur l’équilibre du foyer. Prêts à relever vos défis ? »</span>
+          </div>
+        </div>
+
+        <!-- Serenity & Couple Progress Gauge -->
+        <div class="moka-stats-section">
+          <div class="serenity-header">
+            <div>
+              <div class="serenity-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                <span>Sérénité du Foyer</span>
+              </div>
+              <p class="serenity-sub" id="serenitySubtitle">Votre complicité budgétaire est au beau fixe !</p>
+            </div>
+            <div class="serenity-score-box">
+              <span class="serenity-score" id="serenityScoreVal">85</span>
+              <span class="serenity-max">/100</span>
+            </div>
+          </div>
+          <div class="serenity-bar-track">
+            <div class="serenity-bar-fill" id="serenityBarFill" style="width: 85%;"></div>
+          </div>
+
+          <!-- Evolutionary Levels Roadmap -->
+          <div class="levels-roadmap">
+            <div class="level-step done" id="lvlStep1">
+              <div class="step-dot">✓</div>
+              <div class="step-info">
+                <span class="step-name">Niv. 1 Chaton</span>
+                <span class="step-unlock">Base DuoPaws</span>
+              </div>
+            </div>
+            <div class="level-step active" id="lvlStep2">
+              <div class="step-dot">2</div>
+              <div class="step-info">
+                <span class="step-name">Niv. 2 Complice</span>
+                <span class="step-unlock">Foulard Vert</span>
+              </div>
+            </div>
+            <div class="level-step" id="lvlStep3">
+              <div class="step-dot">3</div>
+              <div class="step-info">
+                <span class="step-name">Niv. 3 Gardien</span>
+                <span class="step-unlock">Tablier & Lunettes</span>
+              </div>
+            </div>
+            <div class="level-step" id="lvlStep4">
+              <div class="step-dot">4</div>
+              <div class="step-info">
+                <span class="step-name">Niv. 4 Maîtres</span>
+                <span class="step-unlock">Couronne Dorée</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Active Couple Quests -->
+      <section class="card quests-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Défis & Quêtes de couple</h2>
+            <p class="card-subtitle">Des objectifs concrets pour avancer main dans la main</p>
+          </div>
+          <div class="badge-tag" id="activeQuestsCount">4 quêtes actives</div>
+        </div>
+
+        <div class="quests-list" id="questsList">
+          <!-- Dynamic Quests will be rendered here -->
+        </div>
+      </section>
+
+      <!-- Meal Roulette / Décideur Ludique -->
+      <section class="card roulette-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">La Roue du Dîner & Des Tâches</h2>
+            <p class="card-subtitle">Pas d’inspiration ce soir ? Laissez Moka arbitrer avec le sourire !</p>
+          </div>
+        </div>
+        <div class="roulette-box">
+          <div class="roulette-display" id="rouletteResult">🥩 Steak de bœuf & Légumes rôtis</div>
+          <button type="button" class="btn-roulette" id="btnSpinRoulette" onclick="spinCoupleRoulette()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+            Tirer une idée au sort
+          </button>
+        </div>
+      </section>
+
+    </div>
+  </div>
 </div>
 
 <!-- Floating Add Button -->
@@ -1533,6 +2663,279 @@ let envelopes = [];
 let shopping = [];
 let currentMonth = new Date().toISOString().slice(0,7);
 let pendingImage = null;
+
+// DuoPaws Moka Progression & Quests State
+const COUPLE_QUESTS_DEFAULT = [
+  { id:'q_cook', title:'Festin Maison', desc:'Cuisiner 4 bons repas ensemble cette semaine', xp:50, icon:'🥩', done:false },
+  { id:'q_budget', title:'Bouclier Courses', desc:'Maintenir l’enveloppe alimentation sous le cap', xp:80, icon:'🛡️', done:false },
+  { id:'q_ticket', title:'Clarté Immédiate', desc:'Enregistrer le ticket dès le retour des courses', xp:40, icon:'🧾', done:true },
+  { id:'q_audit', title:'Point Complice', desc:'Faire le bilan du mois à deux autour d’un thé/café', xp:60, icon:'☕', done:false }
+];
+let coupleQuests = JSON.parse(localStorage.getItem('duospend_quests') || 'null') || COUPLE_QUESTS_DEFAULT;
+let serenityScore = Number(localStorage.getItem('duospend_serenity') || 85);
+let mokaLevel = 2; // Niv. 2 : Duo Complice
+
+function openMokaQuests(){
+  const qTab = document.querySelector('[data-tab="tab-quests"]');
+  if(qTab) qTab.click();
+}
+
+function updateMokaVisuals(){
+  const dot = $('mokaMoodDot');
+  const stageBadge = $('mokaRoomStageBadge');
+  const lvlBadge = $('mokaLevelBadge');
+  const sScore = $('serenityScoreVal');
+  const sFill = $('serenityBarFill');
+  const sSub = $('serenitySubtitle');
+
+  if(sScore) sScore.textContent = serenityScore;
+  if(sFill) sFill.style.width = Math.min(100, Math.max(10, serenityScore)) + '%';
+
+  if(serenityScore >= 80){
+    if(dot) dot.style.background = '#52B788';
+    if(sSub) sSub.textContent = "Votre complicité budgétaire est au beau fixe !";
+  } else if(serenityScore >= 50){
+    if(dot) dot.style.background = '#D97706';
+    if(sSub) sSub.textContent = "Équilibre stable. Restez attentifs aux extras !";
+  } else {
+    if(dot) dot.style.background = '#E76F51';
+    if(sSub) sSub.textContent = "Période intense. Moka recommande un arbitrage doux.";
+  }
+
+  // Roadmaps steps
+  for(let i=1; i<=4; i++){
+    const st = $('lvlStep' + i);
+    if(st){
+      st.className = 'level-step ' + (mokaLevel > i ? 'done' : (mokaLevel === i ? 'active' : ''));
+    }
+  }
+
+  renderQuestsUI();
+}
+
+function renderQuestsUI(){
+  const list = $('questsList');
+  if(!list) return;
+  list.innerHTML = coupleQuests.map((q, idx) => `
+    <div class="quest-item">
+      <div class="quest-left">
+        <div class="quest-icon">${q.icon}</div>
+        <div>
+          <div class="quest-title">${esc(q.title)}</div>
+          <div class="quest-desc">${esc(q.desc)}</div>
+        </div>
+      </div>
+      <div class="quest-right">
+        <span class="quest-xp">+${q.xp} Sérénité</span>
+        <button type="button" class="quest-btn ${q.done ? 'completed' : ''}" onclick="toggleCoupleQuest(${idx})">
+          ${q.done ? 'Validé ✓' : 'Accomplir'}
+        </button>
+      </div>
+    </div>
+  `).join('');
+
+  const countBadge = $('activeQuestsCount');
+  const activeCount = coupleQuests.filter(x => !x.done).length;
+  if(countBadge) countBadge.textContent = `${activeCount} quête${activeCount > 1 ? 's' : ''} active${activeCount > 1 ? 's' : ''}`;
+}
+
+function toggleCoupleQuest(idx){
+  coupleQuests[idx].done = !coupleQuests[idx].done;
+  if(coupleQuests[idx].done){
+    serenityScore = Math.min(100, serenityScore + coupleQuests[idx].xp / 3);
+    triggerMokaReaction('happy', `Bravo pour « ${coupleQuests[idx].title} » ! Le foyer gagne en sérénité.`);
+    if(typeof confetti === 'function'){
+      confetti({ particleCount: 35, spread: 60, origin: { y: 0.7 } });
+    }
+  } else {
+    serenityScore = Math.max(30, serenityScore - coupleQuests[idx].xp / 3);
+  }
+  localStorage.setItem('duospend_quests', JSON.stringify(coupleQuests));
+  localStorage.setItem('duospend_serenity', String(Math.round(serenityScore)));
+  updateMokaVisuals();
+}
+
+function showMemeCut(opts){
+  const card = $('memeCutCard');
+  const icon = $('memeCutIcon');
+  const title = $('memeCutTitle');
+  const badge = $('memeCutBadge');
+  const caption = $('memeCutCaption');
+  if(!card) return;
+
+  if(icon) icon.textContent = opts.icon || '😼';
+  if(title) title.textContent = opts.title || 'DUOPAWS MEME';
+  if(badge) badge.textContent = opts.badge || 'REACTION';
+  if(caption) caption.textContent = opts.caption || '';
+
+  card.classList.add('show');
+  setTimeout(() => {
+    card.classList.remove('show');
+  }, opts.duration || 2200);
+}
+
+function setMokaAsset(imgName){
+  const hImg = $('mokaHeaderImg');
+  const sImg = $('mokaStageImg');
+  const src = 'assets/' + imgName;
+  if(hImg) hImg.src = src;
+  if(sImg) sImg.src = src;
+}
+
+function triggerMokaReaction(type, customText, extra){
+  const avatar = $('mokaHeaderAvatar');
+  const bubble = $('mokaSpeechBubble');
+  const bText = $('mokaBubbleText');
+  const aiText = $('aiStatusText');
+
+  if(avatar){
+    avatar.classList.remove('moka-happy', 'moka-nod', 'moka-shrug', 'moka-sideeye', 'moka-shocked', 'moka-dbz', 'moka-flat', 'moka-suspicious', 'moka-sleepy');
+    void avatar.offsetWidth; // force reflow
+  }
+
+  // --- 1. RARE RANDOM MEME CHECK (6% de chance) ---
+  const isRareRoll = Math.random() < 0.06;
+  if(isRareRoll && type !== 'dbz' && type !== 'shocked'){
+    if(avatar) avatar.classList.add('moka-shocked');
+    setMokaAsset('moka-sideeye.png');
+    showMemeCut({
+      icon: '👁️👄👁️',
+      title: 'DUOPAWS · RARE MEME ROLL',
+      badge: '0.05% CHANCE',
+      caption: '👁️ 👄 👁️ · *Moka vous juge en 4K UHD*'
+    });
+    const rareMsg = "👁️👄👁️ Moka est figé dans le temps devant cette action.";
+    if(bText) bText.textContent = rareMsg;
+    return;
+  }
+
+  // --- 2. SITUATIONS SPÉCIFIQUES & MEMES ---
+  if(type === 'giga_expense' || (extra && extra.amount >= 250)){
+    // Meme: Regard lent vers caméra / Side-Eye dramatic zoom
+    if(avatar) avatar.classList.add('moka-sideeye');
+    setMokaAsset('moka-sideeye.png');
+    showMemeCut({
+      icon: '😶',
+      title: 'DUOPAWS · CUT DRAMATIQUE',
+      badge: 'GROSSE DÉPENSE',
+      caption: '👀 *Regarde le montant* ... *Regarde l’utilisateur* ... « On en parle ? »'
+    });
+    const msg = customText || "😶 Moka fixe le montant, puis vous regarde droit dans les yeux en silence… « On en parle ? »";
+    if(bText) bText.textContent = msg;
+    if(aiText) aiText.textContent = msg;
+  }
+  else if(type === 'resto_order' || (extra && extra.category === 'Restaurants')){
+    // Meme: "Really bro?" / Arms crossed
+    if(avatar) avatar.classList.add('moka-suspicious');
+    setMokaAsset('moka-arms-crossed.png');
+    showMemeCut({
+      icon: '🍕',
+      title: 'DUOPAWS · RESTO / UBER EATS',
+      badge: 'REALLY BRO?',
+      caption: '🤨 « Il y a des restes au frigo... Mais bon, régalez-vous ! »'
+    });
+    const msg = customText || "🤨 Moka regarde la commande façon « really bro ? », bras croisés…";
+    if(bText) bText.textContent = msg;
+    if(aiText) aiText.textContent = msg;
+  }
+  else if(type === 'dbz' || (extra && extra.isEpic)){
+    // Meme: Super Saiyan Mode / Transformation Anime
+    if(avatar) avatar.classList.add('moka-dbz');
+    setMokaAsset('moka-attack.png');
+    showMemeCut({
+      icon: '🔥',
+      title: 'DUOPAWS · DBZ SUPER SAIYAN',
+      badge: 'AURA MAXIMUM',
+      caption: '💥 AURA DÉCHAÎNÉE ! « MAÎTRES DU FOYER ! »'
+    });
+    if(typeof confetti === 'function'){
+      confetti({ particleCount: 75, spread: 80, origin: { y: 0.6 } });
+    }
+    const msg = customText || "🔥 AURA MAXIMUM ! Moka passe en mode Super Saiyan, prêt au combat !";
+    if(bText) bText.textContent = msg;
+    if(aiText) aiText.textContent = msg;
+  }
+  else if(type === 'budget_flat' || type === 'flat'){
+    // Meme: Chat écrasé / Bras croisés sévère
+    if(avatar) avatar.classList.add('moka-flat');
+    setMokaAsset('moka-sideeye.png');
+    showMemeCut({
+      icon: '🫠',
+      title: 'DUOPAWS · BUDGET MELTDOWN',
+      badge: 'DÉPASSEMENT',
+      caption: '🫠 Moka s’allonge de tout son long sur le carrelage...'
+    });
+    const msg = customText || "🫠 Moka s'est étalé sur le sol devant les enveloppes… Respiration lente.";
+    if(bText) bText.textContent = msg;
+    if(aiText) aiText.textContent = msg;
+  }
+  else if(type === 'happy'){
+    if(avatar) avatar.classList.add('moka-happy');
+    setMokaAsset('moka-happy.png');
+    const msg = customText || "😼 *Ronronne* · Bravo le duo, un pas de plus pour vos projets communs !";
+    if(bText) bText.textContent = msg;
+    if(aiText && !customText) aiText.textContent = msg;
+    if(typeof confetti === 'function'){
+      confetti({ particleCount: 25, spread: 45, origin: { y: 0.8 } });
+    }
+  }
+  else if(type === 'nod'){
+    if(avatar) avatar.classList.add('moka-nod');
+    setMokaAsset('moka-avatar.png');
+    const msg = customText || "📋 Moka sort son carnet, regarde le duo et hoche la tête : « Pas mal du tout ! »";
+    if(bText) bText.textContent = msg;
+    if(aiText && !customText) aiText.textContent = msg;
+  }
+  else if(type === 'shrug'){
+    if(avatar) avatar.classList.add('moka-shrug');
+    setMokaAsset('moka-arms-crossed.png');
+    const msg = customText || "🐾 Moka regarde le montant, bras croisés : « Bon… on s'est fait plaisir, on équilibre au prochain repas ! »";
+    if(bText) bText.textContent = msg;
+    if(aiText && !customText) aiText.textContent = msg;
+  }
+  else if(type === 'click'){
+    if(avatar) avatar.classList.add('moka-happy');
+    setMokaAsset('moka-happy.png');
+    const memePicks = [
+      { t: "« Miaou ! Pensez à vérifier les bons plans de saison dans la liste d'achats ! »", cut: null },
+      { t: "« 7 jours sans dépense superflue… Vous êtes sérieux là ?! »", cut: { icon:'😼', title:'STREAK DUOPAWS', badge:'JOUR 7', caption:'« 7 jours. Respect. »' } },
+      { t: "« 🥩 Le bœuf haché et les œufs fermiers sont prêts dans votre panier ! »", cut: null },
+      { t: "👀 Moka vous observe discrètement en mode DBZ…", cut: { icon:'👀', title:'SIDE EYE', badge:'OBSERVATION', caption:'« Je vois tout. Surtout les snacks. »' } }
+    ];
+    const pick = memePicks[Math.floor(Math.random() * memePicks.length)];
+    if(bText) bText.textContent = pick.t;
+    if(pick.cut) showMemeCut(pick.cut);
+    showToast(pick.t, true);
+  }
+}
+
+const DINNER_IDEAS = [
+  "🥩 Bavette de bœuf & Légumes sautés au beurre",
+  "🍳 Omelette campagnarde aux champignons & Salade",
+  "🍗 Cuisses de poulet rôties aux herbes & Patates douces",
+  "🐟 Pavé de saumon au four & Courgettes vapeur",
+  "🍝 Pâtes fraîches sauce bolognaise maison de saison",
+  "🥑 Assiette composée : Avocats, œufs mollets & Sardines"
+];
+function spinCoupleRoulette(){
+  const disp = $('rouletteResult');
+  const btn = $('btnSpinRoulette');
+  if(!disp || !btn) return;
+
+  btn.disabled = true;
+  let counter = 0;
+  const interval = setInterval(() => {
+    disp.textContent = DINNER_IDEAS[Math.floor(Math.random() * DINNER_IDEAS.length)];
+    counter++;
+    if(counter > 10){
+      clearInterval(interval);
+      btn.disabled = false;
+      const finalPick = DINNER_IDEAS[Math.floor(Math.random() * DINNER_IDEAS.length)];
+      disp.textContent = finalPick;
+      triggerMokaReaction('dbz', `Moka déploie son aura de Chef : « Ce soir, c'est ${finalPick} ! »`, { isEpic: true });
+    }
+  }, 80);
+}
 
 const eur = n => new Intl.NumberFormat('fr-FR', {style:'currency', currency:'EUR'}).format(n || 0);
 const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
@@ -1732,13 +3135,17 @@ function renderUI(){
     aiTitle.textContent = "Foyer prêt pour " + monthName(currentMonth);
     aiText.textContent = "Aucune dépense n'est encore saisie. Déposez vos tickets ou captures pour faire le point.";
   } else if(overEnvelopes.length > 0){
-    const cats = overEnvelopes.map(e => e.category).join(', ');
-    aiTitle.textContent = `Point d'attention sur ${cats}`;
-    aiText.textContent = `Les dépenses en ${cats} dépassent le repère fixé pour ce mois. Au total, ${eur(total)} a été avancé par le foyer.`;
+    const names = overEnvelopes.map(e => e.category).join(', ');
+    aiTitle.textContent = "Alerte enveloppe budgétaire";
+    aiText.textContent = `Plafond dépassé sur : ${names}. Moka s'étale doucement au sol… On rééquilibre au prochain repas !`;
+    triggerMokaReaction('budget_flat');
   } else {
     aiTitle.textContent = "Vue d'ensemble du mois";
     aiText.textContent = `Total de ${eur(total)} engagé sur le mois. Quentin a avancé ${eur(q)} et Jessica ${eur(j)}.`;
+    triggerMokaReaction('nod');
   }
+
+  updateMokaVisuals();
 }
 
 function renderShoppingUI(){
@@ -1792,6 +3199,21 @@ async function addShopItem(text){
 }
 
 async function toggleShopItem(id){
+  const item = shopping.find(x => String(x.id) === String(id));
+  const willBeChecked = item ? !item.checked : true;
+  
+  if (window.navigator && window.navigator.vibrate) {
+    try { window.navigator.vibrate(15); } catch(e){}
+  }
+  if(willBeChecked && typeof confetti === 'function'){
+    confetti({
+      particleCount: 15,
+      spread: 35,
+      origin: { y: 0.8 },
+      colors: ['#2d6a4f', '#52b788']
+    });
+  }
+
   try{
     const r = await fetch(API_BASE + '/api/shopping', {
       method:'POST',
@@ -1821,9 +3243,41 @@ async function deleteShopItem(id){
   }catch(e){console.error(e);}
 }
 
+function renderRichMarkdown(mdText){
+  if(typeof marked !== 'undefined' && marked.parse){
+    return marked.parse(mdText || '');
+  }
+  return esc(mdText || '').replace(/\n/g, '<br>');
+}
+
+function renderSeasonAnalysisCard(rawText){
+  if(!rawText) return '';
+  // Split into sections if matches ### or headers
+  const sections = rawText.split(/(?=###|\n(?=🥩|💶|🏷️|🥫))/g).filter(s => s.trim().length > 0);
+  if(sections.length <= 1){
+    return `<div class="ai-card-section">${renderRichMarkdown(rawText)}</div>`;
+  }
+  return sections.map(sec => {
+    let clean = sec.trim();
+    // Extract title
+    let title = '';
+    const m = clean.match(/^(?:###\s*)?(.*?)(?:\n|$)/);
+    if(m && m[1]){
+      title = m[1].replace(/\*\*/g, '').trim();
+      clean = clean.slice(m[0].length).trim();
+    }
+    return `
+      <div class="ai-card-section">
+        ${title ? `<div class="ai-card-title">${esc(title)}</div>` : ''}
+        <div>${renderRichMarkdown(clean)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
 async function fetchSeasonalAnalysis(){
   const box = $('shoppingAIContent');
-  box.textContent = "🧠 Analyse des produits de saison et opportunités en cours avec l'IA…";
+  box.innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:var(--primary);font-weight:600;padding:8px 0;"><span style="animation:spin 1s linear infinite;display:inline-block">⏳</span> Analyse des produits de saison et opportunités en cours avec l\'IA…</div>';
   try{
     const r = await fetch(API_BASE + '/api/shopping/analyze', {
       method:'POST',
@@ -1832,12 +3286,12 @@ async function fetchSeasonalAnalysis(){
     });
     const j = await r.json();
     if(r.ok && j.analysis){
-      box.textContent = j.analysis;
+      box.innerHTML = renderSeasonAnalysisCard(j.analysis);
     } else {
-      box.textContent = "Impossible de récupérer l'analyse pour le moment.";
+      box.innerHTML = '<div style="color:var(--text-dim);padding:8px 0;">Impossible de récupérer l\'analyse pour le moment.</div>';
     }
   }catch(e){
-    box.textContent = "Erreur : " + e.message;
+    box.innerHTML = `<div style="color:var(--coral);padding:8px 0;">Erreur : ${esc(e.message)}</div>`;
   }
 }
 
@@ -1873,7 +3327,11 @@ function addChatMessage(role, text, img){
   }
   const b = document.createElement('div');
   b.className = 'chat-bubble';
-  b.textContent = text;
+  if(role === 'bot'){
+    b.innerHTML = renderRichMarkdown(text);
+  } else {
+    b.textContent = text;
+  }
   wrap.appendChild(b);
   thread.appendChild(wrap);
   thread.scrollTop = thread.scrollHeight;
@@ -1954,10 +3412,10 @@ async function sendChat(questionText){
     });
     const j = await r.json();
     if(!r.ok) throw Error(j.detail || j.error || 'Erreur assistant');
-    botMsg.textContent = j.answer;
+    botMsg.innerHTML = renderRichMarkdown(j.answer);
     showAISuggestions(j.suggestion, j.budget);
   }catch(e){
-    botMsg.textContent = "Je n'ai pas pu répondre : " + e.message;
+    botMsg.innerHTML = `<span style="color:var(--coral)">Je n'ai pas pu répondre : ${esc(e.message)}</span>`;
   }
 }
 
@@ -2067,6 +3525,32 @@ $('manualForm').onsubmit = async e => {
     $('manualForm').reset();
     $('modalOverlay').classList.remove('open');
     showToast(editId ? 'Dépense modifiée' : 'Dépense ajoutée');
+    
+    const numAmt = parseFloat(item.amount) || 0;
+    if(numAmt >= 250){
+      triggerMokaReaction('giga_expense', null, { amount: numAmt });
+    } else if(item.category === 'Restaurants'){
+      triggerMokaReaction('resto_order', null, { category: item.category });
+    } else {
+      triggerMokaReaction('happy', `Dépense « ${item.label} » (${eur(numAmt)}) enregistrée !`);
+    }
+
+    if(!editId && typeof confetti === 'function' && numAmt < 250){
+      confetti({
+        particleCount: 35,
+        spread: 45,
+        origin: { y: 0.85 },
+        colors: ['#2d6a4f', '#2563eb', '#d97706']
+      });
+    }
+
+    // Ensure user is on overview tab to see Moka reaction & new expense immediately
+    const overTab = document.querySelector('[data-tab="tab-overview"]');
+    if(overTab && !overTab.classList.contains('active')){
+      overTab.click();
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
     await loadState();
   }catch(err){
     if(!editId) showToast(err.message, false); else alert('Erreur: ' + err.message);
@@ -2168,6 +3652,16 @@ if($('btnFinishRecord')){
       }
       $('finishShopAmount').value = '';
       await loadState();
+
+      // Trigger celebratory confetti for household savings & tracking
+      if(typeof confetti === 'function'){
+        confetti({
+          particleCount: 50,
+          spread: 60,
+          origin: { y: 0.7 },
+          colors: ['#2d6a4f', '#d97706', '#52b788', '#fef3c7']
+        });
+      }
       
       // Notify & Switch to overview
       document.querySelector('[data-tab="tab-overview"]').click();
@@ -2205,6 +3699,18 @@ loadState().then(() => {
   addChatMessage('bot', 'Bonjour Quentin & Jessica ! Je suis DuoSpend. Vos comptes de test ont été remis à zéro. Prêt pour un suivi fluide et votre liste d\'achats de saison !');
 });
 </script>
+<!-- Meme Toast Overlay Banner (Cut-meme de 1.5s) -->
+<div class="meme-cut-card" id="memeCutCard">
+  <div style="font-size:2rem;" id="memeCutIcon">👀</div>
+  <div class="meme-cut-text">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="meme-cut-title" id="memeCutTitle">DUOPAWS CUT</span>
+      <span class="meme-cut-badge" id="memeCutBadge">MEME REACTION</span>
+    </div>
+    <div class="meme-cut-caption" id="memeCutCaption">« On en parle ? »</div>
+  </div>
+</div>
+
 <div class="toast-wrap" id="toastWrap"></div>
 </body>
 </html>

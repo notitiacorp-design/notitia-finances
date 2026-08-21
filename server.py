@@ -14,7 +14,7 @@ LOCAL_BUDGETS = []
 LOCAL_SHOPPING = []
 SHOPPING_TABLE = os.getenv("AIRTABLE_SHOPPING_TABLE", "Shopping")
 QWEN_KEY = os.getenv("QWEN_API_KEY") or os.getenv("OPENROUTER_API_KEY", "")
-QWEN_MODEL = os.getenv("QWEN_MODEL", "qwen/qwen-2.5-72b-instruct")
+QWEN_MODEL = os.getenv("QWEN_MODEL", "google/gemini-2.5-flash")
 QWEN_VISION_MODEL = os.getenv("QWEN_VISION_MODEL", "qwen/qwen2.5-vl-72b-instruct")
 QWEN_BASE = os.getenv("QWEN_BASE_URL", "https://openrouter.ai/api/v1")
 MAX_IMAGE_CHARS = 3_500_000
@@ -692,9 +692,11 @@ def parse_budget_suggestion(text, month):
     }
 
 
-def qwen_chat(messages, model, max_tokens=700):
+def qwen_chat(messages, model, max_tokens=900):
+    # If the env has the legacy slow qwen model, use google/gemini-2.5-flash for ultra fast and clean answers
+    actual_model = "google/gemini-2.5-flash" if ("qwen" in model and "vl" not in model) else model
     payload = {
-        "model": model,
+        "model": actual_model,
         "messages": messages,
         "temperature": 0.2,
         "max_tokens": max_tokens,
@@ -740,10 +742,7 @@ def extract_french(text):
 
 def clean_answer(text):
     text = re.sub(r"\s*(SUGGESTION_JSON|BUDGET_JSON)\s*\{.*?\}", "", text, flags=re.S).strip()
-    extracted = extract_french(text)
-    if extracted:
-        return extracted
-    return text[:900].strip()
+    return text.strip()
 
 
 def assistant_answer(question, expenses, image=None, month=None):
