@@ -2259,24 +2259,20 @@ body{
     </button>
     <button type="button" class="tab-btn" data-tab="tab-quests">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-      <span>Moka</span>
+      <span>Défis</span>
     </button>
   </nav>
 
-  <!-- AI Instant Insights Bar & Moka Companion Header -->
-  <section class="ai-summary-card" id="mokaCompanionHeader">
-    <div class="moka-avatar-wrap" id="mokaHeaderAvatar" onclick="triggerMokaReaction('click')" title="Cliquer pour papouiller Moka !">
-      <img src="assets/moka-avatar.png" class="moka-img-avatar" id="mokaHeaderImg" alt="Moka Maine Coon">
-      <div class="moka-mood-dot" id="mokaMoodDot" title="Humeur complice"></div>
-    </div>
-    <div class="ai-summary-content">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
-        <span class="badge-moka" id="mokaLevelBadge">Niv. 2 · Duo Complice</span>
-        <h4 id="aiStatusTitle" style="margin:0;font-size:0.95rem;">Moka veille sur vos dépenses</h4>
+  <!-- AI Instant Insights Bar & Overview Header -->
+  <section class="ai-summary-card" id="topSummaryHeader">
+    <div class="ai-summary-content" style="padding:4px 2px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+        <span class="badge-tag" id="foyerStatusBadge" style="background:var(--primary-subtle);color:var(--primary);border:1px solid rgba(45,106,79,0.2);">Duo Équilibré</span>
+        <h4 id="aiStatusTitle" style="margin:0;font-size:0.95rem;color:var(--text-main);font-weight:700;">Synthèse du Foyer</h4>
       </div>
-      <p id="aiStatusText">Chargement des dépenses…</p>
+      <p id="aiStatusText" style="margin:0;font-size:0.86rem;color:var(--text-muted);line-height:1.4;">Chargement des dépenses…</p>
     </div>
-    <button class="moka-mini-act-btn" onclick="openMokaQuests()" title="Voir les défis du couple">
+    <button class="btn-secondary" style="padding:7px 12px;font-size:12.5px;border-radius:10px;" onclick="openCoupleQuests()" title="Voir les défis du couple">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
       <span>Défis</span>
     </button>
@@ -2480,30 +2476,18 @@ body{
     </div>
   </div>
 
-  <!-- PANE 5 : Duo Quests & Moka Room -->
+  <!-- PANE 5 : Duo Quests & Goals -->
   <div class="tab-pane" id="tab-quests" style="display:none;">
     <div class="quests-container">
       
-      <!-- Cozy Moka Hero Spotlight Card -->
-      <section class="card moka-room-card">
-        <div class="moka-room-visual">
-          <div class="moka-room-badge" id="mokaRoomStageBadge">Niveau 2 · Duo Complice</div>
-          <div class="moka-stage-platform" onclick="triggerMokaReaction('happy')">
-            <img src="assets/moka-happy.png" class="moka-stage-img" id="mokaStageImg" alt="Moka Maine Coon">
-          </div>
-          
-          <div class="moka-speech-bubble" id="mokaSpeechBubble">
-            <span id="mokaBubbleText">« Salut Quentin & Jessica ! Je veille sur l’équilibre du foyer. Prêts à relever vos défis ? »</span>
-          </div>
-        </div>
-
-        <!-- Serenity & Couple Progress Gauge -->
+      <!-- Serenity & Couple Progress Gauge -->
+      <section class="card" style="padding:24px;">
         <div class="moka-stats-section">
           <div class="serenity-header">
             <div>
               <div class="serenity-title">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                <span>Sérénité du Foyer</span>
+                <span>Indice de Sérénité du Foyer</span>
               </div>
               <p class="serenity-sub" id="serenitySubtitle">Votre complicité budgétaire est au beau fixe !</p>
             </div>
@@ -2521,29 +2505,29 @@ body{
             <div class="level-step done" id="lvlStep1">
               <div class="step-dot">✓</div>
               <div class="step-info">
-                <span class="step-name">Niv. 1 Chaton</span>
-                <span class="step-unlock">Base DuoPaws</span>
+                <span class="step-name">Niveau 1</span>
+                <span class="step-unlock">Base Duo</span>
               </div>
             </div>
             <div class="level-step active" id="lvlStep2">
               <div class="step-dot">2</div>
               <div class="step-info">
-                <span class="step-name">Niv. 2 Complice</span>
-                <span class="step-unlock">Foulard Vert</span>
+                <span class="step-name">Niveau 2</span>
+                <span class="step-unlock">Duo Complice</span>
               </div>
             </div>
             <div class="level-step" id="lvlStep3">
               <div class="step-dot">3</div>
               <div class="step-info">
-                <span class="step-name">Niv. 3 Gardien</span>
-                <span class="step-unlock">Tablier & Lunettes</span>
+                <span class="step-name">Niveau 3</span>
+                <span class="step-unlock">Foyer Serein</span>
               </div>
             </div>
             <div class="level-step" id="lvlStep4">
               <div class="step-dot">4</div>
               <div class="step-info">
-                <span class="step-name">Niv. 4 Maîtres</span>
-                <span class="step-unlock">Couronne Dorée</span>
+                <span class="step-name">Niveau 4</span>
+                <span class="step-unlock">Maîtrise Budget</span>
               </div>
             </div>
           </div>
@@ -2664,7 +2648,7 @@ let shopping = [];
 let currentMonth = new Date().toISOString().slice(0,7);
 let pendingImage = null;
 
-// DuoPaws Moka Progression & Quests State
+// Duo Progression & Quests State
 const COUPLE_QUESTS_DEFAULT = [
   { id:'q_cook', title:'Festin Maison', desc:'Cuisiner 4 bons repas ensemble cette semaine', xp:50, icon:'🥩', done:false },
   { id:'q_budget', title:'Bouclier Courses', desc:'Maintenir l’enveloppe alimentation sous le cap', xp:80, icon:'🛡️', done:false },
@@ -2673,40 +2657,32 @@ const COUPLE_QUESTS_DEFAULT = [
 ];
 let coupleQuests = JSON.parse(localStorage.getItem('duospend_quests') || 'null') || COUPLE_QUESTS_DEFAULT;
 let serenityScore = Number(localStorage.getItem('duospend_serenity') || 85);
-let mokaLevel = 2; // Niv. 2 : Duo Complice
 
-function openMokaQuests(){
+function openCoupleQuests(){
   const qTab = document.querySelector('[data-tab="tab-quests"]');
   if(qTab) qTab.click();
 }
+const openMokaQuests = openCoupleQuests;
 
 function updateMokaVisuals(){
-  const dot = $('mokaMoodDot');
-  const stageBadge = $('mokaRoomStageBadge');
-  const lvlBadge = $('mokaLevelBadge');
   const sScore = $('serenityScoreVal');
   const sFill = $('serenityBarFill');
   const sSub = $('serenitySubtitle');
 
-  if(sScore) sScore.textContent = serenityScore;
+  if(sScore) sScore.textContent = Math.round(serenityScore);
   if(sFill) sFill.style.width = Math.min(100, Math.max(10, serenityScore)) + '%';
 
-  if(serenityScore >= 80){
-    if(dot) dot.style.background = '#52B788';
-    if(sSub) sSub.textContent = "Votre complicité budgétaire est au beau fixe !";
-  } else if(serenityScore >= 50){
-    if(dot) dot.style.background = '#D97706';
-    if(sSub) sSub.textContent = "Équilibre stable. Restez attentifs aux extras !";
-  } else {
-    if(dot) dot.style.background = '#E76F51';
-    if(sSub) sSub.textContent = "Période intense. Moka recommande un arbitrage doux.";
+  if(sSub){
+    if(serenityScore >= 80) sSub.textContent = "Excellente harmonie budgétaire au sein du couple.";
+    else if(serenityScore >= 50) sSub.textContent = "Rythme de dépenses équilibré et sous contrôle.";
+    else sSub.textContent = "Quelques ajustements recommandés pour ce mois-ci.";
   }
 
-  // Roadmaps steps
   for(let i=1; i<=4; i++){
     const st = $('lvlStep' + i);
     if(st){
-      st.className = 'level-step ' + (mokaLevel > i ? 'done' : (mokaLevel === i ? 'active' : ''));
+      const threshold = i === 1 ? 20 : (i === 2 ? 50 : (i === 3 ? 75 : 90));
+      st.className = 'level-step ' + (serenityScore >= threshold + 15 ? 'done' : (serenityScore >= threshold ? 'active' : ''));
     }
   }
 
@@ -2721,12 +2697,12 @@ function renderQuestsUI(){
       <div class="quest-left">
         <div class="quest-icon">${q.icon}</div>
         <div>
-          <div class="quest-title">${esc(q.title)}</div>
+          <div class="quest-title" style="${q.done ? 'text-decoration:line-through;opacity:0.75;' : ''}">${esc(q.title)}</div>
           <div class="quest-desc">${esc(q.desc)}</div>
         </div>
       </div>
       <div class="quest-right">
-        <span class="quest-xp">+${q.xp} Sérénité</span>
+        <span class="quest-xp">+${q.xp} pts</span>
         <button type="button" class="quest-btn ${q.done ? 'completed' : ''}" onclick="toggleCoupleQuest(${idx})">
           ${q.done ? 'Validé ✓' : 'Accomplir'}
         </button>
@@ -2743,7 +2719,7 @@ function toggleCoupleQuest(idx){
   coupleQuests[idx].done = !coupleQuests[idx].done;
   if(coupleQuests[idx].done){
     serenityScore = Math.min(100, serenityScore + coupleQuests[idx].xp / 3);
-    triggerMokaReaction('happy', `Bravo pour « ${coupleQuests[idx].title} » ! Le foyer gagne en sérénité.`);
+    showToast(`Défi complété : ${coupleQuests[idx].title} !`, true);
     if(typeof confetti === 'function'){
       confetti({ particleCount: 35, spread: 60, origin: { y: 0.7 } });
     }
@@ -2756,157 +2732,15 @@ function toggleCoupleQuest(idx){
 }
 
 function showMemeCut(opts){
-  const card = $('memeCutCard');
-  const icon = $('memeCutIcon');
-  const title = $('memeCutTitle');
-  const badge = $('memeCutBadge');
-  const caption = $('memeCutCaption');
-  if(!card) return;
-
-  if(icon) icon.textContent = opts.icon || '😼';
-  if(title) title.textContent = opts.title || 'DUOPAWS MEME';
-  if(badge) badge.textContent = opts.badge || 'REACTION';
-  if(caption) caption.textContent = opts.caption || '';
-
-  card.classList.add('show');
-  setTimeout(() => {
-    card.classList.remove('show');
-  }, opts.duration || 2200);
+  // Memes disabled
 }
 
 function setMokaAsset(imgName){
-  const hImg = $('mokaHeaderImg');
-  const sImg = $('mokaStageImg');
-  const src = 'assets/' + imgName;
-  if(hImg) hImg.src = src;
-  if(sImg) sImg.src = src;
+  // Avatars disabled
 }
 
 function triggerMokaReaction(type, customText, extra){
-  const avatar = $('mokaHeaderAvatar');
-  const bubble = $('mokaSpeechBubble');
-  const bText = $('mokaBubbleText');
-  const aiText = $('aiStatusText');
-
-  if(avatar){
-    avatar.classList.remove('moka-happy', 'moka-nod', 'moka-shrug', 'moka-sideeye', 'moka-shocked', 'moka-dbz', 'moka-flat', 'moka-suspicious', 'moka-sleepy');
-    void avatar.offsetWidth; // force reflow
-  }
-
-  // --- 1. RARE RANDOM MEME CHECK (6% de chance) ---
-  const isRareRoll = Math.random() < 0.06;
-  if(isRareRoll && type !== 'dbz' && type !== 'shocked'){
-    if(avatar) avatar.classList.add('moka-shocked');
-    setMokaAsset('moka-sideeye.png');
-    showMemeCut({
-      icon: '👁️👄👁️',
-      title: 'DUOPAWS · RARE MEME ROLL',
-      badge: '0.05% CHANCE',
-      caption: '👁️ 👄 👁️ · *Moka vous juge en 4K UHD*'
-    });
-    const rareMsg = "👁️👄👁️ Moka est figé dans le temps devant cette action.";
-    if(bText) bText.textContent = rareMsg;
-    return;
-  }
-
-  // --- 2. SITUATIONS SPÉCIFIQUES & MEMES ---
-  if(type === 'giga_expense' || (extra && extra.amount >= 250)){
-    // Meme: Regard lent vers caméra / Side-Eye dramatic zoom
-    if(avatar) avatar.classList.add('moka-sideeye');
-    setMokaAsset('moka-sideeye.png');
-    showMemeCut({
-      icon: '😶',
-      title: 'DUOPAWS · CUT DRAMATIQUE',
-      badge: 'GROSSE DÉPENSE',
-      caption: '👀 *Regarde le montant* ... *Regarde l’utilisateur* ... « On en parle ? »'
-    });
-    const msg = customText || "😶 Moka fixe le montant, puis vous regarde droit dans les yeux en silence… « On en parle ? »";
-    if(bText) bText.textContent = msg;
-    if(aiText) aiText.textContent = msg;
-  }
-  else if(type === 'resto_order' || (extra && extra.category === 'Restaurants')){
-    // Meme: "Really bro?" / Arms crossed
-    if(avatar) avatar.classList.add('moka-suspicious');
-    setMokaAsset('moka-arms-crossed.png');
-    showMemeCut({
-      icon: '🍕',
-      title: 'DUOPAWS · RESTO / UBER EATS',
-      badge: 'REALLY BRO?',
-      caption: '🤨 « Il y a des restes au frigo... Mais bon, régalez-vous ! »'
-    });
-    const msg = customText || "🤨 Moka regarde la commande façon « really bro ? », bras croisés…";
-    if(bText) bText.textContent = msg;
-    if(aiText) aiText.textContent = msg;
-  }
-  else if(type === 'dbz' || (extra && extra.isEpic)){
-    // Meme: Super Saiyan Mode / Transformation Anime
-    if(avatar) avatar.classList.add('moka-dbz');
-    setMokaAsset('moka-attack.png');
-    showMemeCut({
-      icon: '🔥',
-      title: 'DUOPAWS · DBZ SUPER SAIYAN',
-      badge: 'AURA MAXIMUM',
-      caption: '💥 AURA DÉCHAÎNÉE ! « MAÎTRES DU FOYER ! »'
-    });
-    if(typeof confetti === 'function'){
-      confetti({ particleCount: 75, spread: 80, origin: { y: 0.6 } });
-    }
-    const msg = customText || "🔥 AURA MAXIMUM ! Moka passe en mode Super Saiyan, prêt au combat !";
-    if(bText) bText.textContent = msg;
-    if(aiText) aiText.textContent = msg;
-  }
-  else if(type === 'budget_flat' || type === 'flat'){
-    // Meme: Chat écrasé / Bras croisés sévère
-    if(avatar) avatar.classList.add('moka-flat');
-    setMokaAsset('moka-sideeye.png');
-    showMemeCut({
-      icon: '🫠',
-      title: 'DUOPAWS · BUDGET MELTDOWN',
-      badge: 'DÉPASSEMENT',
-      caption: '🫠 Moka s’allonge de tout son long sur le carrelage...'
-    });
-    const msg = customText || "🫠 Moka s'est étalé sur le sol devant les enveloppes… Respiration lente.";
-    if(bText) bText.textContent = msg;
-    if(aiText) aiText.textContent = msg;
-  }
-  else if(type === 'happy'){
-    if(avatar) avatar.classList.add('moka-happy');
-    setMokaAsset('moka-happy.png');
-    const msg = customText || "😼 *Ronronne* · Bravo le duo, un pas de plus pour vos projets communs !";
-    if(bText) bText.textContent = msg;
-    if(aiText && !customText) aiText.textContent = msg;
-    if(typeof confetti === 'function'){
-      confetti({ particleCount: 25, spread: 45, origin: { y: 0.8 } });
-    }
-  }
-  else if(type === 'nod'){
-    if(avatar) avatar.classList.add('moka-nod');
-    setMokaAsset('moka-avatar.png');
-    const msg = customText || "📋 Moka sort son carnet, regarde le duo et hoche la tête : « Pas mal du tout ! »";
-    if(bText) bText.textContent = msg;
-    if(aiText && !customText) aiText.textContent = msg;
-  }
-  else if(type === 'shrug'){
-    if(avatar) avatar.classList.add('moka-shrug');
-    setMokaAsset('moka-arms-crossed.png');
-    const msg = customText || "🐾 Moka regarde le montant, bras croisés : « Bon… on s'est fait plaisir, on équilibre au prochain repas ! »";
-    if(bText) bText.textContent = msg;
-    if(aiText && !customText) aiText.textContent = msg;
-  }
-  else if(type === 'click'){
-    if(avatar) avatar.classList.add('moka-happy');
-    setMokaAsset('moka-happy.png');
-    const memePicks = [
-      { t: "« Miaou ! Pensez à vérifier les bons plans de saison dans la liste d'achats ! »", cut: null },
-      { t: "« 7 jours sans dépense superflue… Vous êtes sérieux là ?! »", cut: { icon:'😼', title:'STREAK DUOPAWS', badge:'JOUR 7', caption:'« 7 jours. Respect. »' } },
-      { t: "« 🥩 Le bœuf haché et les œufs fermiers sont prêts dans votre panier ! »", cut: null },
-      { t: "👀 Moka vous observe discrètement en mode DBZ…", cut: { icon:'👀', title:'SIDE EYE', badge:'OBSERVATION', caption:'« Je vois tout. Surtout les snacks. »' } }
-    ];
-    const pick = memePicks[Math.floor(Math.random() * memePicks.length)];
-    if(bText) bText.textContent = pick.t;
-    if(pick.cut) showMemeCut(pick.cut);
-    showToast(pick.t, true);
-  }
+  // Reactions cleaned
 }
 
 const DINNER_IDEAS = [
@@ -2932,7 +2766,7 @@ function spinCoupleRoulette(){
       btn.disabled = false;
       const finalPick = DINNER_IDEAS[Math.floor(Math.random() * DINNER_IDEAS.length)];
       disp.textContent = finalPick;
-      triggerMokaReaction('dbz', `Moka déploie son aura de Chef : « Ce soir, c'est ${finalPick} ! »`, { isEpic: true });
+      showToast(`Idée sélectionnée : ${finalPick}`, true);
     }
   }, 80);
 }
@@ -3137,12 +2971,10 @@ function renderUI(){
   } else if(overEnvelopes.length > 0){
     const names = overEnvelopes.map(e => e.category).join(', ');
     aiTitle.textContent = "Alerte enveloppe budgétaire";
-    aiText.textContent = `Plafond dépassé sur : ${names}. Moka s'étale doucement au sol… On rééquilibre au prochain repas !`;
-    triggerMokaReaction('budget_flat');
+    aiText.textContent = `Plafond dépassé sur : ${names}. Attention à ajuster les dépenses d'ici la fin du mois.`;
   } else {
     aiTitle.textContent = "Vue d'ensemble du mois";
     aiText.textContent = `Total de ${eur(total)} engagé sur le mois. Quentin a avancé ${eur(q)} et Jessica ${eur(j)}.`;
-    triggerMokaReaction('nod');
   }
 
   updateMokaVisuals();
@@ -3527,15 +3359,9 @@ $('manualForm').onsubmit = async e => {
     showToast(editId ? 'Dépense modifiée' : 'Dépense ajoutée');
     
     const numAmt = parseFloat(item.amount) || 0;
-    if(numAmt >= 250){
-      triggerMokaReaction('giga_expense', null, { amount: numAmt });
-    } else if(item.category === 'Restaurants'){
-      triggerMokaReaction('resto_order', null, { category: item.category });
-    } else {
-      triggerMokaReaction('happy', `Dépense « ${item.label} » (${eur(numAmt)}) enregistrée !`);
-    }
-
     if(!editId && typeof confetti === 'function' && numAmt < 250){
+      confetti({ particleCount: 20, spread: 45, origin: { y: 0.8 } });
+    }
       confetti({
         particleCount: 35,
         spread: 45,
@@ -3696,20 +3522,9 @@ document.addEventListener('paste', e => {
 
 // Init
 loadState().then(() => {
-  addChatMessage('bot', 'Bonjour Quentin & Jessica ! Je suis DuoSpend. Vos comptes de test ont été remis à zéro. Prêt pour un suivi fluide et votre liste d\'achats de saison !');
+  addChatMessage('bot', 'Bonjour Quentin & Jessica ! Je suis DuoSpend. Prêt pour un suivi fluide de vos dépenses et de vos objectifs !');
 });
 </script>
-<!-- Meme Toast Overlay Banner (Cut-meme de 1.5s) -->
-<div class="meme-cut-card" id="memeCutCard">
-  <div style="font-size:2rem;" id="memeCutIcon">👀</div>
-  <div class="meme-cut-text">
-    <div style="display:flex;align-items:center;gap:8px;">
-      <span class="meme-cut-title" id="memeCutTitle">DUOPAWS CUT</span>
-      <span class="meme-cut-badge" id="memeCutBadge">MEME REACTION</span>
-    </div>
-    <div class="meme-cut-caption" id="memeCutCaption">« On en parle ? »</div>
-  </div>
-</div>
 
 <div class="toast-wrap" id="toastWrap"></div>
 </body>
