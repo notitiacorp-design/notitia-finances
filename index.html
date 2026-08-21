@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
-<title>DuoSpend · Finances & Sérénité à deux</title>
+<title>DuoSpend · Finances & Sérénité à deux (v1.2)</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#fbf8f3">
@@ -2553,8 +2553,8 @@ body{
       <section class="card roulette-card">
         <div class="card-header">
           <div>
-            <h2 class="card-title">La Roue du Dîner & Des Tâches</h2>
-            <p class="card-subtitle">Pas d’inspiration ce soir ? Laissez Moka arbitrer avec le sourire !</p>
+            <h2 class="card-title">La Roue du Dîner & Des Idées</h2>
+            <p class="card-subtitle">Pas d’inspiration ce soir ? Tirez une idée au sort en un clic !</p>
           </div>
         </div>
         <div class="roulette-box">
@@ -2628,6 +2628,17 @@ body{
 </div>
 
 <script>
+window.onerror = function(msg, url, line, col, err){
+  console.error('GLOBAL JS ERROR:', msg, 'at line:', line, err);
+  const toast = $('toastWrap');
+  if(toast){
+    const d = document.createElement('div');
+    d.className = 'toast err';
+    d.textContent = 'Erreur JS: ' + msg + ' (L' + line + ')';
+    toast.appendChild(d);
+    setTimeout(() => d.remove(), 6000);
+  }
+};
 const API_BASE = window.NOTITIA_API || '';
 const $ = id => document.getElementById(id);
 
