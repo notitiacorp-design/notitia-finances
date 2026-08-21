@@ -3360,17 +3360,15 @@ $('manualForm').onsubmit = async e => {
     
     const numAmt = parseFloat(item.amount) || 0;
     if(!editId && typeof confetti === 'function' && numAmt < 250){
-      confetti({ particleCount: 20, spread: 45, origin: { y: 0.8 } });
-    }
       confetti({
-        particleCount: 35,
+        particleCount: 25,
         spread: 45,
         origin: { y: 0.85 },
-        colors: ['#2d6a4f', '#2563eb', '#d97706']
+        colors: ['#2d6a4f', '#2563eb', '#52b788']
       });
     }
 
-    // Ensure user is on overview tab to see Moka reaction & new expense immediately
+    // Ensure user is on overview tab to see new expense immediately
     const overTab = document.querySelector('[data-tab="tab-overview"]');
     if(overTab && !overTab.classList.contains('active')){
       overTab.click();
