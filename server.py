@@ -85,6 +85,7 @@ def normalize_expense(fields, rid):
         "status": fields.get("Remboursement", "À équilibrer"),
         "note": note,
         "is_budget": note.startswith(BUDGET_MARK) or label.startswith("[Budget]"),
+        "is_shopping": note.startswith(SHOPPING_MARK) or label.startswith("[Shopping]"),
     }
 
 
@@ -111,7 +112,7 @@ def get_all_records():
 
 
 def get_expenses():
-    return [x for x in get_all_records() if not x.get("is_budget")]
+    return [x for x in get_all_records() if not x.get("is_budget") and not x.get("is_shopping")]
 
 def delete_expense(record_id):
     if TOKEN and BASE_ID:
@@ -159,7 +160,7 @@ def clear_all_expenses():
         records = list_table(TABLE) or []
         for r in records:
             norm = normalize_expense(r.get("fields", {}), r.get("id"))
-            if not norm.get("is_budget"):
+            if not norm.get("is_budget") and not norm.get("is_shopping"):
                 try:
                     airtable_request("DELETE", f"{BASE_ID}/{urllib.parse.quote(TABLE)}/{r['id']}")
                     deleted += 1
@@ -184,8 +185,12 @@ def get_shopping():
                 for r in records
                 if r.get("fields", {}).get("Article")
             ]
+        except RuntimeError as e:
+            if getattr(e, "code", None) in (404, 403):
+                return shopping_from_expense_records()
+            raise
         except Exception:
-            pass
+            return shopping_from_expense_records()
     return list(LOCAL_SHOPPING)
 
 
@@ -205,6 +210,28 @@ def add_shopping_item(item, category="Courses"):
                     "checked": False,
                     "season_tip": "",
                 }
+        except RuntimeError as e:
+            if getattr(e, "code", None) in (404, 403):
+                # Fallback on main table
+                fields = {
+                    "Dépense": f"[Shopping] {item}",
+                    "Date": date.today().strftime("%Y-%m-%d"),
+                    "Catégorie": category if category in CATEGORIES else "Courses",
+                    "Montant (€)": 0,
+                    "Payé par": "Quentin",
+                    "Dépense commune": False,
+                    "Remboursement": "À acheter",
+                    "Note": SHOPPING_MARK,
+                }
+                data = airtable_request("POST", f"{BASE_ID}/{urllib.parse.quote(TABLE)}", {"fields": fields, "typecast": True}) or {}
+                return {
+                    "id": data.get("id", ""),
+                    "item": item,
+                    "category": category,
+                    "checked": False,
+                    "season_tip": "",
+                }
+            raise
         except Exception:
             pass
     row = {"id": f"shop-{len(LOCAL_SHOPPING)+1}", "item": item, "category": category, "checked": False, "season_tip": ""}
@@ -221,6 +248,20 @@ def toggle_shopping_item(item_id, checked=None):
                 new_val = not cur_val if checked is None else bool(checked)
                 airtable_request("PATCH", f"{BASE_ID}/{urllib.parse.quote(SHOPPING_TABLE)}/{item_id}", {"fields": {"Acheté": new_val}})
                 return new_val
+        except RuntimeError as e:
+            if getattr(e, "code", None) in (404, 403):
+                # Fallback on main table
+                current = airtable_request("GET", f"{BASE_ID}/{urllib.parse.quote(TABLE)}/{item_id}")
+                if current and isinstance(current, dict):
+                    fields = current.get("fields", {})
+                    note = str(fields.get("Note", "") or "")
+                    cur_val = "checked=true" in note or fields.get("Remboursement") == "Acheté"
+                    new_val = not cur_val if checked is None else bool(checked)
+                    new_note = f"{SHOPPING_MARK} checked={'true' if new_val else 'false'}"
+                    new_status = "Acheté" if new_val else "À acheter"
+                    airtable_request("PATCH", f"{BASE_ID}/{urllib.parse.quote(TABLE)}/{item_id}", {"fields": {"Note": new_note, "Remboursement": new_status}})
+                    return new_val
+            raise
         except Exception:
             pass
     for x in LOCAL_SHOPPING:
@@ -235,6 +276,14 @@ def delete_shopping_item(item_id):
         try:
             airtable_request("DELETE", f"{BASE_ID}/{urllib.parse.quote(SHOPPING_TABLE)}/{item_id}")
             return True
+        except RuntimeError as e:
+            if getattr(e, "code", None) in (404, 403):
+                try:
+                    airtable_request("DELETE", f"{BASE_ID}/{urllib.parse.quote(TABLE)}/{item_id}")
+                    return True
+                except Exception:
+                    pass
+            raise
         except Exception:
             pass
     global LOCAL_SHOPPING
@@ -307,6 +356,7 @@ def create_expense(item):
         return normalize_expense(data.get("fields", fields), data.get("id", ""))
     item["id"] = "local-" + str(len(LOCAL_EXPENSES) + 1)
     item["is_budget"] = False
+    item["is_shopping"] = False
     LOCAL_EXPENSES.insert(0, item)
     return item
 
@@ -315,6 +365,24 @@ def default_budgets(month):
     return [{"id": "", "category": cat, "month": month, "amount": 0.0} for cat in CATEGORIES]
 
 
+SHOPPING_MARK = "kind=shopping"
+
+def shopping_from_expense_records():
+    found = []
+    for row in get_all_records():
+        note = str(row.get("note") or "")
+        label = str(row.get("label") or "")
+        if note.startswith(SHOPPING_MARK) or label.startswith("[Shopping]"):
+            is_checked = "checked=true" in note or row.get("status") == "Acheté"
+            item_name = label.replace("[Shopping]", "").strip() or "Article"
+            found.append({
+                "id": row.get("id"),
+                "item": item_name,
+                "category": row.get("category", "Courses"),
+                "checked": is_checked,
+                "season_tip": ""
+            })
+    return found
 def budgets_from_expense_records(month):
     found = {}
     for row in get_all_records():

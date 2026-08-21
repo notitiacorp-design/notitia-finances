@@ -156,35 +156,50 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
 /* Nav Tabs */
 .nav-tabs{
   display:flex;
-  background:var(--surface);
-  padding:4px;
+  background:rgba(255,255,255,0.7);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  padding:5px;
   border-radius:var(--radius-lg);
   border:1px solid var(--border);
-  margin-bottom:20px;
+  margin-bottom:24px;
   box-shadow:var(--shadow-sm);
-  gap:4px;
+  gap:6px;
   overflow-x:auto;
 }
 .tab-btn{
   flex:1;
   min-width:110px;
-  padding:10px 14px;
+  padding:11px 16px;
   text-align:center;
   font-weight:700;
   font-size:13.5px;
   border-radius:var(--radius-md);
   color:var(--text-muted);
-  transition:all 0.2s;
+  transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:6px;
+  gap:8px;
   white-space:nowrap;
+}
+.tab-btn:hover{
+  color:var(--text-main);
+  background:rgba(0,0,0,0.03);
 }
 .tab-btn.active{
   background:var(--text-main);
   color:white;
-  box-shadow:var(--shadow-sm);
+  box-shadow:0 4px 14px rgba(28,25,23,0.15);
+  transform:translateY(-1px);
+}
+
+.tab-pane{
+  animation:paneFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes paneFadeIn{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
 }
 
 /* AI Floating Banner */
@@ -606,8 +621,30 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
   padding:0;
   line-height:1;
 }
-.tx-act:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+.tx-act:hover{background:var(--primary);color:#fff;border-color:var(--primary);transform:scale(1.08)}
 .tx-act.del:hover{background:#d94848;border-color:#d94848}
+
+/* Animations */
+.tx-row{animation:rowIn 0.35s cubic-bezier(0.16,1,0.3,1) both}
+.tx-row:hover{transform:translateY(-1px);box-shadow:0 6px 18px -8px rgba(0,0,0,0.18)}
+.tx-row:active{transform:scale(0.995)}
+@keyframes rowIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* Toasts */
+.toast-wrap{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  z-index:999;display:flex;flex-direction:column;gap:8px;align-items:center;
+  pointer-events:none;
+}
+.toast{
+  background:#202124;color:#f1f3f4;padding:10px 18px;border-radius:999px;
+  font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:8px;
+  box-shadow:0 10px 30px -10px rgba(0,0,0,0.5);
+  opacity:0;transform:translateY(12px);transition:all 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.ok i{color:#2ea043;font-style:normal}
+.toast.err i{color:#d94848;font-style:normal}
 
 /* SMART SHOPPING LIST & SEASONAL AI */
 .shopping-card{
@@ -621,80 +658,151 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
 }
 .shopping-input{
   flex:1;
-  padding:10px 14px;
+  padding:12px 16px;
   border-radius:var(--radius-md);
-  border:1px solid var(--border);
+  border:1.5px solid var(--border);
   background:var(--surface-subtle);
-  font-size:14px;
+  font-size:14.5px;
+  font-weight:600;
+  transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.shopping-input:focus{outline:none;border-color:var(--primary);background:white}
+.shopping-input:focus{
+  outline:none;
+  border-color:var(--primary);
+  background:white;
+  box-shadow:0 0 0 4px rgba(45,106,79,0.12);
+  transform:translateY(-1px);
+}
 .btn-add-shop{
-  background:var(--primary);
+  background:linear-gradient(135deg, var(--primary), #1b4332);
   color:white;
   font-weight:700;
-  padding:0 16px;
+  padding:0 20px;
   border-radius:var(--radius-md);
   display:flex;
   align-items:center;
   gap:6px;
-  font-size:13.5px;
+  font-size:14px;
+  box-shadow:0 4px 12px rgba(45,106,79,0.25);
+  transition:all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-add-shop:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 16px rgba(45,106,79,0.35);
+}
+.btn-add-shop:active{
+  transform:translateY(0);
 }
 
 .shopping-items-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
-  gap:10px;
+  gap:12px;
 }
 .shopping-item-box{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:10px 14px;
+  padding:12px 16px;
   background:var(--surface-card);
-  border:1px solid var(--border-subtle);
+  border:1.5px solid var(--border-subtle);
   border-radius:var(--radius-md);
-  transition:all 0.2s;
+  transition:all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow:var(--shadow-sm);
+  position:relative;
+  overflow:hidden;
+}
+.shopping-item-box:hover{
+  border-color:var(--border);
+  transform:translateY(-2px);
+  box-shadow:var(--shadow-md);
 }
 .shopping-item-box.checked{
-  opacity:0.55;
-  background:var(--surface-subtle);
+  opacity:0.6;
+  background:#f5f2eb;
+  border-color:#e0d7c7;
+  transform:none;
+}
+.shopping-item-box.checked .shop-item-name{
   text-decoration:line-through;
+  color:var(--text-muted);
 }
 .shop-check-wrap{
   display:flex;
   align-items:center;
-  gap:10px;
+  gap:12px;
   cursor:pointer;
   flex:1;
   min-width:0;
+  user-select:none;
 }
-.shop-check-wrap span{
-  font-size:14px;
-  font-weight:600;
+.shop-check-custom{
+  width:22px;
+  height:22px;
+  border-radius:7px;
+  border:2px solid var(--border);
+  display:grid;
+  place-items:center;
+  background:white;
+  transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink:0;
+}
+.shopping-item-box.checked .shop-check-custom{
+  background:var(--primary);
+  border-color:var(--primary);
+  transform:scale(1.05);
+}
+.shop-check-custom svg{
+  opacity:0;
+  transform:scale(0.5);
+  transition:all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.shopping-item-box.checked .shop-check-custom svg{
+  opacity:1;
+  transform:scale(1);
+}
+.shop-item-name{
+  font-size:14.5px;
+  font-weight:700;
+  color:var(--text-main);
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
+  transition:all 0.2s;
 }
 .btn-del-shop{
   color:var(--text-dim);
-  padding:4px;
-  border-radius:4px;
-  transition:color 0.2s;
+  width:28px;
+  height:28px;
+  display:grid;
+  place-items:center;
+  border-radius:8px;
+  transition:all 0.2s;
+  flex-shrink:0;
 }
-.btn-del-shop:hover{color:var(--coral)}
+.btn-del-shop:hover{
+  background:var(--coral-light);
+  color:var(--coral);
+  transform:scale(1.1);
+}
 
 /* Convert Shopping to Expense Gateway Bar */
 .finish-shopping-bar{
-  background:var(--primary-light);
+  background:linear-gradient(135deg, #e8f5ed, #d8f3e5);
   border:1.5px solid var(--primary);
   border-radius:var(--radius-lg);
-  padding:14px 16px;
+  padding:16px 20px;
   display:flex;
   justify-content:space-between;
   align-items:center;
-  gap:12px;
+  gap:14px;
   flex-wrap:wrap;
-  box-shadow:0 4px 14px rgba(45,106,79,0.12);
+  box-shadow:0 8px 24px rgba(45,106,79,0.15);
+  animation:slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes slideUp{
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:translateY(0)}
 }
 .finish-shop-info{
   display:flex;
@@ -702,27 +810,38 @@ button{cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:tr
   gap:2px;
 }
 .finish-shop-info strong{
-  font-size:14px;
+  font-size:15px;
   color:var(--primary);
+  display:flex;
+  align-items:center;
+  gap:6px;
 }
 .finish-shop-info span{
-  font-size:12px;
+  font-size:12.5px;
   color:var(--text-muted);
+  font-weight:600;
 }
 .finish-shop-actions{
   display:flex;
   align-items:center;
-  gap:8px;
+  gap:10px;
   flex-wrap:wrap;
 }
 .finish-input{
-  width:130px;
-  padding:8px 10px;
+  width:140px;
+  padding:10px 12px;
   border-radius:var(--radius-md);
-  border:1px solid var(--border);
+  border:1.5px solid rgba(45,106,79,0.3);
   background:white;
-  font-weight:700;
-  font-size:13.5px;
+  font-weight:800;
+  font-size:14px;
+  color:var(--text-main);
+  transition:all 0.2s;
+}
+.finish-input:focus{
+  outline:none;
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(45,106,79,0.15);
 }
 .finish-select{
   padding:8px 10px;
@@ -1637,14 +1756,18 @@ function renderShoppingUI(){
   }
 
   if(!shopping.length){
-    grid.innerHTML = '<div style="color:var(--text-dim);font-size:13.5px;padding:12px 0;grid-column:1/-1;">Aucun article dans la liste. Ajoutez vos envies de courses ci-dessus !</div>';
+    grid.innerHTML = '<div style="color:var(--text-dim);font-size:13.5px;padding:20px 0;grid-column:1/-1;text-align:center;">🌿 Votre liste de courses est vide. Ajoutez vos articles ci-dessus !</div>';
     return;
   }
   grid.innerHTML = shopping.map(item => `
     <div class="shopping-item-box ${item.checked ? 'checked' : ''}">
       <div class="shop-check-wrap" onclick="toggleShopItem('${esc(item.id)}')">
-        <input type="checkbox" ${item.checked ? 'checked' : ''} style="cursor:pointer;accent-color:var(--primary);width:17px;height:17px;">
-        <span>${esc(item.item)}</span>
+        <div class="shop-check-custom">
+          <svg width="12" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 5L4.5 8.5L11 1.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="shop-item-name">${esc(item.item)}</span>
       </div>
       <button type="button" class="btn-del-shop" onclick="deleteShopItem('${esc(item.id)}')" title="Supprimer">✕</button>
     </div>
@@ -1883,6 +2006,18 @@ async function handleFiles(file){
 }
 
 async function loadState(){
+  // Load local cache immediately for zero-delay UX
+  try {
+    const cached = localStorage.getItem('duospend_state_' + currentMonth);
+    if(cached){
+      const parsed = JSON.parse(cached);
+      if(parsed.shopping && (!shopping || !shopping.length)) shopping = parsed.shopping;
+      if(parsed.expenses && (!expenses || !expenses.length)) expenses = parsed.expenses;
+      if(parsed.envelopes && (!envelopes || !envelopes.length)) envelopes = parsed.envelopes;
+      renderUI();
+    }
+  } catch(e) {}
+
   try{
     const r = await fetch(API_BASE + '/api/state?month=' + encodeURIComponent(currentMonth));
     const j = await r.json();
@@ -1890,6 +2025,9 @@ async function loadState(){
       expenses = j.expenses || [];
       envelopes = j.envelopes || [];
       shopping = j.shopping || [];
+      try {
+        localStorage.setItem('duospend_state_' + currentMonth, JSON.stringify({expenses, envelopes, shopping}));
+      } catch(e) {}
     }
   }catch(e){
     console.error(e);
@@ -1928,9 +2066,10 @@ $('manualForm').onsubmit = async e => {
     if(!r.ok) throw Error(j.detail || j.error || 'Erreur');
     $('manualForm').reset();
     $('modalOverlay').classList.remove('open');
+    showToast(editId ? 'Dépense modifiée' : 'Dépense ajoutée');
     await loadState();
   }catch(err){
-    alert('Erreur: ' + err.message);
+    if(!editId) showToast(err.message, false); else alert('Erreur: ' + err.message);
   }
 };
 function openEditExpense(id){
@@ -1945,6 +2084,15 @@ function openEditExpense(id){
   $('f_cat').value = t.category && CATEGORY_META[t.category] ? t.category : 'Autres';
   $('f_payer').value = t.payer === 'Jessica' ? 'Jessica' : 'Quentin';
   $('modalOverlay').classList.add('open');
+}
+function showToast(msg, ok=true){
+  const wrap = $('toastWrap') || document.body;
+  const t = document.createElement('div');
+  t.className = 'toast ' + (ok?'ok':'err');
+  t.innerHTML = `<i>${ok?'&#10003;':'&#10005;'}</i><span>${esc(msg)}</span>`;
+  wrap.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(), 350); }, 2600);
 }
 async function deleteExpense(id){
   if(!confirm('Supprimer cette dépense ? Cette action est définitive.')) return;
@@ -2057,5 +2205,6 @@ loadState().then(() => {
   addChatMessage('bot', 'Bonjour Quentin & Jessica ! Je suis DuoSpend. Vos comptes de test ont été remis à zéro. Prêt pour un suivi fluide et votre liste d\'achats de saison !');
 });
 </script>
+<div class="toast-wrap" id="toastWrap"></div>
 </body>
 </html>
