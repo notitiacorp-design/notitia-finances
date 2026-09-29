@@ -583,7 +583,7 @@ def finance_context(expenses, month=None):
 def deterministic_answer(q, ctx):
     total = ctx["total"]
     pay = ctx["by_payer"]
-    if "budget" in q or "enveloppe" in q:
+    if "budget" in q or "enveloppe" in q or "repère" in q or "repere" in q:
         unset = [e["category"] for e in ctx["envelopes"] if e["status"] == "unset"]
         over = [e for e in ctx["envelopes"] if e["status"] == "over"]
         if unset and not any(e["budget"] > 0 for e in ctx["envelopes"]):
@@ -796,6 +796,14 @@ def assistant_answer(question, expenses, image=None, month=None):
 
 
 class Handler(SimpleHTTPRequestHandler):
+    extensions_map = {
+        **SimpleHTTPRequestHandler.extensions_map,
+        ".webmanifest": "application/manifest+json",
+        ".json": "application/json",
+        ".png": "image/png",
+        ".svg": "image/svg+xml",
+    }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
 
@@ -809,6 +817,7 @@ class Handler(SimpleHTTPRequestHandler):
         raw = json.dumps(obj, ensure_ascii=False).encode()
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("X-Robots-Tag", "noindex")
         self.send_header("Content-Length", str(len(raw)))
         self.end_headers()
         self.wfile.write(raw)

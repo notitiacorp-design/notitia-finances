@@ -3,7 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
-<title>DuoSpend · Finances & Sérénité à deux (v1.3)</title>
+<title>DuoSpend · Finances & Sérénité à deux (v1.4)</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="description" content="DuoSpend — les dépenses du foyer de Quentin & Jessica, limpides et sereines.">
+<meta name="apple-mobile-web-app-title" content="DuoSpend">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#fbf8f3">
@@ -20,6 +25,7 @@
   --bg:#fbf8f3;
   --surface:#ffffff;
   --surface-subtle:#f4efe6;
+  --surface-sunken:#f7f3ea;
   --surface-card:#fdfbf8;
   --text-main:#1c1917;
   --text-muted:#78716c;
@@ -27,6 +33,8 @@
   
   --primary:#2d6a4f;
   --primary-light:#e8f5ed;
+  --primary-dark:#1b4332;
+  --primary-subtle:#e8f5ed;
   --amber:#d97706;
   --amber-light:#fef3c7;
   --coral:#e11d48;
@@ -46,6 +54,7 @@
   --radius-xl:24px;
   --radius-lg:18px;
   --radius-md:12px;
+  --font-mono:ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace;
 }
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -173,26 +182,6 @@ body{
   margin-top:2px;
 }
 
-.month-picker{
-  display:flex;
-  align-items:center;
-  gap:4px;
-  background:var(--surface);
-  padding:4px 6px;
-  border-radius:var(--radius-lg);
-  box-shadow:var(--shadow-sm);
-  border:1px solid var(--border);
-}
-.month-btn{
-  width:36px;
-  height:36px;
-  border-radius:var(--radius-md);
-  display:grid;
-  place-items:center;
-  color:var(--text-muted);
-  transition:all 0.2s;
-}
-.month-btn:active{background:var(--surface-subtle);color:var(--text-main)}
 .month-text{
   font-weight:700;
   font-size:14.5px;
@@ -264,7 +253,7 @@ body{
   to{opacity:1;transform:translateY(0)}
 }
 
-/* AI Floating Banner & Moka Companion */
+/* AI Floating Banner */
 .ai-summary-card{
   background:var(--surface);
   border:1px solid var(--border);
@@ -286,314 +275,6 @@ body{
   bottom:0;
   width:4px;
   background:linear-gradient(180deg, var(--primary), var(--amber));
-}
-
-/* Moka Companion Avatar & Animations */
-.moka-avatar-wrap{
-  position:relative;
-  width:64px;
-  height:64px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-  flex-shrink:0;
-  border-radius:18px;
-  background:linear-gradient(135deg, #F4EFEB, #E8DFD8);
-  border:2px solid rgba(45,106,79,0.25);
-  box-shadow:0 4px 14px rgba(45,106,79,0.12);
-  transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  overflow:hidden;
-}
-.moka-avatar-wrap:hover{
-  transform:scale(1.08);
-  border-color:var(--primary);
-  box-shadow:0 8px 20px -4px rgba(45,106,79,0.3);
-}
-.moka-avatar-wrap:active{
-  transform:scale(0.95);
-}
-.moka-img-avatar{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  border-radius:16px;
-  transition:transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.moka-stage-img{
-  width:145px;
-  height:145px;
-  object-fit:cover;
-  border-radius:24px;
-  box-shadow:0 10px 25px -6px rgba(0,0,0,0.2);
-  transition:transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.moka-svg{
-  overflow:visible;
-  animation:mokaBreathe 4s ease-in-out infinite;
-  transform-origin:bottom center;
-}
-.moka-stage-svg{
-  overflow:visible;
-  animation:mokaBreathe 4.5s ease-in-out infinite;
-  transform-origin:bottom center;
-}
-
-/* Keyframes animations de Moka (subtiles & premium) */
-@keyframes mokaBreathe{
-  0%, 100%{ transform:scale(1) translateY(0); }
-  50%{ transform:scale(1.02, 0.98) translateY(-1px); }
-}
-@keyframes mokaTailWag{
-  0%, 100%{ transform:rotate(0deg); }
-  50%{ transform:rotate(8deg); }
-}
-.moka-tail{
-  transform-origin:82px 85px;
-  animation:mokaTailWag 3.5s ease-in-out infinite;
-}
-@keyframes mokaEarTwitchL{
-  0%, 90%, 100%{ transform:rotate(0deg); }
-  92%{ transform:rotate(-4deg); }
-  96%{ transform:rotate(2deg); }
-}
-@keyframes mokaEarTwitchR{
-  0%, 88%, 100%{ transform:rotate(0deg); }
-  90%{ transform:rotate(4deg); }
-  94%{ transform:rotate(-2deg); }
-}
-.moka-ear-l{
-  transform-origin:48px 36px;
-  animation:mokaEarTwitchL 6s ease-in-out infinite;
-}
-.moka-ear-r{
-  transform-origin:72px 36px;
-  animation:mokaEarTwitchR 7s ease-in-out infinite;
-}
-@keyframes mokaBlink{
-  0%, 94%, 98%, 100%{ transform:scaleY(1); }
-  96%{ transform:scaleY(0.1); }
-}
-.moka-eyes{
-  transform-origin:60px 49px;
-  animation:mokaBlink 5s infinite;
-}
-.moka-stage-svg .moka-eyes{
-  transform-origin:80px 64px;
-}
-.moka-paw-l, .moka-paw-r{
-  transition:transform 0.2s ease;
-}
-
-/* Classes d'états d'animation Moka */
-.moka-happy .moka-svg, .moka-happy .moka-stage-svg{
-  animation:mokaJump 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-}
-@keyframes mokaJump{
-  0%{ transform:scale(1) translateY(0); }
-  30%{ transform:scale(1.12, 0.88) translateY(-10px); }
-  60%{ transform:scale(0.95, 1.05) translateY(2px); }
-  100%{ transform:scale(1) translateY(0); }
-}
-.moka-nod .moka-svg, .moka-nod .moka-stage-svg{
-  animation:mokaNodding 1s ease-in-out !important;
-}
-@keyframes mokaNodding{
-  0%, 100%{ transform:rotate(0deg); }
-  25%{ transform:rotate(-5deg) translateY(-2px); }
-  50%{ transform:rotate(4deg) translateY(2px); }
-  75%{ transform:rotate(-2deg); }
-}
-.moka-shrug .moka-paw-r{
-  transform:translateY(-8px) rotate(-15deg);
-}
-
-/* --- MEMES & MOODS DUOPAWS (INTERNET CULTURE & DBZ AURA) --- */
-
-/* 1. Dramatic Slow Zoom / Side Eye */
-.moka-sideeye .moka-eyes{
-  transform:translateX(5px) scaleY(0.85) !important;
-}
-.moka-sideeye .moka-svg{
-  animation:mokaDramaticZoom 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
-}
-@keyframes mokaDramaticZoom{
-  0%{ transform:scale(1); }
-  60%{ transform:scale(1.3) translateY(4px); }
-  100%{ transform:scale(1.25) translateY(3px); }
-}
-
-/* 2. Shocked / Disbelief (O_O meme) */
-.moka-shocked .moka-eyes{
-  transform:scale(1.5) !important;
-  transform-origin:60px 49px;
-}
-.moka-shocked .moka-svg{
-  animation:mokaShakeShock 0.8s ease-in-out !important;
-}
-@keyframes mokaShakeShock{
-  0%, 100%{ transform:scale(1) translateY(0); }
-  15%{ transform:scale(1.15) translateY(-8px) rotate(-3deg); }
-  30%{ transform:scale(1.15) translateY(4px) rotate(3deg); }
-  45%{ transform:scale(1.1) translateY(-4px) rotate(-2deg); }
-  60%{ transform:scale(1.05) translateY(2px) rotate(1deg); }
-}
-
-/* 3. DBZ Maximum Aura (Super Saiyan Mode) */
-.moka-dbz{
-  position:relative;
-}
-.moka-dbz::after{
-  content:"";
-  position:absolute;
-  inset:-14px;
-  border-radius:24px;
-  background:radial-gradient(circle, rgba(245, 158, 11, 0.45) 0%, rgba(239, 68, 68, 0.25) 50%, transparent 75%);
-  filter:blur(6px);
-  animation:dbzAuraPulse 0.4s ease-in-out infinite alternate;
-  pointer-events:none;
-  z-index:1;
-}
-@keyframes dbzAuraPulse{
-  0%{ transform:scale(0.95); opacity:0.7; }
-  100%{ transform:scale(1.22); opacity:1; filter:blur(10px); }
-}
-.moka-dbz .moka-svg, .moka-dbz .moka-stage-svg{
-  animation:mokaSuperSaiyan 0.35s ease-in-out infinite alternate !important;
-  filter:drop-shadow(0 0 12px rgba(245,158,11,0.9));
-  z-index:2;
-}
-@keyframes mokaSuperSaiyan{
-  0%{ transform:scale(1.1) translateY(-3px) rotate(-1deg); }
-  100%{ transform:scale(1.13) translateY(-6px) rotate(1deg); }
-}
-
-/* 4. Floor Meltdown / Exhaused (Budget massacré) */
-.moka-flat .moka-svg, .moka-flat .moka-stage-svg{
-  animation:mokaFlatten 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
-}
-@keyframes mokaFlatten{
-  0%{ transform:scale(1); }
-  40%{ transform:scale(1.2, 0.6) translateY(12px); }
-  100%{ transform:scale(1.3, 0.4) translateY(16px); }
-}
-
-/* 5. Suspicious / Fry meme */
-.moka-suspicious .moka-eyes{
-  transform:scaleY(0.25) scaleX(1.1) !important;
-}
-.moka-suspicious .moka-ear-r{
-  transform:rotate(12deg) !important;
-}
-
-/* 6. Sleepy / AFK Mode */
-.moka-sleepy .moka-eyes{
-  transform:scaleY(0.1) !important;
-}
-.moka-sleepy .moka-svg{
-  animation:mokaSleepZzz 3.5s ease-in-out infinite !important;
-}
-@keyframes mokaSleepZzz{
-  0%, 100%{ transform:translateY(0) rotate(0deg); }
-  50%{ transform:translateY(3px) rotate(2deg); }
-}
-
-/* Meme Toast Overlay Banner (Cut-meme de 1.5s) */
-.meme-cut-card{
-  position:fixed;
-  top:80px;
-  left:50%;
-  transform:translateX(-50%) scale(0.9);
-  background:rgba(20, 24, 22, 0.94);
-  backdrop-filter:blur(16px);
-  border:1px solid rgba(255,255,255,0.15);
-  color:#ffffff;
-  padding:14px 22px;
-  border-radius:20px;
-  z-index:9999;
-  display:flex;
-  align-items:center;
-  gap:16px;
-  box-shadow:0 20px 50px -10px rgba(0,0,0,0.5), 0 0 30px rgba(45,106,79,0.3);
-  opacity:0;
-  pointer-events:none;
-  transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-.meme-cut-card.show{
-  opacity:1;
-  transform:translateX(-50%) scale(1);
-}
-.meme-cut-text{
-  display:flex;
-  flex-direction:column;
-}
-.meme-cut-title{
-  font-size:0.78rem;
-  font-weight:800;
-  text-transform:uppercase;
-  letter-spacing:0.08em;
-  color:#52B788;
-}
-.meme-cut-caption{
-  font-size:1.05rem;
-  font-weight:700;
-  color:#ffffff;
-  margin-top:2px;
-}
-.meme-cut-badge{
-  font-family:var(--font-mono);
-  font-size:0.72rem;
-  background:rgba(245,158,11,0.25);
-  color:#F59E0B;
-  padding:3px 8px;
-  border-radius:6px;
-  border:1px solid rgba(245,158,11,0.4);
-}
-
-.moka-mood-dot{
-  position:absolute;
-  bottom:3px;
-  right:3px;
-  width:11px;
-  height:11px;
-  border-radius:50%;
-  background:#52B788;
-  border:2px solid #ffffff;
-  box-shadow:0 0 0 1px rgba(0,0,0,0.06);
-}
-.badge-moka{
-  display:inline-flex;
-  align-items:center;
-  padding:2px 8px;
-  border-radius:999px;
-  font-size:0.7rem;
-  font-weight:700;
-  text-transform:uppercase;
-  letter-spacing:0.04em;
-  background:linear-gradient(135deg, rgba(45,106,79,0.12), rgba(217,119,6,0.12));
-  color:var(--primary);
-  border:1px solid rgba(45,106,79,0.2);
-}
-.moka-mini-act-btn{
-  margin-left:auto;
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:7px 12px;
-  border-radius:var(--radius-md);
-  border:1px solid var(--border);
-  background:var(--surface);
-  color:var(--text-main);
-  font-size:0.8rem;
-  font-weight:600;
-  cursor:pointer;
-  transition:all 0.2s ease;
-  white-space:nowrap;
-}
-.moka-mini-act-btn:hover{
-  background:var(--primary-light);
-  color:var(--primary);
-  border-color:var(--primary);
 }
 
 /* Quests & Decision Hub Styling */
@@ -1065,7 +746,7 @@ body{
   flex-shrink:0;
 }
 .legend-name{color:var(--text-muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
-.legend-val{font-weight:700}
+.legend-val{font-weight:700;text-align:right;min-width:58px;font-variant-numeric:tabular-nums}
 
 /* Envelopes Section */
 .envelopes-grid{
@@ -1193,6 +874,34 @@ body{
 }
 .envelope-bar-fill.warning{background:var(--amber)}
 .envelope-bar-fill.over{background:var(--coral)}
+
+/* Repères du mois (résumé budget) */
+.budget-summary{gap:14px}
+.budget-summary .card-header{flex-wrap:wrap}
+.budget-summary-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.bs-stat{background:var(--surface-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.bs-label{font-size:10.5px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted)}
+.bs-value{font-family:'Cabinet Grotesk',sans-serif;font-weight:800;font-size:19px;font-variant-numeric:tabular-nums}
+.btn-suggest{display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border-radius:20px;background:var(--primary-light);color:var(--primary);border:1px solid rgba(45,106,79,0.25);font-weight:700;font-size:12.5px;transition:all 0.2s ease;white-space:nowrap}
+.btn-suggest:hover{background:var(--primary);color:#fff;border-color:var(--primary);transform:translateY(-1px)}
+.btn-suggest:active{transform:scale(0.97)}
+.btn-export{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);font-weight:700;font-size:12px;transition:all 0.2s ease;white-space:nowrap}
+.btn-export:hover{color:var(--primary);border-color:var(--primary);background:var(--primary-light)}
+.budget-suggest-box{display:flex;flex-direction:column;gap:8px;padding:14px 16px;background:var(--primary-light);border:1.5px dashed var(--primary);border-radius:var(--radius-md)}
+.budget-suggest-box[hidden]{display:none}
+.bs-suggest-title{font-size:12.5px;font-weight:700;color:var(--primary);margin-bottom:2px}
+.bs-row{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border-subtle);border-radius:10px;padding:8px 10px}
+.bs-row-cat{flex:1;font-size:13px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bs-row-avg{font-size:11.5px;color:var(--text-muted);font-weight:600;white-space:nowrap}
+.bs-input{width:74px;text-align:right;font-weight:800;font-size:13.5px;padding:4px 6px;border-radius:7px;border:1px solid var(--border);background:var(--surface-subtle)}
+.bs-input:focus{outline:none;border-color:var(--primary);background:#fff}
+.bs-row-eur{font-size:11.5px;color:var(--text-muted);font-weight:600}
+.bs-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.btn-apply-suggest{background:var(--primary);color:#fff;font-weight:700;font-size:13px;padding:9px 15px;border-radius:var(--radius-md);box-shadow:0 4px 12px rgba(45,106,79,0.25)}
+.btn-apply-suggest:hover{background:var(--primary-dark)}
+.btn-apply-suggest:disabled{opacity:0.7;cursor:default}
+.btn-cancel-suggest{background:var(--surface);color:var(--text-muted);font-weight:600;font-size:13px;padding:9px 14px;border-radius:var(--radius-md);border:1px solid var(--border)}
+.bs-empty{font-size:12.5px;color:var(--text-muted);font-weight:600}
 
 /* History Ledger */
 .tx-list{
@@ -2158,6 +1867,16 @@ body{
     padding-bottom:calc(16px + env(safe-area-inset-bottom, 16px));
   }
   .modal-box{
+    max-width:100%;
+  }
+  .form-group{
+    min-width:0;
+  }
+  .form-group input, .form-group select{
+    min-width:0;
+    width:100%;
+  }
+  .modal-box{
     padding:20px 18px;
     border-radius:24px 24px 16px 16px;
     max-height:85vh;
@@ -2311,6 +2030,7 @@ body{
           <h2 class="card-title">Carnet des dépenses</h2>
           <p class="card-subtitle" id="txCount">0 transaction</p>
         </div>
+        <button type="button" class="btn-export" id="btnExportCSV" title="Télécharger le mois en CSV">⬇️ Export</button>
       </div>
 
       <div class="tx-list" id="txList">
@@ -2321,6 +2041,22 @@ body{
 
   <!-- PANE 2 : Envelopes -->
   <div class="tab-pane" id="tab-envelopes" style="display:none;">
+    <section class="card budget-summary" id="budgetSummaryCard">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Repères du mois</h2>
+          <p class="card-subtitle" id="bsSub">Chargement…</p>
+        </div>
+        <button type="button" class="btn-suggest" id="btnSuggestBudgets">✨ Suggérer des repères</button>
+      </div>
+      <div class="budget-summary-stats">
+        <div class="bs-stat"><span class="bs-label">Repères fixés</span><span class="bs-value" id="bsCaps">—</span></div>
+        <div class="bs-stat"><span class="bs-label">Total du mois</span><span class="bs-value" id="bsSpent">—</span></div>
+        <div class="bs-stat"><span class="bs-label">Reste</span><span class="bs-value" id="bsRemain">—</span></div>
+      </div>
+      <div class="serenity-bar-track"><div class="serenity-bar-fill" id="bsBar" style="width:0%"></div></div>
+      <div class="budget-suggest-box" id="budgetSuggestBox" hidden></div>
+    </section>
     <section class="card envelopes-card" style="margin-bottom:20px;">
       <div class="card-header">
         <div>
@@ -2366,7 +2102,7 @@ body{
           <span id="finishShopCount">0 article coché</span>
         </div>
         <div class="finish-shop-actions">
-          <input type="number" id="finishShopAmount" step="0.01" min="0" placeholder="Montant payé (€)" class="finish-input">
+          <input type="number" id="finishShopAmount" step="0.01" min="0" placeholder="Montant payé (€)" class="finish-input" inputmode="decimal">
           <select id="finishShopPayer" class="finish-select">
             <option value="Quentin">Quentin</option>
             <option value="Jessica">Jessica</option>
@@ -2400,6 +2136,7 @@ body{
           <h2 class="card-title">Assistant DuoSpend</h2>
           <p class="card-subtitle">Déposez un e-ticket ou posez une question</p>
         </div>
+        <button type="button" class="btn-export" id="btnClearChat" title="Effacer la conversation">🧹 Effacer</button>
       </div>
 
       <div class="chat-thread" id="chatThread">
@@ -2413,6 +2150,7 @@ body{
         <button class="quick-btn" data-q="Comment se répartissent les paiements entre Quentin et Jessica ?">Répartition</button>
         <button class="quick-btn" data-q="Quelles enveloppes méritent notre attention ?">Point enveloppes</button>
         <button class="quick-btn" data-q="Suggère un ajustement de budget pour le mois en cours.">Ajuster budgets</button>
+        <button class="quick-btn" data-q="Combien reste-t-il sur nos enveloppes ce mois-ci ?">Reste du mois</button>
       </div>
 
       <div id="attachMini" class="attach-preview-mini" style="display:none;">
@@ -2598,7 +2336,7 @@ body{
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div class="form-group">
           <label for="f_amount">Montant (€)</label>
-          <input type="number" id="f_amount" step="0.01" min="0" required placeholder="0.00">
+          <input type="number" id="f_amount" step="0.01" min="0" required placeholder="0.00" inputmode="decimal">
         </div>
         <div class="form-group">
           <label for="f_date">Date</label>
@@ -2767,8 +2505,8 @@ function openCoupleQuests(){
   const qTab = document.querySelector('[data-tab="tab-quests"]');
   if(qTab) qTab.click();
 }
-const openMokaQuests = openCoupleQuests;
 
+// Met à jour l'indice de sérénité, les niveaux et la liste des défis
 function updateMokaVisuals(){
   const quests = getComputedQuests();
   const totalXP = quests.reduce((a,q) => a + q.xp, 0);
@@ -2930,13 +2668,10 @@ function spinCoupleDecision(type = 'dinner'){
   }, 75);
 }
 
-function showMemeCut(opts){}
-function setMokaAsset(imgName){}
-function triggerMokaReaction(type, customText, extra){}
-
 const eur = n => new Intl.NumberFormat('fr-FR', {style:'currency', currency:'EUR'}).format(n || 0);
 const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 const monthName = m => new Date(m + '-01T00:00:00').toLocaleDateString('fr-FR', {month:'long', year:'numeric'});
+const fmtDate = s => { const m = String(s || ''); return m.length >= 10 ? m.slice(8,10) + '/' + m.slice(5,7) : m; };
 
 function shiftMonth(delta){
   const [y, mo] = currentMonth.split('-').map(Number);
@@ -3067,7 +2802,7 @@ function renderUI(){
         <div class="envelope-inputs">
           <div class="envelope-spent" style="color:${statusCls==='over'?'var(--coral)':'var(--text-main)'}">${eur(spent)}</div>
           <div style="font-size:11.5px;font-weight:700;color:${statusCls==='over'?'var(--coral)':(statusCls==='warning'?'var(--amber)':'var(--text-muted)')}">
-            ${cap > 0 ? `${pct}% engagé` : 'Suivi libre'}
+            ${cap > 0 ? `${statusCls === 'over' ? Math.round(ratio * 100) : pct}% engagé` : 'Suivi libre'}
           </div>
         </div>
 
@@ -3099,9 +2834,9 @@ function renderUI(){
           <div class="tx-info">
             <div class="tx-icon" style="background:${meta.bg}">${meta.emoji}</div>
             <div style="min-width:0;flex:1;">
-              <div class="tx-label">${esc(t.label)}</div>
+              <div class="tx-label" title="${esc(t.label)}">${esc(t.label)}</div>
               <div class="tx-sub">
-                <span>${esc(t.date)}</span>
+                <span title="${esc(t.date)}">${fmtDate(t.date)}</span>
                 <span>•</span>
                 <span class="tx-tag ${payerTag}">${esc(t.payer)}</span>
                 <span>•</span>
@@ -3124,6 +2859,9 @@ function renderUI(){
   // Render Shopping List
   renderShoppingUI();
 
+  // Repères du mois (résumé + barre)
+  renderBudgetSummary();
+
   // Update Top AI Summary dynamically
   const aiTitle = $('aiStatusTitle');
   const aiText = $('aiStatusText');
@@ -3137,7 +2875,34 @@ function renderUI(){
     aiText.textContent = `Plafond dépassé sur : ${names}. Attention à ajuster les dépenses d'ici la fin du mois.`;
   } else {
     aiTitle.textContent = "Vue d'ensemble du mois";
-    aiText.textContent = `Total de ${eur(total)} engagé sur le mois. Quentin a avancé ${eur(q)} et Jessica ${eur(j)}.`;
+    let summaryLine = `Total de ${eur(total)} engagé sur le mois. Quentin a avancé ${eur(q)} et Jessica ${eur(j)}.`;
+    const capsSet = envelopes.filter(e => Number(e.budget) > 0);
+    if(capsSet.length){
+      const remainCaps = capsSet.reduce((a,e) => a + Math.max(0, Number(e.budget) - Number(e.spent || 0)), 0);
+      summaryLine += ` Il reste ${eur(remainCaps)} sur vos repères.`;
+    }
+    aiText.textContent = summaryLine;
+  }
+
+  // Badge d'état du foyer (cohérent avec la synthèse ci-dessus)
+  const stateBadge = $('foyerStatusBadge');
+  if(stateBadge){
+    if(!monthRows.length){
+      stateBadge.textContent = 'Foyer prêt';
+      stateBadge.style.background = 'var(--blue-light)';
+      stateBadge.style.color = 'var(--blue)';
+      stateBadge.style.borderColor = 'rgba(37,99,235,0.25)';
+    } else if(overEnvelopes.length){
+      stateBadge.textContent = 'Alerte repères';
+      stateBadge.style.background = 'var(--coral-light)';
+      stateBadge.style.color = 'var(--coral)';
+      stateBadge.style.borderColor = 'rgba(225,29,72,0.25)';
+    } else {
+      stateBadge.textContent = 'Duo Équilibré';
+      stateBadge.style.background = 'var(--primary-subtle)';
+      stateBadge.style.color = 'var(--primary)';
+      stateBadge.style.borderColor = 'rgba(45,106,79,0.2)';
+    }
   }
 
   updateMokaVisuals();
@@ -3309,8 +3074,154 @@ async function updateBudget(category, amount){
   }
 }
 
+// ---- Repères du mois : résumé, suggestions & export ----
+function renderBudgetSummary(){
+  const setEl = $('bsCaps');
+  if(!setEl) return;
+  const caps = envelopes.filter(e => Number(e.budget) > 0);
+  const totalCaps = caps.reduce((a,e) => a + Number(e.budget || 0), 0);
+  const spent = envelopes.reduce((a,e) => a + Number(e.spent || 0), 0);
+  const spentCapped = caps.reduce((a,e) => a + Number(e.spent || 0), 0);
+  const remain = totalCaps - spentCapped;
+
+  setEl.textContent = caps.length ? eur(totalCaps) : '—';
+  $('bsSpent').textContent = eur(spent);
+  const rm = $('bsRemain');
+  rm.textContent = caps.length ? eur(remain) : '—';
+  rm.style.color = remain < 0 ? 'var(--coral)' : 'var(--text-main)';
+
+  const sub = $('bsSub');
+  if(sub){
+    if(!envelopes.length){
+      sub.textContent = 'Chargement…';
+    } else if(!caps.length){
+      sub.textContent = "Aucun repère fixé ce mois — « Suggérer des repères » les calcule d'après vos mois précédents.";
+    } else {
+      const unset = envelopes.filter(e => !(Number(e.budget) > 0)).length;
+      const overs = envelopes.filter(e => Number(e.budget) > 0 && Number(e.spent) > Number(e.budget));
+      let txt = caps.length + '/' + envelopes.length + ' postes avec repère';
+      if(unset) txt += ' · ' + unset + ' sans repère';
+      if(remain < 0) txt += ' · dépassement global de ' + eur(Math.abs(remain));
+      else if(overs.length) txt += ' · ' + overs.map(e => e.category).join(', ') + ' au-dessus du repère';
+      sub.textContent = txt;
+    }
+  }
+  const bar = $('bsBar');
+  if(bar){
+    const ratio = totalCaps > 0 ? Math.min(100, Math.max(0, (spentCapped / totalCaps) * 100)) : 0;
+    bar.style.width = ratio + '%';
+    bar.style.background = remain < 0 ? 'var(--coral)' : (ratio > 85 ? 'var(--amber)' : 'linear-gradient(90deg,#52B788,#2D6A4F)');
+  }
+}
+
+function suggestBudgets(){
+  const months = [];
+  const [y, m] = currentMonth.split('-').map(Number);
+  for(let i = 1; i <= 3; i++){
+    months.push(new Date(y, m - 1 - i, 1).toISOString().slice(0,7));
+  }
+  const rows = [];
+  Object.keys(CATEGORY_META).forEach(cat => {
+    let sum = 0, n = 0;
+    months.forEach(mo => {
+      const t = expenses.filter(x => String(x.date || '').startsWith(mo) && x.shared !== false && x.category === cat)
+                        .reduce((a,x) => a + Number(x.amount || 0), 0);
+      if(t > 0){ sum += t; n++; }
+    });
+    if(n > 0){
+      const avg = sum / n;
+      rows.push({ category: cat, suggested: Math.max(5, Math.ceil(avg / 5) * 5), avg: Math.round(avg) });
+    }
+  });
+  const box = $('budgetSuggestBox');
+  if(!box) return;
+  box.hidden = false;
+  if(!rows.length){
+    box.innerHTML = '<div class="bs-empty">Pas assez d\'historique pour calculer des repères. Fixez-les à la main dans les enveloppes ci-dessous.</div>';
+    return;
+  }
+  box.innerHTML = '<div class="bs-suggest-title">D\'après vos 3 derniers mois — ajustez puis appliquez :</div>' +
+    rows.map(r =>
+      '<div class="bs-row">' +
+        '<span class="bs-row-cat">' + (CATEGORY_META[r.category].emoji || '') + ' ' + esc(r.category) + '</span>' +
+        '<span class="bs-row-avg">moy. ' + eur(r.avg) + '</span>' +
+        '<input type="number" class="bs-input" data-cat="' + esc(r.category) + '" min="0" step="5" value="' + r.suggested + '" inputmode="decimal">' +
+        '<span class="bs-row-eur">€ / mois</span>' +
+      '</div>'
+    ).join('') +
+    '<div class="bs-actions">' +
+      '<button type="button" class="btn-apply-suggest" id="btnApplySuggest">Appliquer ces repères</button>' +
+      '<button type="button" class="btn-cancel-suggest" id="btnCancelSuggest">Annuler</button>' +
+    '</div>';
+  $('btnCancelSuggest').onclick = () => { box.hidden = true; box.innerHTML = ''; };
+  $('btnApplySuggest').onclick = async () => {
+    const inputs = [...box.querySelectorAll('.bs-input')];
+    const btn = $('btnApplySuggest');
+    btn.disabled = true;
+    btn.textContent = 'Application…';
+    try{
+      for(const inp of inputs){
+        await fetch(API_BASE + '/api/budgets', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({ category: inp.dataset.cat, amount: Number(inp.value || 0), month: currentMonth })
+        });
+      }
+      box.hidden = true;
+      box.innerHTML = '';
+      showToast('Repères du mois appliqués');
+      await loadState();
+    }catch(e){
+      btn.disabled = false;
+      btn.textContent = 'Appliquer ces repères';
+      showToast('Erreur : ' + e.message, false);
+    }
+  };
+}
+
+function exportMonthCSV(){
+  const rows = [['Date','Libellé','Catégorie','Montant (€)','Payé par','Commune']];
+  expenses
+    .filter(x => String(x.date || '').startsWith(currentMonth))
+    .slice()
+    .sort((a,b) => String(a.date).localeCompare(String(b.date)))
+    .forEach(t => {
+      rows.push([t.date || '', t.label || '', t.category || '', String(t.amount != null ? t.amount : '').replace('.', ','), t.payer || '', t.shared === false ? 'Non' : 'Oui']);
+    });
+  const csv = '\ufeff' + rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(';')).join('\r\n');
+  const blob = new Blob([csv], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'duospend-' + currentMonth + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 400);
+  showToast('Export CSV téléchargé');
+}
+
 // Chat & Advisor Interaction
-function addChatMessage(role, text, img){
+const CHAT_KEY = 'duospend_chat_v1';
+let chatHistory = [];
+try { chatHistory = JSON.parse(localStorage.getItem(CHAT_KEY) || '[]') || []; } catch(e){ chatHistory = []; }
+function saveChat(){
+  try { localStorage.setItem(CHAT_KEY, JSON.stringify(chatHistory.slice(-40))); } catch(e){}
+}
+function pushChat(role, text){
+  chatHistory.push({ role: role, text: String(text || '').slice(0, 4000) });
+  saveChat();
+}
+function clearChatHistory(){
+  chatHistory = [];
+  saveChat();
+  const thread = $('chatThread');
+  if(thread) thread.innerHTML = '';
+  addChatMessage('bot', 'Conversation effacée. On repart de zéro !', null, {persist:false});
+}
+function renderChatHistory(){
+  chatHistory.forEach(m => addChatMessage(m.role, m.text, null, {replay:true}));
+}
+function addChatMessage(role, text, img, opts){
+  opts = opts || {};
   const thread = $('chatThread');
   const wrap = document.createElement('div');
   wrap.className = 'chat-msg ' + role;
@@ -3330,6 +3241,7 @@ function addChatMessage(role, text, img){
   wrap.appendChild(b);
   thread.appendChild(wrap);
   thread.scrollTop = thread.scrollHeight;
+  if(!opts.replay && opts.persist !== false) pushChat(role, text);
   return b;
 }
 
@@ -3394,7 +3306,7 @@ async function sendChat(questionText){
 
   const img = pendingImage;
   addChatMessage('user', q || 'Analyse cette image de dépense.', img);
-  const botMsg = addChatMessage('bot', 'Analyse en cours avec DuoSpend…');
+  const botMsg = addChatMessage('bot', 'Analyse en cours avec DuoSpend…', null, {persist:false});
 
   $('chatInput').value = '';
   clearAttachment();
@@ -3408,9 +3320,11 @@ async function sendChat(questionText){
     const j = await r.json();
     if(!r.ok) throw Error(j.detail || j.error || 'Erreur assistant');
     botMsg.innerHTML = renderRichMarkdown(j.answer);
+    pushChat('bot', j.answer);
     showAISuggestions(j.suggestion, j.budget);
   }catch(e){
     botMsg.innerHTML = `<span style="color:var(--coral)">Je n'ai pas pu répondre : ${esc(e.message)}</span>`;
+    pushChat('bot', "Je n'ai pas pu répondre : " + e.message);
   }
 }
 
@@ -3584,6 +3498,14 @@ async function deleteExpense(id){
 // Events Binding
 $('prevM').onclick = () => shiftMonth(-1);
 $('nextM').onclick = () => shiftMonth(1);
+if($('monthLabel')){
+  $('monthLabel').style.cursor = 'pointer';
+  $('monthLabel').title = 'Revenir au mois en cours';
+  $('monthLabel').onclick = () => {
+    const now = new Date().toISOString().slice(0,7);
+    if(now !== currentMonth){ currentMonth = now; loadState(); }
+  };
+}
 
 $('chatForm').onsubmit = e => { e.preventDefault(); sendChat(); };
 $('chatInput').onkeydown = e => { if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendChat(); } };
@@ -3601,6 +3523,9 @@ $('shoppingForm').onsubmit = e => {
   addShopItem($('shopInput').value.trim());
 };
 $('btnRefreshShopAI').onclick = fetchSeasonalAnalysis;
+if($('btnSuggestBudgets')) $('btnSuggestBudgets').onclick = suggestBudgets;
+if($('btnExportCSV')) $('btnExportCSV').onclick = exportMonthCSV;
+if($('btnClearChat')) $('btnClearChat').onclick = () => { if(confirm('Effacer la conversation ?')) clearChatHistory(); };
 
 // Convert finished shopping list to Expense
 if($('btnFinishRecord')){
@@ -3659,18 +3584,26 @@ if($('btnFinishRecord')){
   };
 }
 
-// Tab switcher
+// Tab switcher + deep-link par hash (#overview, #envelopes, #courses, #assistant, #defis)
+function activateTab(tabId){
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+  document.querySelectorAll('.tab-pane').forEach(p => { p.style.display = (p.id === tabId) ? 'block' : 'none'; });
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.onclick = () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const tabId = btn.dataset.tab;
-    document.querySelectorAll('.tab-pane').forEach(p => {
-      p.style.display = (p.id === tabId) ? 'block' : 'none';
-    });
-    window.scrollTo({top: 0, behavior: 'smooth'});
+    activateTab(btn.dataset.tab);
+    try { history.replaceState(null, '', '#' + btn.dataset.tab.replace('tab-', '')); } catch(e){}
   };
 });
+window.addEventListener('hashchange', () => {
+  const id = 'tab-' + location.hash.replace('#', '');
+  if(document.getElementById(id)) activateTab(id);
+});
+(function initTabFromHash(){
+  const id = 'tab-' + location.hash.replace('#', '');
+  if(document.getElementById(id)) activateTab(id);
+})();
 
 // Drag and drop & Paste
 document.addEventListener('paste', e => {
@@ -3683,7 +3616,11 @@ document.addEventListener('paste', e => {
 
 // Init
 loadState().then(() => {
-  addChatMessage('bot', 'Bonjour Quentin & Jessica ! Je suis DuoSpend. Prêt pour un suivi fluide de vos dépenses et de vos objectifs !');
+  if(chatHistory.length){
+    renderChatHistory();
+  } else {
+    addChatMessage('bot', 'Bonjour Quentin & Jessica ! Je suis DuoSpend. Prêt pour un suivi fluide de vos dépenses et de vos objectifs !');
+  }
 });
 </script>
 

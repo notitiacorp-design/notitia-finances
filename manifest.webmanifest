@@ -1,0 +1,16 @@
+{
+  "name": "DuoSpend · Finances & Sérénité à deux",
+  "short_name": "DuoSpend",
+  "description": "Le budget du foyer de Quentin & Jessica — limpide et serein.",
+  "lang": "fr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fbf8f3",
+  "theme_color": "#2d6a4f",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
