@@ -795,6 +795,40 @@ def assistant_answer(question, expenses, image=None, month=None):
     return deterministic_answer((question or "").lower(), ctx), "rules", None, None, ctx
 
 
+APP_CODE_PEPPER = "duospend-v1"
+APP_CODE_HASH = "25136f449fe4d380e451c5e05c9cea2f055c98e023511f80531f5931b662e155"
+_AUTH_FAILS = {}
+
+
+def app_code_ok(raw):
+    import hashlib, hmac
+    if not raw:
+        return False
+    digest = hashlib.sha256((APP_CODE_PEPPER + "|" + str(raw).strip().lower()).encode()).hexdigest()
+    return hmac.compare_digest(digest, APP_CODE_HASH)
+
+
+def auth_fail_register(ip):
+    import time
+    now = time.time()
+    cnt, first = _AUTH_FAILS.get(ip, (0, now))
+    if now - first > 900:
+        cnt, first = 0, now
+    _AUTH_FAILS[ip] = (cnt + 1, first)
+
+
+def auth_blocked(ip):
+    import time
+    rec = _AUTH_FAILS.get(ip)
+    if not rec:
+        return False
+    cnt, first = rec
+    if time.time() - first > 900:
+        _AUTH_FAILS.pop(ip, None)
+        return False
+    return cnt >= 12
+
+
 class Handler(SimpleHTTPRequestHandler):
     extensions_map = {
         **SimpleHTTPRequestHandler.extensions_map,
@@ -809,7 +843,7 @@ class Handler(SimpleHTTPRequestHandler):
 
     def end_headers(self):
         self.send_header("Access-Control-Allow-Origin", PUBLIC_ORIGIN)
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, X-App-Code")
         self.send_header("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
         super().end_headers()
 
@@ -833,6 +867,22 @@ class Handler(SimpleHTTPRequestHandler):
             return {}
         return dict(urllib.parse.parse_qsl(self.path.split("?", 1)[1]))
 
+    def client_ip(self):
+        fwd = self.headers.get("x-forwarded-for") or ""
+        return (fwd.split(",")[0].strip() or (self.client_address[0] if self.client_address else "?"))
+
+    def require_code(self):
+        ip = self.client_ip()
+        if auth_blocked(ip):
+            self.send_json(429, {"error": "Trop de tentatives, réessayez plus tard", "code_required": True})
+            return False
+        if app_code_ok(self.headers.get("X-App-Code")):
+            _AUTH_FAILS.pop(ip, None)
+            return True
+        auth_fail_register(ip)
+        self.send_json(401, {"error": "Code foyer requis", "code_required": True})
+        return False
+
     def do_OPTIONS(self):
         self.send_response(204)
         self.end_headers()
@@ -851,6 +901,8 @@ class Handler(SimpleHTTPRequestHandler):
                     "people": list(PAYERS),
                 },
             )
+        if path.startswith("/api/") and not self.require_code():
+            return
         if path in ("/api/state", "/api/expenses", "/api/budgets", "/api/shopping"):
             try:
                 month = self.query().get("month") or current_month()
@@ -874,6 +926,8 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         path = self.path.split("?", 1)[0]
+        if path.startswith("/api/") and not self.require_code():
+            return
         if path == "/api/assistant":
             try:
                 body = self.read_json()

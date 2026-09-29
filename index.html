@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
-<title>DuoSpend · Finances & Sérénité à deux (v1.4)</title>
+<title>DuoSpend · Finances & Sérénité à deux (v1.5)</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -2374,6 +2374,31 @@ body{
   </div>
 </div>
 
+<!-- Verrou d'accès : code foyer -->
+<div id="duoLock" class="open" role="dialog" aria-modal="true" aria-label="Code foyer">
+  <div class="duo-lock-card">
+    <div class="duo-lock-logo"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"></path><path d="M16 10a4 4 0 0 0-8 0v4a4 4 0 0 0 8 0"></path></svg></div>
+    <h2>DuoSpend</h2>
+    <p>Entrez votre code foyer pour accéder à vos finances.</p>
+    <input id="duoLockInp" class="duo-lock-inp" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="••••••" aria-label="Code foyer">
+    <button id="duoLockBtn" class="duo-lock-btn" type="button">Déverrouiller</button>
+    <div id="duoLockErr" class="duo-lock-err"></div>
+  </div>
+</div>
+<style>
+#duoLock{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(28,25,23,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#duoLock.open{display:flex}
+#duoLock .duo-lock-card{background:#ffffff;border-radius:22px;box-shadow:0 24px 60px rgba(0,0,0,.28);padding:26px 22px;width:100%;max-width:340px;text-align:center}
+#duoLock .duo-lock-logo{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#2d6a4f,#d97706);display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+#duoLock h2{margin:0 0 4px;font-size:19px;color:#1c1917;font-weight:800}
+#duoLock p{margin:0 0 16px;font-size:13px;color:#78716c;line-height:1.45}
+#duoLock .duo-lock-inp{width:100%;box-sizing:border-box;border:2px solid #e7e5e4;border-radius:14px;padding:13px 14px;font-size:20px;text-align:center;letter-spacing:6px;font-weight:700;color:#1c1917;outline:none;font-family:inherit;background:#fafaf9}
+#duoLock .duo-lock-inp:focus{border-color:#2d6a4f;background:#ffffff}
+#duoLock .duo-lock-btn{margin-top:12px;width:100%;border:0;border-radius:14px;padding:14px;background:#2d6a4f;color:#ffffff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+#duoLock .duo-lock-btn:disabled{opacity:.6}
+#duoLock .duo-lock-err{display:none;margin-top:10px;font-size:12.5px;color:#b91c1c;font-weight:600}
+</style>
+
 <script>
 window.onerror = function(msg, url, line, col, err){
   console.error('GLOBAL JS ERROR:', msg, 'at line:', line, err);
@@ -2388,6 +2413,27 @@ window.onerror = function(msg, url, line, col, err){
 };
 const API_BASE = window.NOTITIA_API || '';
 const $ = id => document.getElementById(id);
+
+// — Verrou d'accès : envoi du code foyer sur chaque appel API —
+(function(){
+  const OF = window.fetch.bind(window);
+  window.__duoFetch = OF;
+  window.fetch = function(u, o){
+    o = o || {};
+    const s = String(u);
+    if (s.indexOf('/api/') !== -1) {
+      let c = '';
+      try { c = localStorage.getItem('duospend_code') || ''; } catch(e){}
+      const h = o.headers ? Object.assign({}, o.headers) : {};
+      if (h['X-App-Code'] === undefined && h['x-app-code'] === undefined) h['X-App-Code'] = c;
+      o = Object.assign({}, o, { headers: h });
+    }
+    return OF(u, o).then(function(r){
+      if (r && r.status === 401 && s.indexOf('/api/') !== -1 && typeof duoShowLock === 'function') duoShowLock();
+      return r;
+    });
+  };
+})();
 
 const CATEGORY_META = {
   'Courses': { color:'#2d6a4f', bg:'#e8f5ed', emoji:'🛒' },
@@ -3613,6 +3659,50 @@ document.addEventListener('paste', e => {
     if(f){ e.preventDefault(); handleFiles(f); }
   }
 });
+
+// — Verrou d'accès : écran de code foyer —
+function duoShowLock(msg){
+  const ov = $('duoLock');
+  if (ov) ov.classList.add('open');
+  const inp = $('duoLockInp');
+  if (inp && !msg && !inp.value) { try { inp.focus(); } catch(e){} }
+  if (msg) {
+    const err = $('duoLockErr');
+    if (err) { err.textContent = msg; err.style.display = 'block'; }
+  }
+}
+(function initLockUI(){
+  const ov = $('duoLock'), inp = $('duoLockInp'), btn = $('duoLockBtn'), err = $('duoLockErr');
+  if (!ov || !inp || !btn) return;
+  let stored = '';
+  try { stored = localStorage.getItem('duospend_code') || ''; } catch(e){}
+  if (stored) ov.classList.remove('open');
+  async function submitLock(){
+    const v = (inp.value || '').trim();
+    if (!v) { inp.focus(); return; }
+    btn.disabled = true;
+    const old = btn.textContent;
+    btn.textContent = 'Vérification…';
+    err.style.display = 'none';
+    try{
+      const r = await (window.__duoFetch || fetch)(API_BASE + '/api/state?month=' + encodeURIComponent(currentMonth), { headers: { 'X-App-Code': v } });
+      if (r.ok){
+        try { localStorage.setItem('duospend_code', v); } catch(e){}
+        location.reload();
+        return;
+      }
+      err.textContent = (r.status === 429) ? 'Trop de tentatives. Réessayez dans quelques minutes.' : 'Code incorrect. Réessayez.';
+      err.style.display = 'block';
+    }catch(e){
+      err.textContent = 'Connexion impossible. Réessayez.';
+      err.style.display = 'block';
+    }
+    btn.disabled = false;
+    btn.textContent = old;
+  }
+  btn.onclick = submitLock;
+  inp.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); submitLock(); } });
+})();
 
 // Init
 loadState().then(() => {
