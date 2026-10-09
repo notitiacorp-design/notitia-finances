@@ -19,7 +19,7 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cabinet+Grotesk:wght@700;800;900&family=Cinzel:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cabinet+Grotesk:wght@700;800;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#fbf8f3;
@@ -1978,261 +1978,6 @@ body{
   }
 }
 
-/* =====================================================================
-   REFONTE « ROMA AETERNA » — habillage DuoSpend (couche posée par-dessus)
-   Palette : parchemin, prune impérial, or, bordeaux, bleu nuit, terre cuite
-   ===================================================================== */
-:root{
-  --gold:#b8862e; --gold-2:#d4af37; --gold-soft:#c9a45c; --gold-pale:#f0e2bd;
-  --prune:#4a1f2b; --prune-deep:#35141e; --marble:#1b1714;
-  --parch:#f3e9d6; --parch-2:#fbf6ea; --parch-3:#ece0c6;
-  --bordeaux:#7a2a3a; --night:#2e4057; --rome-red:#b03a2e; --olive:#6b7a3a;
-
-  --bg:#f1e7d3;
-  --surface:#fbf6ea;
-  --surface-subtle:#f3e8d0;
-  --surface-sunken:#efe2c7;
-  --surface-card:#fcf8ee;
-  --text-main:#241c15;
-  --text-muted:#6f5b45;
-  --text-dim:#a08a6c;
-
-  --primary:#a67c2e;
-  --primary-light:#f6ead0;
-  --primary-dark:#6f4f1a;
-  --primary-subtle:#f6ead0;
-  --amber:#c07a1e;
-  --amber-light:#fbeccb;
-  --coral:#b03a2e;
-  --coral-light:#f8e0d8;
-  --purple:#5b2a5e;
-  --purple-light:#efe2f0;
-  --blue:#2e4057;
-  --blue-light:#dfe6ec;
-
-  --border:#d9c69a;
-  --border-subtle:#e6d9b8;
-  --shadow-sm:0 2px 8px rgba(74,31,43,.06);
-  --shadow-md:0 12px 30px rgba(74,31,43,.10);
-  --shadow-lg:0 22px 48px rgba(74,31,43,.16);
-  --shadow-glow-primary:0 8px 24px rgba(166,124,46,.28);
-  --shadow-glow-amber:0 8px 24px rgba(192,122,30,.25);
-
-  --font-display:'Cinzel','Times New Roman',Georgia,serif;
-  --font-body:Georgia,'Times New Roman',serif;
-  --font-money:'Plus Jakarta Sans',ui-sans-serif,system-ui,-apple-system,sans-serif;
-}
-
-/* ---------- ambiance générale : parchemin + colonnes dorées latérales ---------- */
-html,body{background:var(--bg)!important}
-body{
-  font-family:var(--font-body)!important;
-  letter-spacing:.1px;
-  background-image:
-    radial-gradient(120% 70% at 50% -10%, rgba(201,164,92,.20) 0%, transparent 55%),
-    radial-gradient(120% 60% at 50% 110%, rgba(74,31,43,.10) 0%, transparent 60%),
-    repeating-linear-gradient(0deg, rgba(120,90,40,.028) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(90deg, rgba(120,90,40,.022) 0 1px, transparent 1px 3px)!important;
-  background-attachment:fixed!important;
-}
-body::before{
-  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
-  background:
-    linear-gradient(90deg, rgba(166,124,46,.16) 0 3px, rgba(166,124,46,.05) 3px 5px, transparent 5px calc(100% - 5px), rgba(166,124,46,.05) calc(100% - 5px) calc(100% - 3px), rgba(166,124,46,.16) calc(100% - 3px)),
-    repeating-linear-gradient(90deg, transparent 0 10px, rgba(120,90,40,.045) 10px 12px);
-  mix-blend-mode:multiply;
-}
-@media(min-width:900px){
-  body::before{background:
-    repeating-linear-gradient(90deg, transparent 0 14px, rgba(120,90,40,.05) 14px 17px),
-    linear-gradient(90deg, rgba(166,124,46,.22) 0 4px, transparent 4px calc(100% - 4px), rgba(166,124,46,.22) calc(100% - 4px));}
-}
-
-/* ---------- typographie ---------- */
-h1,h2,h3,.card-title,.pane-head,.bs-label,.brand-titles,#monthLabel,.tab-btn,.mode-btn,
-.btn-game,.btn-game-secondary,.btn-confirm,.btn-export,.btn-suggest,.btn-add-shop,.month-btn,
-.lock-person .lock-name,.section-title,.quest-tag,.badge-tag{
-  font-family:var(--font-display)!important;
-  letter-spacing:.06em;
-}
-.card-title{text-transform:uppercase;font-size:.86rem!important;color:var(--prune)!important;font-weight:700!important}
-.card-subtitle{color:var(--text-muted)!important;font-style:italic}
-[class*="amount" i],[class*="total" i],.bs-value,#barQ,#barJ,.imp-total,.donut-center-total,.serenity-score{
-  font-family:var(--font-money)!important;font-variant-numeric:tabular-nums lining-nums;
-}
-input[type="number"],input[type="tel"],input[inputmode="decimal"],input[inputmode="numeric"]{font-family:var(--font-money)!important}
-
-/* ---------- en-tête : frise impériale ---------- */
-.header{
-  background:linear-gradient(180deg,#54222f 0%,var(--prune) 45%,var(--prune-deep) 100%)!important;
-  border-bottom:2px solid var(--gold-soft)!important;
-  box-shadow:0 10px 26px rgba(53,20,30,.28), inset 0 -6px 14px rgba(0,0,0,.22)!important;
-}
-.header::after{
-  content:''; display:block; height:6px; margin-top:6px;
-  background:repeating-linear-gradient(90deg, var(--gold-soft) 0 6px, transparent 6px 12px);
-  opacity:.5;
-}
-.brand-titles,.brand-titles *{color:#f7edd7!important}
-#brandBadge{filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))}
-.header button,.header select{color:#f3e6c9!important;border-color:rgba(201,164,92,.55)!important}
-.header .month-btn,.header .mode-btn{
-  background:rgba(27,23,20,.35)!important;border:1px solid rgba(201,164,92,.5)!important;
-  border-radius:999px!important;
-}
-.header .mode-btn.active{background:linear-gradient(180deg,var(--gold-2),var(--gold))!important;color:var(--prune-deep)!important;border-color:var(--gold-pale)!important}
-
-/* ---------- navigation : médaillons dorés ---------- */
-.nav-tabs{
-  background:linear-gradient(180deg,#3a1621,#240a12)!important;
-  border-top:2px solid var(--gold-soft)!important;
-  box-shadow:0 -10px 24px rgba(20,8,14,.35), inset 0 1px 0 rgba(255,255,255,.06)!important;
-}
-.tab-btn{position:relative;color:#c2a87e!important;font-size:10.5px!important;text-transform:uppercase}
-.tab-btn svg{stroke:#c2a87e!important;transition:transform .3s cubic-bezier(.34,1.56,.64,1), filter .3s}
-.tab-btn.active{color:#f6dfa4!important;
-  background:radial-gradient(120% 130% at 50% 0%, rgba(201,164,92,.30), rgba(201,164,92,.06) 70%)!important;
-  box-shadow:inset 0 0 0 1px rgba(201,164,92,.5), 0 8px 20px rgba(0,0,0,.35)!important;
-  border-radius:14px;
-}
-.tab-btn.active svg{stroke:#f6dfa4!important;transform:translateY(-1px) scale(1.08);filter:drop-shadow(0 0 7px rgba(232,200,119,.55))}
-.tab-btn.active::after{content:'';position:absolute;left:50%;bottom:2px;width:22px;height:3px;margin-left:-11px;border-radius:3px;
-  background:linear-gradient(90deg,transparent,var(--gold-2),transparent)}
-
-/* ---------- cartes : parchemin à filet d'or ---------- */
-.card{
-  background:linear-gradient(180deg,#fdfaf1,var(--surface-card) 55%,#f6eeda)!important;
-  border:1px solid var(--border)!important;
-  border-radius:16px!important;
-  box-shadow:0 10px 26px rgba(74,31,43,.09), inset 0 1px 0 #fffdf6!important;
-  position:relative;
-}
-.card::before{content:'';position:absolute;inset:6px;border:1px solid rgba(166,124,46,.20);border-radius:11px;pointer-events:none}
-.card-header{border-bottom:1px solid rgba(166,124,46,.25)!important}
-.pane-head{color:var(--prune)!important;text-transform:uppercase;font-size:.95rem!important;position:relative;padding-bottom:12px;border-bottom:1px solid rgba(166,124,46,.35)}
-.pane-head::after{content:'';position:absolute;left:0;right:0;bottom:-6px;height:11px;
-  background:radial-gradient(circle at 9px 0, transparent 8px, rgba(166,124,46,.34) 8px 9px, transparent 10px) repeat-x;
-  background-size:18px 11px;opacity:.85}
-.pane-head::before{content:'❧';position:absolute;right:2px;bottom:8px;color:rgba(166,124,46,.55);font-size:.9rem}
-
-/* hero : aqueduc en filigrane */
-.balance-hero,#topSummaryHeader{
-  position:relative;
-  background:linear-gradient(180deg,#fffdf6 0%,#f8f0dd 100%)!important;
-  background-image:
-    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 62"><g fill="none" stroke="%23a67c2e" stroke-opacity=".34" stroke-width="2"><path d="M6 54 V22 Q6 9 22 9 H138 Q154 9 154 22 V54"/><path d="M22 54 V36 Q22 26 38 26 H60 V54 M76 54 V26 H98 Q114 26 114 36 V54 M130 54 V32 Q130 26 138 26"/><line x1="6" y1="58" x2="154" y2="58"/></g></svg>'),
-    linear-gradient(180deg,#fffdf6 0%,#f8f0dd 100%)!important;
-  background-repeat:no-repeat,no-repeat!important;
-  background-position:right 10px bottom 6px,0 0!important;
-  background-size:150px auto,100% 100%!important;
-}
-
-/* barres de progression : aqueduc doré */
-.rome-water-track,#barQ,#barJ,#bsBar,.serenity-bar-track,.custom-progress,.custom-progress-q,.custom-progress-j{
-  background:var(--prune-deep)!important;
-  border:1px solid rgba(201,164,92,.45)!important;
-  box-shadow:inset 0 2px 7px rgba(0,0,0,.55)!important;
-  border-radius:999px!important;
-  overflow:hidden!important;
-  position:relative;
-}
-#barQ,.rome-water-track{height:10px}
-.rome-water-track::after{content:'';position:absolute;inset:0;pointer-events:none;
-  background:repeating-linear-gradient(90deg, transparent 0 9px, rgba(255,255,255,.07) 9px 11px)}
-.rome-water-fill,#barQ>*, #barJ>*,#bsBar>*,.serenity-bar-fill,.custom-progress>div{
-  background:linear-gradient(90deg,#9c6f22,#e5c569 40%,#c9a45c 60%,#9c6f22)!important;
-  background-size:64px 100%!important;
-  animation:romeShimmer 2.8s linear infinite;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 0 10px rgba(201,164,92,.45)!important;
-  border-radius:999px!important;
-}
-@keyframes romeShimmer{from{background-position:0 0}to{background-position:64px 0}}
-
-/* ---------- boutons : sceaux & tablettes ---------- */
-.btn-game,.btn-confirm,.btn-import{
-  background:linear-gradient(180deg,#5c2534,#3a1621)!important;
-  color:#f6dfa4!important;border:1px solid var(--gold-soft)!important;
-  font-family:var(--font-display)!important;text-transform:uppercase;letter-spacing:.08em;
-  box-shadow:0 8px 20px rgba(53,20,30,.30), inset 0 1px 0 rgba(255,255,255,.14)!important;
-  transition:transform .18s cubic-bezier(.16,1,.3,1), box-shadow .2s, filter .2s;
-}
-.btn-game:hover,.btn-confirm:hover,.btn-import:hover{filter:brightness(1.12);box-shadow:0 10px 26px rgba(53,20,30,.38), 0 0 16px rgba(201,164,92,.35)!important}
-.btn-game-secondary,.quick-btn,.btn-suggest,.btn-export,.month-btn{
-  background:linear-gradient(180deg,#fffbef,#f4e9cf)!important;
-  color:#6f4f1a!important;border:1px solid var(--gold-soft)!important;
-  font-family:var(--font-display)!important;letter-spacing:.06em;
-  box-shadow:0 3px 10px rgba(74,31,43,.08), inset 0 1px 0 #fff!important;
-}
-.btn-game-secondary:hover,.quick-btn:hover,.btn-suggest:hover{background:#fdf4dd!important}
-.btn-circle{border:1px solid var(--gold-soft)!important;background:linear-gradient(180deg,#fffbef,#f2e6c9)!important;color:var(--prune)!important}
-
-/* ---------- formulaires ---------- */
-input,select,textarea{
-  background:#fffdf4!important;border:1px solid var(--border)!important;color:var(--text-main)!important;
-  border-radius:10px!important;
-}
-input:focus,select:focus,textarea:focus{outline:none!important;border-color:var(--gold-soft)!important;box-shadow:0 0 0 3px rgba(201,164,92,.28)!important}
-::placeholder{color:#b09a78!important}
-
-/* ---------- chat : papyrus du scribe ---------- */
-.chat-msg.bot .bubble,.chat-msg.bot>div,.chat-msg.bot{color:var(--text-main)}
-.chat-msg.bot .bubble{background:linear-gradient(180deg,#fdfaf1,#f6eeda)!important;border:1px solid var(--border)!important;box-shadow:0 6px 16px rgba(74,31,43,.08)!important}
-.chat-msg.user .bubble{background:linear-gradient(180deg,#54222f,#3a1621)!important;color:#f7edd7!important;border:1px solid rgba(201,164,92,.5)!important}
-.import-card{background:linear-gradient(180deg,#fdfaf1,#f4e9cf)!important;border:1.5px solid var(--gold-soft)!important;border-radius:16px!important;box-shadow:0 14px 34px rgba(74,31,43,.16)!important}
-.import-head{border-bottom:1px solid rgba(166,124,46,.3);padding-bottom:8px}
-.import-row{border-bottom:1px dotted rgba(166,124,46,.3)}
-.import-row.done{opacity:.55}
-.imp-badge{background:#f3e5c4!important;color:#6f4f1a!important;border:1px solid var(--gold-soft)!important}
-.imp-answer,.imp-cat,.import-card select,.import-card input{background:#fffdf4!important}
-
-/* ---------- verrou : porte du temple ---------- */
-#duoLock,.lock-screen,[id*="Lock"]{
-  background:
-    radial-gradient(120% 80% at 50% 0%, rgba(201,164,92,.16), transparent 60%),
-    linear-gradient(180deg,#2a1019,#160609)!important;
-}
-.lock-person{
-  background:linear-gradient(180deg,#5a2331,#3a1621)!important;border:1.5px solid var(--gold-soft)!important;
-  color:#f6dfa4!important;font-family:var(--font-display)!important;letter-spacing:.08em;
-  box-shadow:0 10px 26px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.12)!important;
-}
-.lock-person *{color:#f6dfa4!important}
-
-/* ---------- divers ---------- */
-.donut-center-label{font-family:var(--font-display)!important;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)!important}
-.legend-grid,.tx-list{border-color:var(--border-subtle)!important}
-.badge-tag,.quest-tag{background:#f3e5c4!important;color:#6f4f1a!important;border:1px solid var(--gold-soft)!important}
-.balance-status-tag{background:#f6ead0!important;border:1px solid var(--gold-soft)!important;color:#6f4f1a!important}
-.showToast,.toast,[class*="toast"]{font-family:var(--font-body)}
-
-/* médaillon des personnes (injecté) */
-.rome-coin{
-  display:inline-flex;align-items:center;justify-content:center;
-  width:22px;height:22px;margin-right:7px;border-radius:50%;
-  background:radial-gradient(circle at 35% 30%, #e8c877, #b8862e 55%, #8a621d);
-  color:#2b1508;font-family:var(--font-display);font-weight:800;font-size:11px;
-  border:1px solid #f0e2bd;box-shadow:inset 0 0 0 1px rgba(90,60,20,.5), 0 2px 6px rgba(74,31,43,.35);
-  vertical-align:-4px;
-}
-
-/* ---------- transitions & effets ---------- */
-#romeWipe{position:fixed;inset:0;z-index:9998;pointer-events:none;opacity:0;
-  background:linear-gradient(180deg, rgba(201,164,92,0) 0%, rgba(201,164,92,.30) 45%, rgba(74,31,43,.34) 60%, rgba(74,31,43,0) 100%)}
-#romeWipe.go{animation:romeWipe .55s cubic-bezier(.4,0,.2,1)}
-@keyframes romeWipe{0%{opacity:0;transform:translateY(-18%)}35%{opacity:1}100%{opacity:0;transform:translateY(18%)}}
-@keyframes romeRise{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
-@keyframes romeCoinFall{0%{opacity:0;transform:translateY(-8vh) rotate(0)}12%{opacity:1}100%{opacity:0;transform:translateY(102vh) rotate(540deg)}}
-.rome-fly{position:fixed;top:0;z-index:9997;pointer-events:none;width:22px;height:22px;border-radius:50%;
-  background:radial-gradient(circle at 35% 30%, #f3dd9a, #c9a45c 55%, #8a621d);
-  border:1px solid #f0e2bd;box-shadow:0 4px 12px rgba(0,0,0,.35), inset 0 0 0 1px rgba(90,60,20,.55);
-  animation:romeCoinFall 1.5s cubic-bezier(.3,.6,.6,1) forwards}
-#romeAmbient{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.42}
-
-@media(prefers-reduced-motion:reduce){
-  *{animation-duration:.001s!important;animation-iteration-count:1!important;transition-duration:.001s!important}
-  #romeAmbient,#romeWipe{display:none!important}
-}
-
 </style>
 </head>
 <body>
@@ -2742,30 +2487,136 @@ input:focus,select:focus,textarea:focus{outline:none!important;border-color:var(
 #duoLock .duo-lock-btn:disabled{opacity:.6}
 #duoLock .duo-lock-err{display:none;margin-top:10px;font-size:12.5px;color:#b91c1c;font-weight:600}
 
-/* ====== correctifs refonte Roma Aeterna : verrou, logo, contrastes ====== */
-#duoLock{background:radial-gradient(120% 80% at 50% 0%, rgba(201,164,92,.14), transparent 60%), linear-gradient(180deg,#2a1019,#150609)!important}
-#duoLock .duo-lock-card{background:linear-gradient(180deg,#fdfaf1,#f4e9cf)!important;border:2px solid var(--gold-soft)!important;border-radius:20px!important;box-shadow:0 30px 70px rgba(0,0,0,.55), inset 0 0 0 5px rgba(166,124,46,.10), inset 0 0 0 6px rgba(166,124,46,.35)!important}
-#duoLock h2{font-family:var(--font-display)!important;color:#4a1f2b!important;letter-spacing:.14em;text-transform:uppercase;font-size:17px!important}
-#duoLock .duo-lock-logo{background:radial-gradient(circle at 35% 30%, #e8c877, #b8862e 60%, #8a621d)!important;border:1px solid #f0e2bd;box-shadow:inset 0 0 0 2px rgba(90,60,20,.35), 0 4px 14px rgba(74,31,43,.35)!important}
-#duoLock .duo-lock-logo svg{stroke:#3a1621!important}
-#duoLock #lockIntro{color:#5f4a35!important}
-#duoLock .lock-hint{color:#7a6349!important;font-size:12px!important}
-#duoLock .duo-lock-inp{background:#fffdf4!important;border:2px solid var(--border)!important;color:#241c15!important;box-shadow:inset 0 2px 6px rgba(74,31,43,.08)!important}
-#duoLock .duo-lock-inp:focus{border-color:var(--gold-soft)!important;box-shadow:0 0 0 4px rgba(201,164,92,.30)!important}
-#duoLock .duo-lock-btn{width:100%!important;background:linear-gradient(180deg,#5c2534,#3a1621)!important;color:#f6dfa4!important;border:1.5px solid var(--gold-soft)!important;font-family:var(--font-display)!important;text-transform:uppercase;letter-spacing:.1em;font-size:13px!important;border-radius:12px!important;padding:13px 14px!important;box-shadow:0 10px 24px rgba(53,20,30,.35), inset 0 1px 0 rgba(255,255,255,.15)!important}
-#duoLock .lock-person{font-size:13.5px!important}
-#duoLock .duo-lock-err{color:#8a2f24!important;font-weight:600}
-.app-logo{background:radial-gradient(circle at 35% 30%, #e8c877, #b8862e 60%, #8a621d)!important;border:1px solid #f0e2bd!important;box-shadow:inset 0 0 0 2px rgba(90,60,20,.30), 0 3px 10px rgba(74,31,43,.30)!important}
-.app-logo svg{stroke:#3a1621!important}
-.app-logo span,.app-logo strong,.app-logo em{color:#3a1621!important}
 
-/* ====== finitions refonte : bouton flottant, fillers, contrastes ====== */
-:root{--text-dim:#8a7460;--text-muted:#6a563f}
-.fab-add{background:linear-gradient(145deg,#5c2534,#3a1621 60%,#2a1019)!important;border:1.5px solid var(--gold-soft)!important;color:#f6dfa4!important;box-shadow:0 10px 26px rgba(53,20,30,.45), 0 0 18px rgba(201,164,92,.30)!important}
-.fab-add svg,.fab-add *{color:#f6dfa4!important;stroke:#f6dfa4!important}
-.custom-progress>*, .custom-progress-q>*, .custom-progress-j>*{background:linear-gradient(90deg,#9c6f22,#e5c569 40%,#c9a45c 60%,#9c6f22)!important;background-size:64px 100%!important;animation:romeShimmer 2.8s linear infinite;border-radius:999px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.5)!important}
-.mode-switch .mode-btn:not(.active){color:#f0e0bb!important}
-.brand-titles p,.brand-titles span,#brandSub{color:#ead9b6!important}
+/* ================= ÉLÉGANCE ANTIQUE SOBRE — habillage DuoSpend ================= */
+:root{
+  --prune:#41202c; --prune-2:#331722; --ink:#2b2117;
+  --gold:#b99a52; --gold-2:#d8c08a; --gold-soft:#cbb27a;
+  --bronze:#7a5c2e;
+  --parch:#f8f4ec; --paper:#fffdf8;
+  --bg:#f8f4ec; --surface:#fffdf8; --surface-subtle:#f3ede1; --surface-sunken:#f5efe3; --surface-card:#fffefb;
+  --text-main:#2b2117; --text-muted:#6f6352; --text-dim:#9a8d78;
+  --primary:#7a5c2e; --primary-light:#f2ebda; --primary-dark:#5c451f; --primary-subtle:#f2ebda;
+  --amber:#a8762a; --amber-light:#f6eeda; --coral:#8f3a2e; --coral-light:#f6e7e2;
+  --purple:#4c2f4e; --purple-light:#efe9ef; --blue:#3a4a5c; --blue-light:#e9edf1;
+  --border:#e7ddc9; --border-subtle:#efe8d8;
+  --hairline:rgba(65,32,44,.12); --hairline-or:rgba(185,154,82,.42);
+  --shadow-sm:0 1px 2px rgba(43,33,23,.04);
+  --shadow-md:0 6px 18px rgba(43,33,23,.06);
+  --shadow-lg:0 14px 32px rgba(43,33,23,.08);
+  --shadow-glow-primary:0 4px 14px rgba(65,32,44,.16);
+  --shadow-glow-amber:0 4px 14px rgba(168,118,42,.14);
+  --font-display:'Cormorant Garamond','Times New Roman',Georgia,serif;
+  --font-body:Georgia,'Times New Roman',serif;
+  --font-money:'Plus Jakarta Sans',ui-sans-serif,system-ui,sans-serif;
+}
+html,body{background:var(--bg)!important}
+body{
+  font-family:var(--font-body)!important;
+  background-image:linear-gradient(180deg,#faf6ee 0%,#f6f0e4 100%)!important;
+  background-attachment:fixed!important;letter-spacing:.1px;
+}
+body::after{content:'';position:fixed;top:0;left:0;right:0;height:3px;z-index:60;pointer-events:none;
+  background:linear-gradient(90deg,transparent,#cbb27a 18%,#b99a52 50%,#cbb27a 82%,transparent);opacity:.55}
+
+/* typographie : sobre, mixte, respiration */
+h1,h2,h3,.card-title,.pane-head,.bs-label,.brand-titles,.tab-btn,.mode-btn,
+.btn-game,.btn-game-secondary,.btn-confirm,.btn-export,.btn-suggest,.btn-add-shop,.month-btn,.lock-person{
+  font-family:var(--font-display)!important;letter-spacing:.02em;font-weight:600;
+}
+.card-title{font-size:1.06rem!important;color:var(--prune)!important;text-transform:none}
+.card-subtitle{color:var(--text-muted)!important;font-style:italic}
+[class*="amount" i],[class*="total" i],.bs-value,.imp-total,.donut-center-total{
+  font-family:var(--font-money)!important;font-variant-numeric:tabular-nums lining-nums}
+input[type="number"],input[type="tel"],input[inputmode="decimal"],input[inputmode="numeric"]{font-family:var(--font-money)!important}
+
+/* en-tête : prune uni, un seul filet d'or */
+.header{background:linear-gradient(180deg,#472432,#38161f)!important;border-bottom:1px solid var(--gold-soft)!important;
+  box-shadow:0 6px 18px rgba(51,23,34,.18)!important}
+.brand-titles,.brand-titles *{color:#f6ecdb!important}
+.header button,.header select{color:#f0e4cb!important;border-color:rgba(203,178,122,.4)!important}
+.header .month-btn,.header .mode-btn{background:rgba(27,12,18,.25)!important;border:1px solid rgba(203,178,122,.38)!important;border-radius:999px!important}
+.header .mode-btn.active{background:#f6ecdb!important;color:var(--prune-2)!important}
+.mode-switch .mode-btn:not(.active){color:#e9dcc0!important}
+.brand-titles p,.brand-titles span,#brandSub{color:#dfd0b2!important}
+.app-logo{background:#f6ecdb!important;border:1px solid var(--gold-soft)!important;box-shadow:none!important}
+.app-logo svg{stroke:var(--prune)!important}
+.app-logo span,.app-logo strong,.app-logo em{color:var(--prune)!important}
+
+/* navigation : claire, discret sous-ligné or */
+.nav-tabs{background:#fcf9f2!important;border-top:1px solid var(--border)!important;box-shadow:0 -6px 18px rgba(43,33,23,.05)!important}
+.tab-btn{color:#8a7a5f!important;font-size:11px!important;text-transform:none;font-weight:600}
+.tab-btn svg{stroke:#8a7a5f!important;transition:transform .25s}
+.tab-btn.active{color:var(--prune)!important;background:transparent!important;box-shadow:none!important}
+.tab-btn.active svg{stroke:var(--prune)!important;transform:translateY(-1px)}
+.tab-btn.active::after{content:'';position:absolute;left:50%;bottom:6px;width:20px;height:2px;margin-left:-10px;border-radius:2px;background:var(--gold)}
+
+/* cartes : papier clair, un filet, aucune surcharge */
+.card{background:var(--paper)!important;border:1px solid var(--border)!important;border-radius:14px!important;
+  box-shadow:var(--shadow-md)!important}
+.card-header{border-bottom:1px solid var(--border-subtle)!important}
+.pane-head{color:var(--prune)!important;font-size:1.28rem!important;position:relative;padding-bottom:8px;border-bottom:none}
+.pane-head::after{content:'';position:absolute;left:0;bottom:0;width:30px;height:2px;background:var(--gold);border-radius:2px}
+.balance-hero,#topSummaryHeader{background:var(--paper)!important;background-image:none!important}
+
+/* barres : trait fin, or mat, sans animation */
+.rome-water-track{display:none}
+#barQ,#barJ,#bsBar,.serenity-bar-track,.custom-progress,.custom-progress-q,.custom-progress-j{
+  background:#ece3d2!important;border:none!important;box-shadow:none!important;border-radius:999px!important;overflow:hidden!important}
+#barQ,#barJ{height:7px}
+#barQ>*,#barJ>*,#bsBar>*,.serenity-bar-fill,.custom-progress>*,.custom-progress-q>*,.custom-progress-j>*{
+  background:linear-gradient(90deg,#b99a52,#d8c08a)!important;border-radius:999px!important;box-shadow:none!important;animation:none!important}
+
+/* boutons : plein prune (primaire), contour (secondaire) */
+.btn-game,.btn-confirm,.btn-import,#duoLock .duo-lock-btn,.fab-add{
+  background:linear-gradient(180deg,#4a2532,#3a1721)!important;color:#f6ecdb!important;border:1px solid var(--gold-soft)!important;
+  font-family:var(--font-display)!important;letter-spacing:.04em;text-transform:none;font-weight:600;
+  box-shadow:0 4px 14px rgba(58,23,33,.20)!important;border-radius:12px!important}
+.btn-game:hover,.btn-confirm:hover,.btn-import:hover,.fab-add:hover{filter:none;box-shadow:0 6px 18px rgba(58,23,33,.26)!important}
+.btn-game-secondary,.quick-btn,.btn-suggest,.btn-export,.month-btn,.btn-circle{
+  background:var(--paper)!important;color:var(--bronze)!important;border:1px solid #dccfae!important;
+  font-family:var(--font-display)!important;font-weight:600;letter-spacing:.02em;box-shadow:var(--shadow-sm)!important;border-radius:12px!important}
+.fab-add{border-radius:999px!important}
+.fab-add svg,.fab-add *{color:#f6ecdb!important;stroke:#f6ecdb!important}
+
+/* formulaires */
+input,select,textarea{background:var(--paper)!important;border:1px solid #ddd2b8!important;color:var(--ink)!important;border-radius:10px!important}
+input:focus,select:focus,textarea:focus{outline:none!important;border-color:var(--gold)!important;box-shadow:0 0 0 3px rgba(185,154,82,.18)!important}
+::placeholder{color:#b3a68d!important}
+
+/* chat & import */
+.chat-msg.bot .bubble{background:var(--paper)!important;border:1px solid var(--border)!important;box-shadow:var(--shadow-sm)!important}
+.chat-msg.user .bubble{background:#41202c!important;color:#f6ecdb!important;border:1px solid rgba(203,178,122,.35)!important}
+.import-card{background:var(--paper)!important;border:1px solid #ddcfae!important;border-radius:14px!important;box-shadow:var(--shadow-md)!important}
+.import-head{border-bottom:1px solid var(--border-subtle);padding-bottom:8px}
+.import-row{border-bottom:1px solid var(--border-subtle)}
+.import-row.done{opacity:.55}
+.imp-badge{background:#f2ebda!important;color:var(--bronze)!important;border:1px solid #ddcfae!important}
+
+/* verrou : porte sobre */
+#duoLock{background:linear-gradient(180deg,#2b121b,#160709)!important}
+#duoLock .duo-lock-card{background:var(--paper)!important;border:1px solid var(--gold-soft)!important;border-radius:16px!important;
+  box-shadow:0 24px 60px rgba(0,0,0,.45)!important}
+#duoLock h2{color:var(--prune)!important;font-size:22px!important;letter-spacing:.02em}
+#duoLock .duo-lock-logo{background:#f6ecdb!important;border:1px solid var(--gold-soft)!important;box-shadow:none!important}
+#duoLock .duo-lock-logo svg{stroke:var(--prune)!important}
+#duoLock #lockIntro,#duoLock p{color:#6f6352!important}
+#duoLock .lock-hint{color:#8f8368!important;font-size:12px!important}
+#duoLock .duo-lock-inp{background:var(--paper)!important;border:1px solid #ddd2b8!important;color:var(--ink)!important;box-shadow:none!important}
+#duoLock .duo-lock-inp:focus{border-color:var(--gold)!important;box-shadow:0 0 0 3px rgba(185,154,82,.18)!important}
+#duoLock .lock-person{color:var(--prune)!important;background:var(--paper)!important;border:1px solid #dccfae!important;font-size:13.5px!important;box-shadow:var(--shadow-sm)!important}
+#duoLock .lock-person *{color:var(--prune)!important}
+#duoLock .duo-lock-err{color:#8f3a2e!important}
+.lock-person[aria-pressed="true"],.lock-person.active{background:#f2ebda!important;border-color:var(--gold)!important}
+
+/* divers */
+.badge-tag,.quest-tag{background:#f2ebda!important;color:var(--bronze)!important;border:1px solid #ddcfae!important}
+.balance-status-tag{background:#f2ebda!important;border:1px solid #ddcfae!important;color:var(--bronze)!important}
+.donut-center-label{font-family:var(--font-display)!important;color:var(--text-muted)!important}
+
+/* transition sobre */
+@keyframes romeFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.001s!important}}
 </style>
 
 <script>
@@ -4624,206 +4475,73 @@ loadState().then(() => {
 
 <div class="toast-wrap" id="toastWrap"></div>
 
+
+
 <script>
-/* =====================================================================
-   ROMA AETERNA — moteur d'ambiance DuoSpend
-   Effets persistants & cohérents : poussière d'or (canvas), transitions
-   entre pages, compteurs animés, pièces de monnaie, médaillons, accents
-   de section. Respecte prefers-reduced-motion. Aucune dépendance.
-   ===================================================================== */
+/* Élégance antique : transitions douces, compteurs discrets, confettis sobres. */
 (function(){
   'use strict';
-  if(window.__romeBooted) return; window.__romeBooted = true;
+  if(window.__romeSobre) return; window.__romeSobre = 1;
   var rm = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-
-  var ACCENTS = {
-    'tab-overview':'#c9a45c', 'tab-envelopes':'#7f8f4c', 'tab-shopping':'#b0552e',
-    'tab-assistant':'#5a7ba6', 'tab-quests':'#8a5f2e'
-  };
-  var accent = ACCENTS['tab-overview'];
-  var setAccent = function(tabId){ accent = ACCENTS[tabId] || '#c9a45c'; try{ document.documentElement.style.setProperty('--rome-accent', accent); }catch(e){} };
-
-  /* ---------- poussière d'or persistante ---------- */
-  function initAmbient(){
-    if(rm) return;
-    var c = document.createElement('canvas'); c.id = 'romeAmbient'; document.body.appendChild(c);
-    var ctx = c.getContext && c.getContext('2d'); if(!ctx) return;
-    var W=0,H=0,dpr=Math.min(2, window.devicePixelRatio||1);
-    function resize(){ W=c.width=Math.round(innerWidth*dpr); H=c.height=Math.round(innerHeight*dpr); c.style.width=innerWidth+'px'; c.style.height=innerHeight+'px'; }
-    resize(); window.addEventListener('resize', resize);
-    var N = Math.max(14, Math.min(30, Math.round(innerWidth/16)));
-    var parts = []; for(var i=0;i<N;i++){ parts.push({x:Math.random(),y:Math.random(),r:.7+Math.random()*1.9,vy:-(.015+Math.random()*.045),vx:(Math.random()-.5)*.018,a:.10+Math.random()*.22,ph:Math.random()*6.283}); }
-    var t=0, last=0;
-    (function loop(now){
-      requestAnimationFrame(loop);
-      if(now && now-last < 33) return; last=now||0; t++;
-      ctx.clearRect(0,0,W,H);
-      for(var i=0;i<parts.length;i++){
-        var p=parts[i];
-        p.y += p.vy/60; p.x += p.vx/60 + Math.sin(t/95+p.ph)*.00028;
-        if(p.y < -.06){ p.y=1.06; p.x=Math.random(); }
-        if(p.x < -.06) p.x=1.06; else if(p.x > 1.06) p.x=-.06;
-        ctx.globalAlpha = p.a*(.55+.45*Math.sin(t/52+p.ph));
-        ctx.fillStyle = accent;
-        ctx.beginPath(); ctx.arc(p.x*W, p.y*H, p.r*dpr, 0, 6.283); ctx.fill();
-      }
-      ctx.globalAlpha=1;
-    })(0);
-  }
-
-  /* ---------- transition entre pages ---------- */
-  function wipe(){
-    if(rm) return;
-    var w = document.getElementById('romeWipe');
-    if(!w){ w=document.createElement('div'); w.id='romeWipe'; document.body.appendChild(w); }
-    w.classList.remove('go'); void w.offsetWidth; w.classList.add('go');
-  }
-  function staggerPane(pane){
-    if(rm || !pane) return;
-    var kids = Array.prototype.slice.call(pane.children, 0, 14);
-    kids.forEach(function(el,i){ el.style.animation='romeRise .55s cubic-bezier(.16,1,.3,1) both'; el.style.animationDelay=(i*45)+'ms'; });
-    setTimeout(function(){ kids.forEach(function(el){ el.style.animation=''; el.style.animationDelay=''; }); }, 1500);
-  }
+  function fadePane(pane){ if(rm||!pane) return; pane.style.animation='romeFade .34s cubic-bezier(.22,.9,.28,1) both'; setTimeout(function(){ pane.style.animation=''; }, 420); }
   function activePane(){ return document.querySelector('.tab-pane[style*="block"]') || document.querySelector('.tab-pane'); }
-
-  /* ---------- compteurs animés ---------- */
   function parseMoney(t){
-    var m = t.match(/^([^\d]*)([\d][\d\s\u00a0\u202f.,]*)([^\d]*)$/);
-    if(!m) return null;
-    var raw = m[2].replace(/[\s\u00a0\u202f]/g,'');
-    var dec = /[.,]\d\d$/.test(raw);
-    var norm = raw.replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.');
-    var v = parseFloat(norm);
-    if(!isFinite(v)) return null;
-    return {pre:m[1], post:m[3], v:v, dec:dec, raw:raw};
+    var m = t.match(/^([^\d]*)([\d][\d\s\u00a0\u202f.,]*)([^\d]*)$/); if(!m) return null;
+    var raw=m[2].replace(/[\s\u00a0\u202f]/g,''), dec=/[.,]\d\d$/.test(raw);
+    var v=parseFloat(raw.replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.')); if(!isFinite(v)) return null;
+    return {pre:m[1],post:m[3],v:v,dec:dec};
   }
-  function animateNumber(el, info){
-    var v = info.v, t0 = 0, dur = 720;
-    var fmt = function(x){ return x.toLocaleString('fr-FR', info.dec ? {minimumFractionDigits:2,maximumFractionDigits:2} : {maximumFractionDigits:0}); };
-    function step(now){
-      if(!t0) t0 = now;
-      var k = Math.min(1, (now-t0)/dur), e = 1-Math.pow(1-k,3);
-      el.textContent = info.pre + fmt(v*e) + info.post;
-      if(k < 1) requestAnimationFrame(step);
-      else el.textContent = info.pre + fmt(v) + info.post;
-    }
+  function animate(el, info){
+    var v=info.v,t0=0,dur=560;
+    var fmt=function(x){return x.toLocaleString('fr-FR', info.dec?{minimumFractionDigits:2,maximumFractionDigits:2}:{maximumFractionDigits:0});};
+    function step(now){ if(!t0)t0=now; var k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);
+      el.textContent=info.pre+fmt(v*e)+info.post; if(k<1)requestAnimationFrame(step); else el.textContent=info.pre+fmt(v)+info.post; }
     requestAnimationFrame(step);
   }
   function countUps(){
     if(rm) return;
-    var list = document.querySelectorAll('#qtotal, #jtotal, #totalDisplay, #bsSpent, #bsRemain, #bsCaps, .bs-value, .person-amount, .imp-total, .donut-center-total, .balanceText, .finish-shop-amount, [data-money]');
-    var extra = [];
-    var scope = document.querySelectorAll('#topSummaryHeader, .balance-hero, .budget-summary, .import-actions');
-    Array.prototype.forEach.call(scope, function(root){
-      Array.prototype.forEach.call(root.querySelectorAll('b, strong, span, em, div'), function(el){
-        if(el.children.length) return;
-        var t = (el.textContent||'').trim();
-        if(t.length <= 16 && /\d/.test(t) && /^[\s\u00a0\u202f\d.,+-]*(?:€|EUR)?$/.test(t)) extra.push(el);
-      });
-    });
-    var seen = [];
-    Array.prototype.forEach.call(list, function(el){ seen.push(el); });
-    Array.prototype.forEach.call(extra, function(el){ if(seen.indexOf(el) < 0) seen.push(el); });
-    var now = Date.now();
-    seen.slice(0, 70).forEach(function(el){
-      if(el.closest && el.closest('.tx-list, #chatThread')) return;
-      var last = Number(el.getAttribute('data-rome-cu')||0);
-      if(now - last < 2500) return;
-      var info = parseMoney((el.textContent||'').trim());
-      if(!info || info.v < 1) return;
-      el.setAttribute('data-rome-cu', String(now));
-      animateNumber(el, info);
+    var list=document.querySelectorAll('#qtotal,#jtotal,#totalDisplay,#bsSpent,#bsRemain,#bsCaps,.bs-value,.person-amount,.imp-total,.donut-center-total,.balanceText,.finish-shop-amount');
+    var now=Date.now();
+    Array.prototype.forEach.call(list,function(el){
+      if(el.closest && el.closest('.tx-list,#chatThread')) return;
+      var last=Number(el.getAttribute('data-rome-cu')||0); if(now-last<2500) return;
+      var info=parseMoney((el.textContent||'').trim()); if(!info||info.v<1) return;
+      el.setAttribute('data-rome-cu',String(now)); animate(el,info);
     });
   }
-
-  /* ---------- pièces de monnaie (célébrations) ---------- */
-  function coinRain(n){
-    if(rm) return;
-    n = n || 16;
-    for(var i=0;i<n;i++){
-      (function(i){
-        setTimeout(function(){
-          var d = document.createElement('div'); d.className='rome-fly';
-          d.style.left = (4 + Math.random()*92) + 'vw';
-          d.style.width = d.style.height = (14 + Math.random()*14) + 'px';
-          document.body.appendChild(d);
-          setTimeout(function(){ d.remove(); }, 1900);
-        }, i*70 + Math.random()*120);
-      })(i);
+  if(typeof window.activateTab==='function' && !window.activateTab.__rome){
+    var orig=window.activateTab, wrapped=function(tabId){
+      var r=orig.apply(this,arguments);
+      var id=String(tabId||''); document.body.setAttribute('data-section',id.replace('tab-',''));
+      requestAnimationFrame(function(){ fadePane(document.getElementById(id)); });
+      return r;
+    };
+    wrapped.__rome=1; window.activateTab=wrapped;
+  }
+  if(typeof window.loadState==='function' && !window.loadState.__rome){
+    var origL=window.loadState, wrappedL=function(){
+      var p=origL.apply(this,arguments);
+      var after=function(){ setTimeout(function(){ try{countUps();}catch(e){} },90); };
+      if(p&&typeof p.then==='function'){p.then(after,after);} else after();
+      return p;
+    };
+    wrappedL.__rome=1; window.loadState=wrappedL;
+  }
+  /* confettis adoucis : peu, tons chauds, jamais si animations réduites */
+  var tries=0, iv=setInterval(function(){
+    if(window.confetti && !window.confetti.__rome){
+      var oc=window.confetti;
+      var wc=function(opts){ if(rm) return; var o=Object.assign({},opts||{});
+        o.particleCount=Math.min(o.particleCount||12,14); o.spread=Math.min(o.spread||45,50);
+        o.colors=['#b99a52','#d8c08a','#41202c','#8f3a2e'];
+        try{ oc(o); }catch(e){} };
+      wc.__rome=1; window.confetti=wc; clearInterval(iv);
     }
-  }
-  window.romeCelebrate = coinRain;
-
-  /* ---------- médaillons (pièce au nom de chaque personne) ---------- */
-  function medallions(){
-    var els = document.querySelectorAll('.person-name, #qname, #jname, .lock-person, .person-col');
-    Array.prototype.forEach.call(els, function(el){
-      if(el.querySelector && el.querySelector('.rome-coin')) return;
-      var t = (el.textContent||'').trim(); if(!t) return;
-      var m = t.match(/[A-Za-z\u00c0-\u00ff]/); if(!m) return;
-      var s = document.createElement('span'); s.className='rome-coin'; s.setAttribute('aria-hidden','true');
-      s.textContent = m[0].toUpperCase();
-      try{ el.prepend(s); }catch(e){}
-    });
-  }
-
-  /* ---------- accrochage aux fonctions de l'app ---------- */
-  function hookApp(){
-    if(typeof window.activateTab === 'function' && !window.activateTab.__rome){
-      var orig = window.activateTab;
-      var wrapped = function(tabId){
-        wipe();
-        var r = orig.apply(this, arguments);
-        var id = String(tabId||'');
-        document.body.setAttribute('data-section', id.replace('tab-',''));
-        setAccent(id);
-        requestAnimationFrame(function(){ staggerPane(document.getElementById(id)); medallions(); });
-        return r;
-      };
-      wrapped.__rome = 1; window.activateTab = wrapped;
-    }
-    if(typeof window.loadState === 'function' && !window.loadState.__rome){
-      var origL = window.loadState;
-      var wrappedL = function(){
-        var p = origL.apply(this, arguments);
-        var after = function(){ setTimeout(function(){ try{ medallions(); countUps(); }catch(e){} }, 90); };
-        if(p && typeof p.then === 'function'){ p.then(after, after); } else { after(); }
-        return p;
-      };
-      wrappedL.__rome = 1; window.loadState = wrappedL;
-    }
-    /* confettis d'origine -> pluie de deniers en plus */
-    var tries = 0, iv = setInterval(function(){
-      if(window.confetti && !window.confetti.__rome){
-        var oc = window.confetti;
-        var wc = function(){ coinRain(14); return oc.apply(this, arguments); };
-        wc.__rome = 1; window.confetti = wc; clearInterval(iv);
-      }
-      if(++tries > 24) clearInterval(iv);
-    }, 400);
-  }
-
-  /* ---------- démarrage ---------- */
-  function boot(){
-    initAmbient();
-    hookApp();
-    medallions();
-    var pane = activePane(); if(pane) staggerPane(pane);
-    var cur = document.querySelector('.tab-btn.active'); setAccent(cur ? cur.dataset.tab : 'tab-overview');
-    setTimeout(function(){ try{ medallions(); countUps(); }catch(e){} }, 500);
-    /* la page vit : nouvelles cartes => médaillons & petits compteurs */
-    var tm = null;
-    try{
-      new MutationObserver(function(muts){
-        clearTimeout(tm);
-        tm = setTimeout(function(){ medallions(); }, 450);
-      }).observe(document.body, {childList:true, subtree:true});
-    }catch(e){}
-  }
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
+    if(++tries>24) clearInterval(iv);
+  },400);
+  var pane=activePane(); if(pane) fadePane(pane);
+  setTimeout(function(){ try{countUps();}catch(e){} },500);
 })();
-
 </script>
 </body>
 </html>
