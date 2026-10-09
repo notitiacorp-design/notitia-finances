@@ -952,7 +952,9 @@ def _normalize_statement_op(raw, month):
     confidence = raw.get("confidence") if raw.get("confidence") in ("high", "medium", "low") else "medium"
     question = str(raw.get("question") or "").strip()[:140]
     if direction == "debit" and category == "Autres" and not question:
-        question = "À quoi correspond « %s » ?" % label[:40]
+        letters = re.sub(r"[^A-Za-z\u00c0-\u00ff]", "", label)
+        if len(letters) < 4 or "****" in label or re.match(r"^[\d\s\W]+$", label):
+            question = "À quoi correspond « %s » ?" % label[:40]
     return {
         "date": day,
         "label": label,
@@ -984,6 +986,17 @@ def _statement_year(yy, month):
     return str(month)[:4]
 
 
+_STATEMENT_CAT_RULES = (
+    ("carrefour|leclerc|auchan|lidl|aldi|monoprix|intermarch|super u|casino|picard|grand frais|biocoop|boulanger|primeur|marche", "Courses"),
+    ("edf|engie|primeo|veolia|electricite|\u00e9lectricit\u00e9|gaz|eau |sfr|orange|free |bouygues|lyca|telecom|t\u00e9l\u00e9com", "Logement"),
+    ("sncf|ratp|mobilites|mobilit\u00e9s|uber|blablacar|essence|total|shell|esso|parking|peage|p\u00e9age|navigo|velib", "Transport"),
+    ("netflix|spotify|youtube|disney|canal|deezer|prime video|apple|icloud|openrouter|perplexity|abonnement|basic fit|google", "Abonnements"),
+    ("deliveroo|uber eats|just eat|resto|restaurant|mcdo|burger|kfc|street bangkok|pizza|sushi|caf\u00e9|cafe|bar |brasserie", "Sorties"),
+    ("pharmacie|docteur|medecin|m\u00e9decin|zava|hopital|h\u00f4pital|mutuelle|dentiste", "Sant\u00e9"),
+    ("amazon|cdiscount|vinted|shein|zalando|fnac|darty|leboncoin|action|ikea", "Sorties"),
+)
+
+
 def _statement_mk_op(dd, mm, yy, label, amount, signed_negative, suffix, month):
     label = re.sub(r"\s{2,}", " ", str(label or "")).strip(" .:-|+;,")[:90]
     if len(re.findall(r"\b\w\b", label)) >= 3:
@@ -991,6 +1004,11 @@ def _statement_mk_op(dd, mm, yy, label, amount, signed_negative, suffix, month):
     if not label:
         label = "Operation"
     low = label.lower()
+    category = "Autres"
+    for pattern, cat in _STATEMENT_CAT_RULES:
+        if re.search(pattern, low):
+            category = cat
+            break
     if signed_negative or (suffix or "").lower() == "d":
         direction = "debit"
     elif (suffix or "").lower() == "c":
@@ -1006,8 +1024,8 @@ def _statement_mk_op(dd, mm, yy, label, amount, signed_negative, suffix, month):
         "label": label,
         "amount": round(abs(float(amount)), 2),
         "direction": direction,
-        "category": "Autres",
-        "confidence": "low",
+        "category": category,
+        "confidence": "medium",
         "question": "",
     }
 
