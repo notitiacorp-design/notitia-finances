@@ -1038,6 +1038,8 @@ def classify_expense(label, note="", amount=0.0):
         except Exception:
             pass
     low = _ascii_low(str(label) + " " + str(note))
+    if re.search(r"ovh|scaleway|hetzner|github|cloudflare|vercel|namecheap|gandi|ionos|\bdns\b|nom de domaine", low):
+        return "Pro Quentin", "medium", "outil pro", "rules"
     if re.search(r"prime|netflix|spotify|disney|canal|abonnement|cloud|icloud|google one|telephone|mobile|box|presse", low):
         return "Abonnements", "medium", "service récurrent", "rules"
     if re.search(r"meuble|ikea|maison|deco|bricolage|leroy|castorama|cuisine|linge|outil", low):
