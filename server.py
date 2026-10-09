@@ -997,10 +997,10 @@ def _statement_mk_op(dd, mm, yy, label, amount, signed_negative, suffix, month):
         direction = "credit"
     elif any(w in low for w in _STATEMENT_CREDIT_WORDS):
         direction = "credit"
-    elif any(w in low for w in _STATEMENT_DEBIT_WORDS):
+    elif any(w in low for w in _STATEMENT_DEBIT_WORDS) or low.startswith(("cb", "carte", "prlv", "vir sepa", "cheque", "ch\u00e8que", "facture", "prelevement", "pr\u00e9l\u00e8vement")):
         direction = "debit"
     else:
-        direction = "credit"
+        direction = "debit"
     return {
         "date": "%s-%02d-%02d" % (_statement_year(yy, month), int(mm), int(dd)),
         "label": label,
