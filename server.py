@@ -21,7 +21,7 @@ QWEN_VISION_MODEL = os.getenv("QWEN_VISION_MODEL", "qwen/qwen2.5-vl-72b-instruct
 QWEN_BASE = os.getenv("QWEN_BASE_URL", "https://openrouter.ai/api/v1")
 MAX_IMAGE_CHARS = 3_500_000
 MAX_DOC_CHARS = 4_000_000
-CATEGORIES = ("Courses", "Logement", "Transport", "Sorties", "Abonnements", "Santé", "Autres")
+CATEGORIES = ("Courses", "Logement", "Transport", "Sorties", "Abonnements", "Santé", "Pro Quentin", "Autres")
 TRANSFER_CAT = "Transferts"
 ALL_CATEGORIES = CATEGORIES + (TRANSFER_CAT,)
 PAYERS = ("Quentin", "Jessica")
@@ -1010,8 +1010,10 @@ CLASSIFY_RULES = (
     "Catégories : " + ", ".join(ALL_CATEGORIES) + ".\n"
     "Repères : Courses = supermarchés, épicerie ; Logement = loyer, charges, énergie, internet, assurance habitation, meubles et équipement de la maison ; "
     "Transport = carburant, train, péages, parking, transports en commun ; Sorties = restaurants, bars, cinéma, loisirs, vacances, jeux ; "
-    "Abonnements = services récurrents (streaming, téléphone, box, Amazon Prime, cloud, presse) ; Santé = pharmacie, médecin, mutuelle, optique ; Autres = indéterminable.\n"
+    "Abonnements = services récurrents (streaming, téléphone, box, Amazon Prime, cloud, presse) ; Santé = pharmacie, médecin, mutuelle, optique ; "
+    "Pro Quentin = dépenses professionnelles de Quentin (SaaS et outils pro, hébergement et noms de domaine, matériel informatique pro, déplacements et services pro) ; Autres = indéterminable.\n"
     "Enseignes multi-produits (Amazon, Fnac, Leclerc, CDiscount...) : Prime/abonnement → Abonnements ; meubles/maison/outillage → Logement ; sinon la plus probable avec confidence low.\n"
+    "Si la note ou le libellé indique un usage professionnel de Quentin (outil, hébergement, matériel pro), classe en 'Pro Quentin' ; en cas de doute pro/perso : confidence low.\n"
     "Réponds STRICTEMENT en JSON : {\"category\":\"...\",\"confidence\":\"high|medium|low\",\"why\":\"3 à 6 mots\"}"
 )
 
@@ -1125,10 +1127,12 @@ _STATEMENT_CAT_RULES = (
     ("carrefour|leclerc|auchan|lidl|aldi|monoprix|intermarch|super u|casino|picard|grand frais|biocoop|boulanger|primeur|marche", "Courses"),
     ("edf|engie|primeo|veolia|electricite|\u00e9lectricit\u00e9|gaz|eau |sfr|orange|free |bouygues|lyca|telecom|t\u00e9l\u00e9com", "Logement"),
     ("sncf|ratp|mobilites|mobilit\u00e9s|uber|blablacar|essence|total|shell|esso|parking|peage|p\u00e9age|navigo|velib", "Transport"),
+    ("ovh|scaleway|hetzner|github|openai|anthropic|notion|adobe|canva|cloudflare|vercel|namecheap|gandi|ionos|microsoft 365|google workspace|societe.com|inpi", "Pro Quentin"),
     ("netflix|spotify|youtube|disney|canal|deezer|prime video|apple|icloud|openrouter|perplexity|abonnement|basic fit|google", "Abonnements"),
     ("deliveroo|uber eats|just eat|resto|restaurant|mcdo|burger|kfc|street bangkok|pizza|sushi|caf\u00e9|cafe|bar |brasserie", "Sorties"),
     ("pharmacie|docteur|medecin|m\u00e9decin|zava|hopital|h\u00f4pital|mutuelle|dentiste", "Sant\u00e9"),
-    ("amazon|cdiscount|vinted|shein|zalando|fnac|darty|leboncoin|action|ikea", "Sorties"),
+    ("ikea|leroy merlin|castorama|bricorama|maisons du monde|but |conforama", "Logement"),
+    ("amazon|cdiscount|vinted|shein|zalando|fnac|darty|leboncoin|action", "Autres"),
 )
 
 
@@ -1470,8 +1474,10 @@ IMPORT_RULES = (
     "confidence low, une question courte et un champ 'options' avec jusqu'a 3 categories probables.\n"
     "- Postes types : Courses=supermarchés/épicerie ; Logement=loyer, énergie, internet, assurance habitation, meubles/équipement maison ; "
     "Transport=carburant, train, péages, parking ; Sorties=restaurants, bars, cinéma, loisirs, vacances ; "
-    "Abonnements=services récurrents (streaming, téléphone, Prime, cloud) ; Santé=pharmacie, médecin, mutuelle.\n"
+    "Abonnements=services récurrents (streaming, téléphone, Prime, cloud) ; Santé=pharmacie, médecin, mutuelle ; "
+    "Pro Quentin=dépenses professionnelles de Quentin (outils/SaaS pro, hébergement, domaines, matériel pro).\n"
     "- Enseignes multi-produits (Amazon, Fnac, Leclerc...) : Prime/abonnement → Abonnements ; meubles/maison/outillage → Logement ; si ambigu : confidence low + question + options.\n"
+    "- Outils et services professionnels de Quentin (hébergement, domaines, SaaS dev, matériel pro) : catégorie 'Pro Quentin'.\n"
 )
 IMPORT_JSON_RULES = (
     "Reponds STRICTEMENT avec un tableau JSON prefixe par IMPORT_JSON: "
