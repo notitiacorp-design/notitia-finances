@@ -2071,6 +2071,8 @@ class Handler(SimpleHTTPRequestHandler):
                     {"month": month, "user": self.app_user, "users": list(USERS), "expenses": expenses, "budgets": budgets, "envelopes": ctx["envelopes"], "shopping": shopping, "facts": ctx},
                 )
             except Exception as e:
+                if isinstance(e, ValueError) and "Mois invalide" in str(e):
+                    return self.send_json(400, {"error": "Mois invalide"})
                 return self.send_json(502, {"error": "Données indisponibles", "detail": str(e)})
         return super().do_GET()
 

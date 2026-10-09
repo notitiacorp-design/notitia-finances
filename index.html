@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
-<title>DuoSpend · Finances & Sérénité à deux (v2.5)</title>
+<title>DuoSpend · Finances & Sérénité à deux (v2.7)</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -3163,7 +3163,7 @@ function renderQuestsUI(){
       </div>
       <div class="quest-right">
         <span class="quest-xp">+${q.xp} pts</span>
-        <button type="button" class="quest-btn ${q.done ? 'completed' : ''}" ${q.auto ? 'disabled style="opacity:0.9;"' : `onclick="toggleManualQuest('${q.id}', ${idx})"`}>
+        <button type="button" class="quest-btn ${q.done ? 'completed' : ''}" ${q.auto ? 'disabled style="opacity:0.9;"' : `onclick="toggleManualQuest(${escjs(q.id)}, ${idx})"`}>
           ${q.done ? 'Validé ✓' : (q.auto ? 'En cours' : 'Accomplir')}
         </button>
       </div>
@@ -3306,6 +3306,7 @@ function spinCoupleDecision(type = 'dinner'){
 
 const eur = n => new Intl.NumberFormat('fr-FR', {style:'currency', currency:'EUR'}).format(n || 0);
 const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const escjs = v => esc(JSON.stringify(String(v ?? ''))); // string JS sûre dans un attribut onclick
 const monthName = m => new Date(m + '-01T00:00:00').toLocaleDateString('fr-FR', {month:'long', year:'numeric'});
 const fmtDate = s => { const m = String(s || ''); return m.length >= 10 ? m.slice(8,10) + '/' + m.slice(5,7) : m; };
 
@@ -3570,11 +3571,11 @@ function txRowHtml(t){
   const payerTag = t.payer === 'Jessica' ? 'j' : 'q';
   const tr = isTransfer(t);
   const quick = (!tr && looksLikeTransferLabel(t.label))
-    ? `<button type="button" class="tx-quick" onclick="markAsTransfer('${t.id}')" title="Virement entre comptes ? Le sortir des dépenses sans le supprimer">⇄ transfert ?</button>`
+    ? `<button type="button" class="tx-quick" onclick="markAsTransfer(${escjs(t.id)})" title="Virement entre comptes ? Le sortir des dépenses sans le supprimer">⇄ transfert ?</button>`
     : '';
   const needClass = (!tr && (t.category === 'Autres' || /(?:^|·)\s*ia:low/.test(String(t.note || ''))));
   const classBtn = needClass
-    ? `<button type="button" class="tx-quick need" onclick="openClasser('${t.id}')" title="Renseigne cette dépense : écris une note et l'IA la classe, ou choisis la catégorie">❓ à classer</button>`
+    ? `<button type="button" class="tx-quick need" onclick="openClasser(${escjs(t.id)})" title="Renseigne cette dépense : écris une note et l'IA la classe, ou choisis la catégorie">❓ à classer</button>`
     : '';
   return `
     <div class="tx-row${tr ? ' tr' : ''}">
@@ -3595,8 +3596,8 @@ function txRowHtml(t){
       <div class="tx-right">
         <div class="tx-amount${tr ? ' muted' : ''}">${tr ? '⇄ ' : ''}${eur(t.amount)}</div>
         <div class="tx-actions">
-          <button class="tx-act" title="Modifier" onclick="openEditExpense('${t.id}')">&#9998;</button>
-          <button class="tx-act del" title="Supprimer" onclick="deleteExpense('${t.id}')">&#128465;</button>
+          <button class="tx-act" title="Modifier" onclick="openEditExpense(${escjs(t.id)})">&#9998;</button>
+          <button class="tx-act del" title="Supprimer" onclick="deleteExpense(${escjs(t.id)})">&#128465;</button>
         </div>
       </div>
     </div>`;
@@ -3625,7 +3626,7 @@ function renderTxList(){
     const open = txExpanded.has(cat);
     const sub = tr ? `${items.length} virement(s) · neutres, non comptés` : `${items.length} opération(s) · <strong>${eur(subtotal)}</strong>`;
     return `<div class="tx-group${open ? ' open' : ''}">
-      <button type="button" class="tx-cat" onclick="toggleTxCat('${esc(cat)}')">
+      <button type="button" class="tx-cat" onclick="toggleTxCat(${escjs(cat)})">
         <span class="tx-icon" style="background:${meta.bg}">${meta.emoji}</span>
         <span class="tx-cat-name">${esc(cat)}</span>
         <span class="tx-cat-sub">${sub}</span>
@@ -3736,7 +3737,7 @@ function renderShoppingUI(){
   }
   grid.innerHTML = shopping.map(item => `
     <div class="shopping-item-box ${item.checked ? 'checked' : ''}">
-      <div class="shop-check-wrap" onclick="toggleShopItem('${esc(item.id)}')">
+      <div class="shop-check-wrap" onclick="toggleShopItem(${escjs(item.id)})">
         <div class="shop-check-custom">
           <svg width="12" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M1 5L4.5 8.5L11 1.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -3744,7 +3745,7 @@ function renderShoppingUI(){
         </div>
         <span class="shop-item-name">${esc(item.item)}</span>
       </div>
-      <button type="button" class="btn-del-shop" onclick="deleteShopItem('${esc(item.id)}')" title="Supprimer">✕</button>
+      <button type="button" class="btn-del-shop" onclick="deleteShopItem(${escjs(item.id)})" title="Supprimer">✕</button>
     </div>
   `).join('');
 }
@@ -3994,7 +3995,7 @@ function exportMonthCSV(){
     .slice()
     .sort((a,b) => String(a.date).localeCompare(String(b.date)))
     .forEach(t => {
-      rows.push([t.date || '', t.label || '', t.category || '', String(t.amount != null ? t.amount : '').replace('.', ','), t.payer || '', t.shared === false ? 'Non' : 'Oui']);
+      rows.push([t.date || '', t.label || '', t.category || '', String(Number(t.amount || 0).toFixed(2)).replace('.', ','), t.payer || '', t.shared === false ? 'Non' : 'Oui']);
     });
   const csv = '\ufeff' + rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(';')).join('\r\n');
   const blob = new Blob([csv], { type:'text/csv;charset=utf-8' });
@@ -4013,7 +4014,7 @@ function exportProCSV(){
   if(!rows.length){ showToast('Aucune dépense pro ce mois-ci', false); return; }
   const out = [['Date','Libellé','Montant (€)','Payé par','Commune','Note']];
   rows.slice().sort((a,b) => String(a.date).localeCompare(String(b.date))).forEach(t => {
-    out.push([t.date || '', t.label || '', String(t.amount != null ? t.amount : '').replace('.', ','), t.payer || '', t.shared === false ? 'Non' : 'Oui', t.note || '']);
+    out.push([t.date || '', t.label || '', String(Number(t.amount || 0).toFixed(2)).replace('.', ','), t.payer || '', t.shared === false ? 'Non' : 'Oui', t.note || '']);
   });
   out.push(['Total', '', String(rows.reduce((a,x) => a + Number(x.amount || 0), 0).toFixed(2)).replace('.', ','), '', '', '']);
   const csv = '\ufeff' + out.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(';')).join('\r\n');
@@ -4219,7 +4220,7 @@ function appendImportCard(j, container){
     const lowBadge = (op.confidence === 'low' && !op.duplicate && !isTr) ? '<span class="imp-badge low">à préciser</span>' : '';
     const needsInfo = !op.duplicate && !isTr && (op.question || op.category === 'Autres' || op.confidence === 'low');
     const qLine = needsInfo
-      ? `<div class="imp-q">❓ ${esc(op.question || ('À quoi correspond « ' + op.label.slice(0,40) + ' » ? Dis-le ici, ou choisis la catégorie.'))}
+      ? `<div class="imp-q">❓ ${esc(op.question || ('À quoi correspond « ' + (op.label || '(sans libellé)').slice(0,40) + ' » ? Dis-le ici, ou choisis la catégorie.'))}
            <input class="imp-answer" data-i="${i}" placeholder="ex. : abonnement prime, meubles…">
            <button type="button" class="imp-magic" data-i="${i}" title="Laisser l'IA classer d'après ta note">🪄</button></div>`
       : '';
