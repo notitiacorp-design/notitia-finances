@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
-<title>DuoSpend · Finances & Sérénité à deux (v1.7)</title>
+<title>DuoSpend · Finances & Sérénité à deux (v1.8)</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -1515,6 +1515,17 @@ body{
   height:1px;
 }
 
+/* Memoire de l'assistant */
+.card-header-actions{display:flex;gap:8px;flex-shrink:0}
+.memo-panel{border:1px solid var(--border);background:var(--surface-subtle, #f7f5f1);border-radius:14px;padding:12px 14px;margin:10px 0}
+.memo-panel[hidden]{display:none}
+.memo-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.memo-list{margin:0 0 8px;padding-left:18px;font-size:13px;color:var(--text)}
+.memo-list li{margin:3px 0}
+.memo-empty{color:var(--text-dim);list-style:none;margin-left:-18px}
+.memo-actions{display:flex;justify-content:flex-end}
+.memo-hint{margin:8px 0 0;font-size:11.5px;color:var(--text-dim)}
+
 /* Mode foyer / moi */
 .mode-switch{display:flex;align-items:center;gap:8px;padding:12px 18px 0;flex-wrap:wrap}
 .mode-switch .mode-btn{border:1.5px solid var(--border);background:var(--surface);color:var(--text-muted);border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s}
@@ -2175,7 +2186,10 @@ body{
           <h2 class="card-title">Assistant DuoSpend</h2>
           <p class="card-subtitle">Déposez un e-ticket, un relevé PDF/CSV ou posez une question</p>
         </div>
-        <button type="button" class="btn-export" id="btnClearChat" title="Effacer la conversation">🧹 Effacer</button>
+        <div class="card-header-actions">
+          <button type="button" class="btn-export" id="btnMemo" title="Ce que l'assistant retient de vous">🧠 Mémoire</button>
+          <button type="button" class="btn-export" id="btnClearChat" title="Effacer la conversation">🧹 Effacer</button>
+        </div>
       </div>
 
       <div class="chat-thread" id="chatThread">
@@ -2183,6 +2197,18 @@ body{
       </div>
 
       <div id="suggestionBox" hidden></div>
+
+      <div id="memoPanel" class="memo-panel" hidden>
+        <div class="memo-head">
+          <strong>🧠 Ce que votre assistant retient</strong>
+          <button type="button" class="btn-export" id="memoClose" title="Fermer">✕</button>
+        </div>
+        <ul class="memo-list" id="memoList"></ul>
+        <div class="memo-actions">
+          <button type="button" class="btn-export" id="memoClear">Vider la mémoire</button>
+        </div>
+        <p class="memo-hint">Mémoire et historique sont propres à chaque personne : Quentin et Jessica ont les leurs, jamais partagés.</p>
+      </div>
 
       <div class="quick-prompts">
         <button class="quick-btn" data-q="Fais-moi un point global sur notre rythme de dépenses ce mois-ci.">Faire le point</button>
@@ -3329,9 +3355,47 @@ function exportMonthCSV(){
 // Chat & Advisor Interaction
 const CHAT_KEY = 'duospend_chat_v1';
 let chatHistory = [];
-try { chatHistory = JSON.parse(localStorage.getItem(CHAT_KEY) || '[]') || []; } catch(e){ chatHistory = []; }
+let assistantMemo = [];
+const chatKey = () => CHAT_KEY + ':' + (currentUser || 'anon');
+try { chatHistory = JSON.parse(localStorage.getItem(chatKey()) || '[]') || []; } catch(e){ chatHistory = []; }
 function saveChat(){
-  try { localStorage.setItem(CHAT_KEY, JSON.stringify(chatHistory.slice(-40))); } catch(e){}
+  try { localStorage.setItem(chatKey(), JSON.stringify(chatHistory.slice(-40))); } catch(e){}
+}
+function renderMemo(){
+  const list = $('memoList');
+  const btn = $('btnMemo');
+  if(btn) btn.textContent = assistantMemo.length ? ('🧠 Mémoire (' + assistantMemo.length + ')') : '🧠 Mémoire';
+  if(!list) return;
+  list.innerHTML = assistantMemo.length
+    ? assistantMemo.map(t => '<li>' + esc(t) + '</li>').join('')
+    : '<li class="memo-empty">Rien encore. Parlez-lui de vos objectifs : « on veut mettre 300 € de côté en novembre ».</li>';
+}
+function toggleMemoPanel(force){
+  const p = $('memoPanel');
+  if(!p) return;
+  const show = (typeof force === 'boolean') ? force : p.hasAttribute('hidden');
+  if(show) p.removeAttribute('hidden'); else p.setAttribute('hidden', '');
+  renderMemo();
+}
+function updateMemoChip(memo){
+  if(Array.isArray(memo)){ assistantMemo = memo; renderMemo(); }
+}
+async function refreshAssistantHistory(){
+  try {
+    const r = await fetch(API_BASE + '/api/assistant/history');
+    const j = await r.json();
+    if(!r.ok) return;
+    assistantMemo = Array.isArray(j.memo) ? j.memo : [];
+    const serverMsgs = (Array.isArray(j.messages) ? j.messages : []).map(m => ({role: m.role === 'user' ? 'user' : 'bot', text: m.text || ''}));
+    if(serverMsgs.length > chatHistory.length){
+      chatHistory = serverMsgs;
+      saveChat();
+      const thread = $('chatThread');
+      if(thread) thread.innerHTML = '';
+      chatHistory.forEach(m => addChatMessage(m.role, m.text, null, {replay:true}));
+    }
+    renderMemo();
+  } catch(e){}
 }
 function pushChat(role, text){
   chatHistory.push({ role: role, text: String(text || '').slice(0, 4000) });
@@ -3581,6 +3645,7 @@ async function sendChat(questionText){
     if(!r.ok) throw Error(j.detail || j.error || 'Erreur assistant');
     botMsg.innerHTML = renderRichMarkdown(j.answer);
     pushChat('bot', j.answer);
+    updateMemoChip(j.memo);
     showAISuggestions(j.suggestion, j.budget);
   }catch(e){
     botMsg.innerHTML = `<span style="color:var(--coral)">Je n'ai pas pu répondre : ${esc(e.message)}</span>`;
@@ -3867,7 +3932,23 @@ $('shoppingForm').onsubmit = e => {
 $('btnRefreshShopAI').onclick = fetchSeasonalAnalysis;
 if($('btnSuggestBudgets')) $('btnSuggestBudgets').onclick = suggestBudgets;
 if($('btnExportCSV')) $('btnExportCSV').onclick = exportMonthCSV;
-if($('btnClearChat')) $('btnClearChat').onclick = () => { if(confirm('Effacer la conversation ?')) clearChatHistory(); };
+if($('btnClearChat')) $('btnClearChat').onclick = () => {
+  if(!confirm('Effacer la conversation ?')) return;
+  clearChatHistory();
+  fetch(API_BASE + '/api/assistant/memo', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({clear:'history'})}).catch(() => {});
+};
+if($('btnMemo')) $('btnMemo').onclick = () => toggleMemoPanel();
+if($('memoClose')) $('memoClose').onclick = () => toggleMemoPanel(false);
+if($('memoClear')) $('memoClear').onclick = async () => {
+  if(!confirm("Vider la mémoire de l'assistant pour " + (currentUser && currentUser !== 'Foyer' ? currentUser : 'ce profil') + ' ?')) return;
+  try {
+    const r = await fetch(API_BASE + '/api/assistant/memo', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({clear:true})});
+    const j = await r.json();
+    assistantMemo = Array.isArray(j.memo) ? j.memo : [];
+    renderMemo();
+    showToast('Mémoire vidée');
+  } catch(e){ showToast('Impossible de vider la mémoire', false); }
+};
 
 // Convert finished shopping list to Expense
 if($('btnFinishRecord')){
@@ -4007,6 +4088,7 @@ loadState().then(() => {
   } else {
     addChatMessage('bot', 'Bonjour ' + (currentUser && currentUser !== 'Foyer' ? currentUser : 'Quentin & Jessica') + ' ! Je suis DuoSpend. Prêt pour un suivi fluide de vos dépenses et de vos objectifs !');
   }
+  refreshAssistantHistory();
 });
 </script>
 

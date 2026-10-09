@@ -87,6 +87,7 @@ def normalize_expense(fields, rid):
         "note": note,
         "is_budget": note.startswith(BUDGET_MARK) or label.startswith("[Budget]"),
         "is_shopping": note.startswith(SHOPPING_MARK) or label.startswith("[Shopping]"),
+        "is_chat": note.startswith("kind=chat") or label.startswith("[Assistant]"),
     }
 
 
@@ -113,7 +114,7 @@ def get_all_records():
 
 
 def get_expenses():
-    return [x for x in get_all_records() if not x.get("is_budget") and not x.get("is_shopping")]
+    return [x for x in get_all_records() if not x.get("is_budget") and not x.get("is_shopping") and not x.get("is_chat")]
 
 def delete_expense(record_id):
     if TOKEN and BASE_ID:
@@ -161,7 +162,7 @@ def clear_all_expenses():
         records = list_table(TABLE) or []
         for r in records:
             norm = normalize_expense(r.get("fields", {}), r.get("id"))
-            if not norm.get("is_budget") and not norm.get("is_shopping"):
+            if not norm.get("is_budget") and not norm.get("is_shopping") and not norm.get("is_chat"):
                 try:
                     airtable_request("DELETE", f"{BASE_ID}/{urllib.parse.quote(TABLE)}/{r['id']}")
                     deleted += 1
@@ -367,6 +368,76 @@ def default_budgets(month):
 
 
 SHOPPING_MARK = "kind=shopping"
+
+
+CHAT_MARK = "kind=chat"
+MEMO_LIMIT = 18
+CHAT_LIMIT = 40
+
+
+def chat_user_of(rec):
+    note = str(rec.get("note") or "")
+    if not note.startswith(CHAT_MARK):
+        return ""
+    for token in note.split("\n", 1)[0].split(" ")[1:]:
+        if token.startswith("user="):
+            return token[5:]
+    return ""
+
+
+def load_chat_store(user):
+    """Historique + mémoire de l'assistant, une ligne marqueur par personne."""
+    who = user or "Foyer"
+    rec = next((x for x in get_all_records() if x.get("is_chat") and chat_user_of(x) == who), None)
+    if not rec:
+        return {"id": "", "messages": [], "memo": []}
+    try:
+        data = json.loads(str(rec.get("note") or "").split("\n", 1)[1])
+    except Exception:
+        data = {}
+    return {
+        "id": rec.get("id", ""),
+        "messages": [m for m in (data.get("messages") or []) if isinstance(m, dict)][-CHAT_LIMIT:],
+        "memo": [str(t)[:300] for t in (data.get("memo") or []) if str(t).strip()][-MEMO_LIMIT:],
+    }
+
+
+def save_chat_store(user, store):
+    who = user or "Foyer"
+    note = CHAT_MARK + " user=" + who + "\n" + json.dumps(
+        {"messages": store.get("messages", [])[-CHAT_LIMIT:], "memo": store.get("memo", [])[-MEMO_LIMIT:]},
+        ensure_ascii=False,
+    )
+    fields = {
+        "Dépense": "[Assistant] " + who,
+        "Date": current_month() + "-01",
+        "Catégorie": "Autres",
+        "Montant (€)": 0,
+        "Payé par": "Quentin",
+        "Dépense commune": False,
+        "Remboursement": "Assistant",
+        "Note": note,
+    }
+    if TOKEN and BASE_ID:
+        try:
+            if store.get("id"):
+                data = airtable_request("PATCH", f"{BASE_ID}/{urllib.parse.quote(TABLE)}/{store['id']}", {"fields": fields, "typecast": True})
+            else:
+                data = airtable_request("POST", f"{BASE_ID}/{urllib.parse.quote(TABLE)}", {"fields": fields, "typecast": True})
+            store["id"] = data.get("id", store.get("id", ""))
+        except RuntimeError:
+            pass
+        return store
+    for i, x in enumerate(LOCAL_EXPENSES):
+        if x.get("is_chat") and chat_user_of(x) == who:
+            LOCAL_EXPENSES[i] = dict(x, note=note)
+            store["id"] = x.get("id", store.get("id", ""))
+            return store
+    item = normalize_expense(fields, "local-chat-" + who)
+    item["id"] = "local-chat-" + who
+    LOCAL_EXPENSES.insert(0, item)
+    store["id"] = item["id"]
+    return store
 
 def shopping_from_expense_records():
     found = []
@@ -1024,7 +1095,28 @@ def clean_answer(text):
     return text.strip()
 
 
-def assistant_answer(question, expenses, image=None, month=None):
+MEMO_BLOCK_RE = re.compile(r"MEMO_JSON\s*\[.*?\]", re.S)
+
+
+def parse_memo(text):
+    """Faits durables proposes par l'IA (bloc MEMO_JSON), 2 max."""
+    m = MEMO_BLOCK_RE.search(text or "")
+    if not m:
+        return []
+    try:
+        data = json.loads(m.group(0)[m.group(0).index("["):])
+    except Exception:
+        return []
+    if not isinstance(data, list):
+        return []
+    return [str(x) for x in data][:2]
+
+
+def strip_memo_block(text):
+    return MEMO_BLOCK_RE.sub("", text or "").strip()
+
+
+def assistant_answer(question, expenses, image=None, month=None, memory=None):
     month = month or current_month()
     ctx = finance_context(expenses, month)
     user_text = (
@@ -1040,6 +1132,24 @@ def assistant_answer(question, expenses, image=None, month=None):
         + '","reason":"..."}\n'
         + "N'applique rien toi-même."
     )
+    if memory:
+        memo = [str(t)[:300] for t in (memory.get("memo") or [])][-MEMO_LIMIT:]
+        hist = [m for m in (memory.get("messages") or []) if isinstance(m, dict)][-8:]
+        if memo:
+            user_text += (
+                "\n\nMémoire de l'assistant pour cette personne (notes durables à respecter ; ce ne sont pas des chiffres du foyer) : "
+                + " | ".join(memo)
+            )
+        if hist:
+            user_text += "\nÉchanges récents avec cette personne : " + " / ".join(
+                "%s : %s" % ("L'utilisateur" if m.get("role") == "user" else "Toi", str(m.get("text") or "")[:180])
+                for m in hist
+            )
+        user_text += (
+            "\nSi tu apprends un fait durable sur la personne ou le foyer (objectif, préférence, contrainte, projet), termine ta réponse par :\n"
+            'MEMO_JSON ["texte court", "autre fait"]\n'
+            "0 à 2 éléments, en français, jamais de chiffres ni de montants, jamais de doublon avec la mémoire existante."
+        )
     if QWEN_KEY:
         try:
             content = [{"type": "text", "text": user_text}]
@@ -1218,6 +1328,12 @@ class Handler(SimpleHTTPRequestHandler):
             )
         if path.startswith("/api/") and not self.require_code():
             return
+        if path == "/api/assistant/history":
+            try:
+                store = load_chat_store(self.app_user)
+                return self.send_json(200, {"user": self.app_user or "Foyer", "messages": store["messages"][-20:], "memo": store["memo"]})
+            except Exception as e:
+                return self.send_json(200, {"user": self.app_user or "Foyer", "messages": [], "memo": [], "detail": str(e)[:120]})
         if path in ("/api/state", "/api/expenses", "/api/budgets", "/api/shopping"):
             try:
                 month = self.query().get("month") or current_month()
@@ -1251,7 +1367,21 @@ class Handler(SimpleHTTPRequestHandler):
                 month = str(body.get("month") or current_month())[:7]
                 if not question and not image:
                     return self.send_json(400, {"error": "Question ou image requise"})
-                answer, engine, suggestion, budget, ctx = assistant_answer(question, visible_expenses(get_expenses(), self.app_user), image, month)
+                user = self.app_user or "Foyer"
+                store = load_chat_store(user)
+                if question or image:
+                    store["messages"].append({"role": "user", "text": (question or "[pièce jointe]")[:600]})
+                answer, engine, suggestion, budget, ctx = assistant_answer(
+                    question, visible_expenses(get_expenses(), user), image, month, memory=store
+                )
+                for item in parse_memo(answer):
+                    item = str(item).strip()[:300]
+                    if item and item not in store["memo"]:
+                        store["memo"].append(item)
+                store["memo"] = store["memo"][-MEMO_LIMIT:]
+                answer = strip_memo_block(answer)
+                store["messages"].append({"role": "assistant", "text": str(answer)[:1500], "engine": engine})
+                save_chat_store(user, store)
                 return self.send_json(
                     200,
                     {
@@ -1260,10 +1390,27 @@ class Handler(SimpleHTTPRequestHandler):
                         "suggestion": suggestion,
                         "budget": budget,
                         "facts": ctx,
+                        "user": user,
+                        "memo": store["memo"],
+                        "messages": store["messages"][-12:],
                     },
                 )
             except Exception as e:
                 return self.send_json(400, {"error": "Question invalide", "detail": str(e)})
+        if path == "/api/assistant/memo":
+            try:
+                body = self.read_json()
+                store = load_chat_store(self.app_user)
+                if body.get("clear") == "history":
+                    store["messages"] = []
+                elif body.get("clear"):
+                    store["memo"] = []
+                elif isinstance(body.get("memo"), list):
+                    store["memo"] = [str(t)[:300] for t in body["memo"] if str(t).strip()][-MEMO_LIMIT:]
+                save_chat_store(self.app_user, store)
+                return self.send_json(200, {"memo": store["memo"], "messages": store["messages"][-20:]})
+            except Exception as e:
+                return self.send_json(400, {"error": "Memo invalide", "detail": str(e)[:120]})
         if path == "/api/import/analyze":
             try:
                 body = self.read_json()
