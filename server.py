@@ -868,7 +868,8 @@ def extract_document_text(doc):
         blob = base64.b64decode(doc["data"].split(";base64,", 1)[1], validate=False)
     except Exception:
         raise ValueError("Fichier illisible (encodage inattendu).")
-    if name.endswith(".pdf"):
+    is_pdf_content = blob[:8].lstrip()[:5] == b"%PDF-"
+    if is_pdf_content or name.endswith(".pdf"):
         try:
             from pypdf import PdfReader
         except Exception:
@@ -901,7 +902,17 @@ def extract_document_text(doc):
             except UnicodeDecodeError:
                 continue
         raise ValueError("Encodage du fichier non reconnu. Exportez le releve en CSV UTF-8.")
-    raise ValueError("Format non pris en charge : joignez un PDF ou un CSV de releve.")
+    # Contenu en clair mais nom sans extension (certains telephones retirent l'extension) :
+    for enc in ("utf-8-sig", "utf-8", "cp1252", "latin-1"):
+        try:
+            txt = blob.decode(enc)
+            head = txt[:400]
+            if head and sum(1 for c in head if c.isprintable() or c in "\n\r\t") >= len(head) * 0.9:
+                return txt, "csv"
+            break
+        except UnicodeDecodeError:
+            continue
+    raise ValueError("Format non pris en charge : joignez le PDF du releve ou son CSV.")
 
 
 def parse_json_array(text, key):
