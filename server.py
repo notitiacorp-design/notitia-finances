@@ -1207,9 +1207,45 @@ def _statement_ops_traderepublic(text, month=None):
         i += 1
     return out
 
+
+# --- CIC (et formats "double date" : date opération + date valeur) ---
+_CIC_ROW_RE = re.compile(r"^(\d{2})/(\d{2})/(\d{4})\s+(\d{2})/(\d{2})/(\d{4})\s+(.+?)\s+(\d{1,3}(?:[ .]\u00a0?\d{3})*,\d{2})\s*$")
+_CIC_CRED_RE = re.compile(r"^(VIR DE\b|VIR INST (QUENTIN|JESSICA)\b|VIR RECU\b|VERSEMENT\b|REMISE\b)", re.I)
+
+
+def _statement_ops_cic(text, month=None):
+    lines = str(text or "").splitlines()
+    rows = []
+    for i, raw in enumerate(lines):
+        if re.match(r"^\s*Réf\s*:", raw):
+            break
+        m = _CIC_ROW_RE.match(raw.strip() if len(raw) < 400 else raw.strip())
+        if m:
+            rows.append(m)
+    if len(rows) < 5:
+        return []
+    out = []
+    for m in rows:
+        dd, mm, yy, label, raw_amt = m.group(1), m.group(2), m.group(3), m.group(7), m.group(8)
+        label = re.sub(r"[\s\u00a0]+", " ", label).strip(" .:-|")
+        label = re.sub(r"^VIR DE MLE JESSICA.*", "Virement de Jessica", label, flags=re.I)
+        label = re.sub(r"^VIR INST QUENTIN.*", "Virement de Quentin", label, flags=re.I)
+        try:
+            amount = parse_fr_amount(raw_amt)
+        except Exception:
+            continue
+        if not amount:
+            continue
+        suffix = "C" if _CIC_CRED_RE.match(label) or _CIC_CRED_RE.match(m.group(7).strip()) else "D"
+        out.append(_statement_mk_op(dd, mm, yy, label, amount, False, suffix, month))
+    return out
+
 def _statement_ops_fallback(text, month=None):
     """Parseur sans IA, tolerant : lignes completes (date + libelle + montant),
     et repli en mode blocs (colonnes separees sur plusieurs lignes)."""
+    cic_ops = _statement_ops_cic(text, month)
+    if cic_ops:
+        return cic_ops
     tr_ops = _statement_ops_traderepublic(text, month)
     if tr_ops:
         return tr_ops
