@@ -2622,6 +2622,17 @@ input:focus,select:focus,textarea:focus{outline:none!important;border-color:var(
 @keyframes romeFade{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.001s!important}
   body::before{animation:none!important}}
+
+/* ====== finitions : contraste, hiérarchie, respiration ====== */
+:root{--muted:#635b51;--faint:#8f877a}
+.header{background:rgba(255,255,255,.66)!important}
+.nav-tabs{background:rgba(255,255,255,.72)!important}
+#brandSub{color:#5c554b!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+.balanceText,#balanceText,.balance-hero .balanceText{font-family:var(--font-display)!important;font-weight:600;font-size:clamp(30px,9vw,42px)!important;letter-spacing:.01em}
+.tab-pane{padding-bottom:88px}
+[class*="legend"]{line-height:1.6!important}
+.card-subtitle{color:#635b51!important}
+[class*="amount" i],[class*="total" i],.bs-value{letter-spacing:.01em}
 </style>
 
 <script>
