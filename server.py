@@ -1184,6 +1184,118 @@ def assistant_answer(question, expenses, image=None, month=None, memory=None):
     return deterministic_answer((question or "").lower(), ctx), "rules", None, None, ctx
 
 
+MEAL_PROTEINS = [
+    "bavette de boeuf", "steak haché 15%", "cuisses de poulet fermier", "poulet rôti",
+    "côtes de porc fermier", "travers de porc", "gigot d'agneau", "foie de veau",
+    "rôti de veau", "saucisses de Toulouse", "magret de canard", "boulettes boeuf/agneau",
+]
+MEAL_VEGGIES = [
+    "courgettes poêlées", "patates douces rôties", "épinards au beurre", "chou-fleur rôti",
+    "haricots verts persillés", "poêlée de champignons", "carottes fondantes", "brocoli vapeur",
+    "salade croquante", "gratin de courge", "tomates rôties au thym",
+]
+MEAL_STARCHES = [
+    "riz basmati au bouillon", "pommes de terre au four", "purée de céleri",
+    "quinoa aux herbes", "patates grenaille", "aucun accompagnement (assiette protéinée)",
+]
+MEAL_STYLES = [
+    "poêlé au beurre", "rôti au four", "à la plancha", "mijoté aux échalotes", "grillé, sauce maison",
+]
+MEAL_QUICK = [
+    ("Assiette express : oeufs mollets, comté, jambon cru & crudités", "5 min, zéro cuisson"),
+    ("Omelette 3 oeufs au comté & salade croquante", "10 min"),
+    ("Steak haché minute & purée express pommes de terre/beurre", "15 min"),
+    ("Avocat, oeufs au plat, tomates & pain de campagne (option sans pain)", "10 min"),
+    ("Planche fermière : fromages, jambon, noix, pommes", "5 min"),
+    ("Poêlée express boeuf/oignons/poivrons façon fajita (sans tortillas)", "15 min"),
+    ("Lardons sautés, oeufs brouillés & salade", "10 min"),
+    ("Skyr ou yaourt grec, miel, fruits de saison (dîner léger protéiné)", "3 min"),
+]
+
+
+def meals_fallback(items=None, reroll=False):
+    """Idées de dîner primal / animal-based, en piochant dans la liste de courses quand c'est possible."""
+    import random
+    rnd = random.Random()
+    items = [str(x).strip() for x in (items or []) if str(x).strip()]
+    low = " | ".join(items).lower()
+
+    def match(pool):
+        for cand in pool:
+            if used(cand):
+                return cand
+        return None
+
+    def used(cand):
+        head = cand.split(" ")[0][:5].lower()
+        return bool(head) and head in low
+
+    ideas = []
+    if reroll and rnd.random() < 0.45:
+        pick = rnd.sample(MEAL_QUICK, 2)
+        for title, t in pick:
+            ideas.append({"title": title, "why": "Express, riche en protéines : %s." % t, "time": t, "using": []})
+    protein = match(MEAL_PROTEINS) or rnd.choice(MEAL_PROTEINS)
+    veggie = match(MEAL_VEGGIES) or rnd.choice(MEAL_VEGGIES)
+    starch = rnd.choice(MEAL_STARCHES)
+    style = rnd.choice(MEAL_STYLES)
+    if "ti" in protein.lower() and "rti" in style.lower():
+        style = rnd.choice(["poêlé au beurre", "à la plancha", "grillé, sauce maison"])
+    starch_txt = "" if starch.startswith("aucun") else ", " + starch
+    ideas.insert(0, {
+        "title": "%s %s & %s%s" % (protein.capitalize(), style, veggie, starch_txt),
+        "why": "Animal-based, simple et rassasiant (20-30 min)." if "aucun" not in starch else "Assiette protéinée, léger en glucides.",
+        "time": "25 min",
+        "using": [x for x in (protein, veggie, starch) if not starch.startswith("aucun") and used(x)][:4],
+    })
+    if reroll:
+        protein2 = rnd.choice([p for p in MEAL_PROTEINS if p != protein] or MEAL_PROTEINS)
+        veggie2 = rnd.choice([v for v in MEAL_VEGGIES if v != veggie] or MEAL_VEGGIES)
+        ideas.append({
+            "title": "%s %s & %s, %s" % (protein2.capitalize(), rnd.choice(MEAL_STYLES), veggie2, starch),
+            "why": "Variante pour changer du premier choix.",
+            "time": "30 min",
+            "using": [x for x in (protein2, veggie2, starch) if used(x)][:4],
+        })
+    quick = rnd.sample(MEAL_QUICK, 1)[0]
+    ideas.append({"title": quick[0], "why": "Pour les soirs pressés : %s." % quick[1], "time": quick[1], "using": []})
+    return ideas[:3]
+
+
+def meals_ideas(items=None, reroll=False):
+    """3 idées de dîner : l'IA si dispo, sinon le composeur maison."""
+    if QWEN_KEY:
+        try:
+            prompt = (
+                "Tu es le cuisinier du foyer (Quentin et Jessica). Alimentation primal / animal-based : "
+                "viandes, oeufs, produits laitiers, fruits, légumes, miel, bonnes graisses ; on évite les céréales "
+                "industrielles et les plats préparés. Propose 3 idées de dîner du soir, simples (15-30 min), en "
+                "utilisant en priorité ces articles de la liste de courses actuelle : "
+                + (", ".join(items[:25]) if items else "aucune liste fournie, propose des classiques")
+                + ". Réponds UNIQUEMENT par un tableau JSON: "
+                '[{"title": "...", "why": "pourquoi cette idee marche ce soir", "time": "25 min", "using": ["articles de la liste"]}]'
+            )
+            raw = qwen_chat([{"role": "user", "content": prompt}], QWEN_MODEL, max_tokens=500)
+            start, end = raw.find("["), raw.rfind("]")
+            if start >= 0 and end > start:
+                data = json.loads(raw[start:end + 1])
+                ideas = []
+                for idea in data[:3]:
+                    if not isinstance(idea, dict) or not idea.get("title"):
+                        continue
+                    ideas.append({
+                        "title": str(idea.get("title"))[:120],
+                        "why": str(idea.get("why") or "")[:160],
+                        "time": str(idea.get("time") or "")[:20],
+                        "using": [str(x)[:40] for x in (idea.get("using") or [])][:4],
+                    })
+                if ideas:
+                    return ideas, "qwen"
+        except Exception:
+            pass
+    return meals_fallback(items, reroll), "rules"
+
+
 APP_CODE_PEPPER = "duospend-v1"
 # Un code par personne : sha256(pepper|code en minuscules). Rotation via duospend_code_set.py.
 APP_CODES = {
@@ -1411,6 +1523,15 @@ class Handler(SimpleHTTPRequestHandler):
                 return self.send_json(200, {"memo": store["memo"], "messages": store["messages"][-20:]})
             except Exception as e:
                 return self.send_json(400, {"error": "Memo invalide", "detail": str(e)[:120]})
+        if path == "/api/meals":
+            try:
+                body = self.read_json()
+                shopping = body.get("shopping")
+                items = [str(x)[:60] for x in shopping] if isinstance(shopping, list) else []
+                ideas, engine = meals_ideas(items, bool(body.get("reroll")))
+                return self.send_json(200, {"ideas": ideas, "engine": engine})
+            except Exception as e:
+                return self.send_json(400, {"error": "Idees indisponibles", "detail": str(e)[:120]})
         if path == "/api/import/analyze":
             try:
                 body = self.read_json()

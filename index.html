@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
-<title>DuoSpend · Finances & Sérénité à deux (v1.8)</title>
+<title>DuoSpend · Finances & Sérénité à deux (v1.9)</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -1515,6 +1515,27 @@ body{
   height:1px;
 }
 
+/* Defis contextuels & idees repas (v1.9) */
+.quest-theme{display:flex;gap:10px;align-items:flex-start;background:linear-gradient(135deg, rgba(45,106,79,.08), rgba(217,119,6,.08));border:1px solid var(--border);border-radius:14px;padding:10px 12px;margin-bottom:10px}
+.quest-theme-icon{font-size:18px}
+.quest-theme strong{display:block;font-size:13.5px}
+.quest-theme span{display:block;font-size:12px;color:var(--text-muted)}
+.quest-tag{font-size:10px;font-weight:700;background:rgba(0,0,0,.045);color:var(--text-muted);padding:2px 6px;border-radius:6px;border:1px solid var(--border)}
+.quest-tag.libre{background:rgba(217,119,6,.12);color:#9a5b00;border-color:rgba(217,119,6,.25)}
+.quest-tag.statut{background:rgba(45,106,79,.10);color:#2d6a4f;border-color:rgba(45,106,79,.22)}
+.quest-progress{height:5px;border-radius:999px;background:rgba(0,0,0,.06);margin-top:6px;overflow:hidden}
+.quest-progress-fill{height:100%;border-radius:999px;background:var(--primary);transition:width .4s ease}
+.quest-progress-fill.done{background:var(--amber)}
+.meal-ai-list{margin-top:10px;display:grid;gap:8px}
+.meal-idea{border:1px solid var(--border);border-radius:12px;padding:9px 11px;background:var(--surface)}
+.meal-idea-top{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.meal-idea-top strong{font-weight:800}
+.meal-idea-time{color:var(--text-muted);font-size:11.5px;white-space:nowrap}
+.meal-idea-why{font-size:12px;color:var(--text-muted);margin-top:3px}
+.meal-idea-using{font-size:11.5px;color:var(--primary);margin-top:3px;font-weight:600}
+.meal-ai-empty{font-size:12px;color:var(--text-dim)}
+#mealAIAgain{justify-self:start;margin-top:2px}
+
 /* Memoire de l'assistant */
 .card-header-actions{display:flex;gap:8px;flex-shrink:0}
 .memo-panel{border:1px solid var(--border);background:var(--surface-subtle, #f7f5f1);border-radius:14px;padding:12px 14px;margin:10px 0}
@@ -2372,7 +2393,14 @@ body{
               <button type="button" class="btn-game btn-game-secondary" onclick="spinCoupleDecision('chores')">
                 🧹 Tâche Express
               </button>
+              <button type="button" class="btn-game btn-game-secondary" onclick="spinCoupleDecision('quick')">
+                ⚡ Repas express
+              </button>
+              <button type="button" class="btn-game btn-game-secondary" id="btnMealAI">
+                🧠 Idées avec nos courses
+              </button>
             </div>
+            <div class="meal-ai-list" id="mealAIList"></div>
           </div>
         </section>
 
@@ -2542,7 +2570,26 @@ const DECISION_SETS = {
     "🍝 Pâtes fraîches sauce bolognaise maison mijotée",
     "🥑 Assiette composée : Avocats, œufs mollets & Sardines fraîches",
     "🍲 Poêlée de bœuf haché, oignons confits & Riz complet",
-    "🥓 Tranches de foie de bœuf persillé & Épinards frais au beurre"
+    "🥓 Tranches de foie de bœuf persillé & Épinards frais au beurre",
+    "🍖 Côtes de porc fermier à la moutarde & Chou-fleur rôti",
+    "🥩 Steak haché 15% poêlé à l'échalote & Patates grenaille au four",
+    "🍗 Poulet rôti du dimanche & Légumes racines fondants",
+    "🥚 Œufs au plat à la graisse de canard & Salade de mâche aux noix",
+    "🍲 Ragoût de bœuf mijoté carottes/oignons & Purée de céleri",
+    "🥘 Travers de porc laqués au miel & Haricots verts persillés",
+    "🧆 Boulettes de viande sauce tomate maison & Courgettes poêlées",
+    "🦴 Osso buco de veau, gremolata & Riz basmati au bouillon",
+    "🥞 Crêpes protéinées (œufs, fromage blanc) & Compote pomme-cannelle"
+  ],
+  quick: [
+    "🥪 Assiette express : œufs mollets, comté, jambon cru & crudités",
+    "🔥 Steak haché minute & purée express pommes de terre/beurre",
+    "🍳 Omelette 3 œufs au comté & salade croquante",
+    "🍗 Restes de poulet rôti en salade (mayo maison, céleri, noix)",
+    "🥑 Avocat, œufs au plat, tomates & pain de campagne",
+    "🧀 Planche fermière : fromages, jambon, noix, pommes",
+    "🌮 Poêlée express bœuf/oignons/poivrons façon fajita (sans tortillas)",
+    "🥛 Skyr ou yaourt grec, miel et fruits de saison (dîner léger protéiné)"
   ],
   date: [
     "☕ Balade & Dégustation café/thé d'exception en terrasse",
@@ -2625,6 +2672,97 @@ function getComputedQuests(){
   return dynamic;
 }
 
+// —— Défis contextuels du mois (v1.9) ——
+let prevMonthStats = null;
+async function loadPrevMonth(){
+  try {
+    const [y, m] = currentMonth.split('-').map(Number);
+    const prev = new Date(y, m - 2, 1).toISOString().slice(0, 7);
+    const r = await fetch(API_BASE + '/api/state?month=' + encodeURIComponent(prev));
+    const j = await r.json();
+    if(r.ok){
+      prevMonthStats = { month: prev, total: (j.expenses || []).filter(passMode).reduce((a, x) => a + Number(x.amount || 0), 0) };
+      renderQuestsUI();
+    }
+  } catch(e){}
+}
+
+const MONTHLY_DARES = {
+  1: "Janvier : passez en revue vos abonnements et coupez-en un s'il ne sert plus.",
+  2: "Février : zéro achat impulsif, notez les envies dans une liste et décidez à J+7.",
+  3: "Mars : faites le tour des assurances et comparez, chaque euro gagné est net.",
+  4: "Avril : fixez à deux la somme à mettre de côté ce printemps.",
+  5: "Mai : reprenez la main sur les Courses, 4 menus maison par semaine.",
+  6: "Juin : vendez ce que vous n'utilisez plus, direction l'épargne.",
+  7: "Juillet : plafond vacances défini AVANT de partir, suivi en direct.",
+  8: "Août : zéro livraison, on cuisine les restes du frigo.",
+  9: "Septembre : abonnez-vous à ce qui sert vraiment, résiliez le reste.",
+  10: "Octobre : faites le budget des fêtes avant de les commencer.",
+  11: "Novembre : objectif épargne, mettez de côté la moitié de ce qui reste sur une enveloppe.",
+  12: "Décembre : fêtes sous contrôle, cadeaux définis à l'avance avec un plafond par personne."
+};
+
+function monthSignals(){
+  const rows = expenses.filter(x => String(x.date || '').startsWith(currentMonth) && passMode(x));
+  const total = rows.reduce((a, x) => a + Number(x.amount || 0), 0);
+  const [y, m] = currentMonth.split('-').map(Number);
+  const now = new Date();
+  const isCurrent = now.getFullYear() === y && (now.getMonth() + 1) === m;
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const dayNow = isCurrent ? now.getDate() : daysInMonth;
+  const daysLeft = Math.max(0, daysInMonth - dayNow);
+  const spentShare = dayNow / daysInMonth;
+  let tense = null;
+  (envelopes || []).forEach(env => {
+    if(!env || !env.budget || env.budget <= 0) return;
+    const ratio = (env.spent || 0) / env.budget;
+    if(!tense || ratio > tense.ratio) tense = {cat: env.category, ratio: ratio, budget: env.budget, spent: env.spent || 0, remaining: Math.max(0, env.budget - (env.spent || 0))};
+  });
+  const coursesRows = rows.filter(x => x.category === 'Courses').length;
+  const prevTotal = (prevMonthStats && prevMonthStats.month !== currentMonth && prevMonthStats.total > 0) ? prevMonthStats.total : null;
+  return {rows: rows, total: total, daysLeft: daysLeft, daysInMonth: daysInMonth, dayNow: dayNow, spentShare: spentShare, tense: tense, coursesRows: coursesRows, prevTotal: prevTotal};
+}
+
+function monthTheme(){
+  const s = monthSignals();
+  if(!s.rows.length) return 'Premier ticket du mois';
+  if(s.tense && s.tense.ratio > s.spentShare + 0.08) return 'Frein sur ' + s.tense.cat;
+  if(s.prevTotal && s.total > s.prevTotal * Math.max(s.spentShare, 0.25)) return 'Rythme à surveiller';
+  return 'Mois sous contrôle';
+}
+
+function getContextQuests(){
+  const s = monthSignals();
+  const m = Number(currentMonth.slice(5, 7));
+  const out = [];
+  if(s.prevTotal){
+    const traj = s.prevTotal * s.spentShare;
+    const ok = s.total <= Math.max(traj * 1.05, 1);
+    out.push({id: 'ctx_pace', icon: '⏱️', title: 'Rythme maîtrisé', xp: 40, done: ok, auto: true,
+      desc: ok ? eur(s.total) + ' dépensés à ce jour, sous la trajectoire de votre mois dernier (' + eur(traj) + ').'
+               : eur(s.total) + ' dépensés contre ' + eur(traj) + ' habituellement à cette date : on lève le pied (' + s.daysLeft + ' j restants).',
+      progress: Math.min(1, traj / Math.max(s.total, 1)), label: ok ? 'Sous contrôle' : 'À freiner'});
+  }
+  if(s.tense){
+    const ok = s.tense.ratio <= s.spentShare * 1.02;
+    const meta = CATEGORY_META[s.tense.cat] || {};
+    out.push({id: 'ctx_envelope', icon: meta.emoji || '📦', title: 'Enveloppe ' + s.tense.cat, xp: 45, done: ok, auto: true,
+      desc: Math.round(s.tense.ratio * 100) + ' % consommé' + (ok ? ', vous êtes dans le rythme.' : ' : reste ' + eur(s.tense.remaining) + ' pour ' + s.daysLeft + ' jours.'),
+      progress: Math.min(1, s.tense.ratio), label: ok ? 'Dans le rythme' : 'À surveiller'});
+  }
+  out.push({id: 'ctx_cooking', icon: '🥩', title: 'Cuisine maison', xp: 30, done: s.coursesRows >= 4, auto: s.coursesRows >= 4,
+    desc: s.coursesRows >= 4 ? s.coursesRows + ' passages en courses ce mois : 4 menus maison tenables.' : '4 repas cuisinés maison cette semaine (idées dans le Décideur).',
+    progress: Math.min(1, s.coursesRows / 4), label: s.coursesRows + '/4'});
+  out.push({id: 'ctx_logging', icon: '🧾', title: 'Tout est tracé', xp: 25, done: s.rows.length >= 8, auto: true,
+    desc: s.rows.length >= 8 ? s.rows.length + ' dépenses pointues ce mois-ci.' : 'Encore ' + (8 - s.rows.length) + ' dépense(s) à saisir pour un mois complet.',
+    progress: Math.min(1, s.rows.length / 8), label: s.rows.length + '/8'});
+  out.push({id: 'ctx_dare_' + currentMonth, icon: '🎯', title: 'Défi du mois', xp: 50, auto: false, progress: null, label: 'Défi libre',
+    desc: MONTHLY_DARES[m] || 'Défi libre de votre choix, faites le point à deux.', done: localStorage.getItem('duospend_done_ctx_dare_' + currentMonth) === 'true'});
+  out.push({id: 'ctx_point', icon: '☕', title: 'Point complice à deux', xp: 35, auto: false, progress: null, label: 'Mensuel',
+    desc: 'Un moment ce mois-ci pour parler projets et envies, pas seulement des chiffres.', done: localStorage.getItem('duospend_done_ctx_point') === 'true'});
+  return out;
+}
+
 let serenityScore = Number(localStorage.getItem('duospend_serenity') || 85);
 
 function openCoupleQuests(){
@@ -2634,7 +2772,7 @@ function openCoupleQuests(){
 
 // Met à jour l'indice de sérénité, les niveaux et la liste des défis
 function updateMokaVisuals(){
-  const quests = getComputedQuests();
+  const quests = getContextQuests();
   const totalXP = quests.reduce((a,q) => a + q.xp, 0);
   const earnedXP = quests.filter(q => q.done).reduce((a,q) => a + q.xp, 0);
   serenityScore = Math.min(100, Math.max(30, Math.round(30 + (earnedXP / (totalXP || 1)) * 70)));
@@ -2667,18 +2805,29 @@ function updateMokaVisuals(){
 function renderQuestsUI(){
   const list = $('questsList');
   if(!list) return;
-  const quests = getComputedQuests();
+  const quests = getContextQuests();
 
-  list.innerHTML = quests.map((q, idx) => `
+  const sig = monthSignals();
+  const banner = `
+    <div class="quest-theme">
+      <span class="quest-theme-icon">🎯</span>
+      <div>
+        <strong>Défis de ${monthName(currentMonth)}</strong>
+        <span>${esc(monthTheme())} · recalculés sur vos chiffres réels · ${sig.daysLeft} jours restants</span>
+      </div>
+    </div>`;
+  list.innerHTML = banner + quests.map((q, idx) => `
     <div class="quest-item ${q.auto ? 'auto-managed' : ''}">
       <div class="quest-left">
         <div class="quest-icon">${q.icon}</div>
         <div>
           <div class="quest-title" style="${q.done ? 'text-decoration:line-through;opacity:0.8;' : ''}">
             <span>${esc(q.title)}</span>
-            ${q.auto ? '<span style="font-size:10px;font-weight:700;background:var(--surface-sunken);color:var(--text-muted);padding:2px 6px;border-radius:6px;border:1px solid var(--border)">Auto-calculé</span>' : ''}
+            ${q.auto ? '<span class="quest-tag">Auto-calculé</span>' : '<span class="quest-tag libre">Défi libre</span>'}
+            ${q.label ? `<span class="quest-tag statut">${esc(q.label)}</span>` : ''}
           </div>
           <div class="quest-desc">${esc(q.desc)}</div>
+          ${typeof q.progress === 'number' ? `<div class="quest-progress"><div class="quest-progress-fill ${q.done ? 'done' : ''}" style="width:${Math.round(Math.min(1, Math.max(0, q.progress)) * 100)}%"></div></div>` : ''}
         </div>
       </div>
       <div class="quest-right">
@@ -2764,6 +2913,35 @@ function playWhoPays(weighted = true){
   }, 90);
 }
 
+async function fetchMealIdeas(reroll){
+  const list = $('mealAIList');
+  if(!list) return;
+  list.innerHTML = '<div class="meal-ai-empty">Recherche d\'idées avec vos courses…</div>';
+  try {
+    const groceries = (shopping || []).map(x => (x && (x.name || x.label)) || x).filter(Boolean).slice(0, 25);
+    const r = await fetch(API_BASE + '/api/meals', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({month: currentMonth, shopping: groceries, reroll: Boolean(reroll)})
+    });
+    const j = await r.json();
+    if(!r.ok) throw Error(j.detail || j.error || 'Idées indisponibles');
+    const ideas = Array.isArray(j.ideas) ? j.ideas : [];
+    list.innerHTML = ideas.map(idea => `
+      <div class="meal-idea">
+        <div class="meal-idea-top"><strong>${esc(idea.title)}</strong><span class="meal-idea-time">${esc(idea.time || '')}</span></div>
+        ${idea.why ? `<div class="meal-idea-why">${esc(idea.why)}</div>` : ''}
+        ${(idea.using && idea.using.length) ? `<div class="meal-idea-using">Avec : ${esc(idea.using.join(', '))}</div>` : ''}
+      </div>`).join('') + '<button type="button" class="btn-export" id="mealAIAgain">🔄 Autres idées</button>';
+    const again = $('mealAIAgain');
+    if(again) again.onclick = () => fetchMealIdeas(true);
+    showToast('Idées prêtes (' + (j.engine === 'qwen' ? 'IA' : 'maison') + ')', true);
+  } catch(e){
+    list.innerHTML = `<div class="meal-ai-empty">${esc(e.message)}</div>`;
+  }
+}
+if($('btnMealAI')) $('btnMealAI').onclick = () => fetchMealIdeas(false);
+
 function spinCoupleDecision(type = 'dinner'){
   const disp = $('rouletteResult');
   const ctxLabel = $('rouletteContext');
@@ -2773,6 +2951,7 @@ function spinCoupleDecision(type = 'dinner'){
   const list = DECISION_SETS[type] || DECISION_SETS.dinner;
   const labels = {
     dinner: "Mode actif : Repas & Dîners sains à deux",
+    quick: "Mode actif : Repas express (10-15 min)",
     date: "Mode actif : Idées de sorties & moments complices",
     chores: "Mode actif : Répartition & Tâches express du foyer"
   };
@@ -4089,6 +4268,7 @@ loadState().then(() => {
     addChatMessage('bot', 'Bonjour ' + (currentUser && currentUser !== 'Foyer' ? currentUser : 'Quentin & Jessica') + ' ! Je suis DuoSpend. Prêt pour un suivi fluide de vos dépenses et de vos objectifs !');
   }
   refreshAssistantHistory();
+  loadPrevMonth();
 });
 </script>
 
