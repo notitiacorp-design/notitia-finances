@@ -2644,12 +2644,12 @@ body{background-color:#f7f3ea!important;
 html::after{content:'';position:fixed;left:0;right:0;top:0;height:9px;z-index:72;pointer-events:none;
   background-image:radial-gradient(circle at 5px 4.5px, rgba(170,132,30,.75) 2px, transparent 2.4px);
   background-size:15px 9px;opacity:.75}
-#totalDisplay{color:#8a6d1f!important}
+#totalDisplay{color:#8a6d1f!important;font-weight:800;font-size:16.5px;letter-spacing:-.01em}
 @supports(-webkit-background-clip:text){
   #totalDisplay{
     background:linear-gradient(105deg,#6f5714 0%,#a98322 30%,#dec37a 50%,#a98322 70%,#6f5714 100%);
     background-size:230% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
-    font-weight:700;animation:gilded 7.5s ease-in-out infinite}
+    font-weight:800;font-size:16.5px;letter-spacing:-.01em;animation:gilded 7.5s ease-in-out infinite}
 }
 @keyframes gilded{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .card{position:relative;transition:transform .25s ease, box-shadow .25s ease}
@@ -2663,7 +2663,9 @@ html::after{content:'';position:fixed;left:0;right:0;top:0;height:9px;z-index:72
 .tx-tag.tr,.imp-badge.tr{background:#f2ece0!important;color:#8a6a4a!important;border:1px solid rgba(138,106,74,.25)!important}
 .tx-amount.muted,.imp-amount.muted{color:#8a6a4a!important}
 .imp-opts{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-.imp-opt{border:1px solid var(--hairline);background:#fff;border-radius:999px;font-size:11.5px;padding:4px 10px;cursor:pointer;font-family:inherit;color:var(--text-main)}
+.imp-opt{border:1px solid var(--hairline);background:#fff;border-radius:999px;font-size:11.5px;padding:4px 9px;cursor:pointer;font-family:inherit;color:var(--text-main);max-width:100%}
+.import-card .import-actions{row-gap:6px}
+.import-card .imp-total{flex:1 1 auto;min-width:0}
 .imp-opt.sel{border-color:var(--gold);background:#faf5e6;box-shadow:0 0 0 2px rgba(201,162,39,.16)}
 .envelope-bar-fill{position:relative;overflow:hidden}
 .envelope-bar-fill::after{content:'';position:absolute;inset:0;pointer-events:none;
