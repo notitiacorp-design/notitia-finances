@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
-<title>DuoSpend · Finances & Sérénité à deux (v2.4)</title>
+<title>DuoSpend · Finances & Sérénité à deux (v2.5)</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -2102,6 +2102,7 @@ body{
         <div class="balance-status-tag" id="balanceText">
           Calcul en cours…
         </div>
+        <div class="balance-transfers" id="balanceTransfers"></div>
       </div>
 
       <!-- Category Breakdown Donut & Visuals -->
@@ -2688,6 +2689,23 @@ html::after{content:'';position:fixed;left:0;right:0;top:0;height:9px;z-index:72
 @media(prefers-reduced-motion:reduce){
   .envelope-bar-fill::after,#romeMotes i,.rome-coin{animation:none!important;opacity:0!important}
 }
+/* liste groupée par catégorie, dépliable */
+.tx-group{border:1px solid var(--border-subtle);border-radius:14px;margin-bottom:8px;overflow:hidden;background:#fff}
+.tx-cat{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;background:#fdfbf6;border:0;cursor:pointer;font-family:inherit;text-align:left}
+.tx-cat .tx-icon{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 auto}
+.tx-cat-name{font-weight:700;font-size:13.5px;color:var(--text-main);flex:1;min-width:0}
+.tx-cat-sub{font-size:11.5px;color:var(--text-muted);white-space:nowrap}
+.tx-cat-sub strong{font-family:'Cabinet Grotesk',sans-serif;color:var(--text-main)}
+.tx-cat-chev{font-size:11px;color:var(--faint);transition:transform .25s}
+.tx-group.open .tx-cat-chev{transform:rotate(180deg)}
+.tx-cat-body{display:none}
+.tx-group.open .tx-cat-body{display:block;animation:romeFade .25s cubic-bezier(.22,.9,.28,1)}
+.tx-group .tx-row{padding-left:16px}
+.tx-foot{text-align:center;padding:2px 0 6px}
+.tx-expand-all{background:none;border:0;color:var(--gold);font-size:12px;font-family:inherit;cursor:pointer;text-decoration:underline}
+.tx-quick{border:1px dashed rgba(138,106,74,.5);background:#faf5e6;color:#8a6a4a;border-radius:999px;font-size:10.5px;padding:2px 8px;cursor:pointer;font-family:inherit;margin-left:6px}
+.balance-transfers{margin-top:8px;font-size:12px;color:var(--text-muted);line-height:1.5}
+.balance-transfers strong{font-family:'Cabinet Grotesk',sans-serif;color:var(--text-main)}
 </style>
 
 <script>
@@ -2745,6 +2763,35 @@ const CATEGORY_META = {
 
 let expenses = [];
 const isTransfer = x => !!x && x.category === 'Transferts';
+function looksLikeTransferLabel(label){
+  const low = String(label || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  if(low.includes('****')) return false;
+  if(!/(vir|transfer|alimentation)/.test(low)) return false;
+  if(/\b(quentin|jessica)\b/.test(low)) return true;
+  if(/\b(compte|livret|epargne|joint)\b/.test(low)) return true;
+  if(/(revolut|trade republic|boursorama|bourso|fortuneo|n26|wise)/.test(low) && !/\b(cb|carte|paiement|achat|prlv|prelevement|retrait)\b/.test(low)) return true;
+  return false;
+}
+function transferFlow(t){
+  // 'de X' = virement recu de X (le titulaire l'a recu) ; sinon le nom cite = destinataire
+  if(!isTransfer(t)) return null;
+  const low = String(t.label || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const payer = (t.payer === 'Jessica') ? 'Jessica' : 'Quentin';
+  const other = payer === 'Quentin' ? 'jessica' : 'quentin';
+  let m = low.match(/\bde\s+(?:mme |mle |m\. )?(quentin|jessica)/);
+  let sender = null, receiver = null;
+  if(m){ sender = m[1] === 'quentin' ? 'Quentin' : 'Jessica'; receiver = payer; }
+  else if(new RegExp('\\b' + other + '\\b').test(low)){ sender = payer; receiver = other === 'jessica' ? 'Jessica' : 'Quentin'; }
+  else return null;
+  if(sender === receiver) return null;
+  return { sender: sender, receiver: receiver };
+}
+function transferFlowLabel(t){
+  const f = transferFlow(t);
+  return f ? (f.sender + ' → ' + f.receiver + ' · neutre') : 'entre comptes · neutre';
+}
+let txExpanded = new Set();
+let txRowsCache = [];
 let editingShared = true;
 let envelopes = [];
 let shopping = [];
@@ -3229,8 +3276,16 @@ function renderUI(){
   const isMoiMode = userMode === 'moi';
   const baseRows = isMoiMode ? myMoneyRows : moneyRows;
   const total = baseRows.reduce((a, x) => a + Number(x.amount || 0), 0);
-  const q = moneyRows.filter(x => x.payer === 'Quentin').reduce((a, x) => a + Number(x.amount || 0), 0);
-  const j = moneyRows.filter(x => x.payer === 'Jessica').reduce((a, x) => a + Number(x.amount || 0), 0);
+  let q = moneyRows.filter(x => x.payer === 'Quentin').reduce((a, x) => a + Number(x.amount || 0), 0);
+  let j = moneyRows.filter(x => x.payer === 'Jessica').reduce((a, x) => a + Number(x.amount || 0), 0);
+  // Virements entre partenaires : contributions (pas des dépenses) qui ajustent les avances
+  const coupleTransfers = [];
+  monthRows.filter(isTransfer).forEach(t => {
+    const f = transferFlow(t); if(!f) return;
+    const amt = Number(t.amount || 0);
+    coupleTransfers.push(t);
+    if(f.sender === 'Quentin'){ q += amt; j -= amt; } else { j += amt; q -= amt; }
+  });
 
   const persoSum = myMoneyRows.filter(x => x.shared === false).reduce((a, x) => a + Number(x.amount || 0), 0);
   const communSum = myMoneyRows.filter(x => x.shared !== false).reduce((a, x) => a + Number(x.amount || 0), 0);
@@ -3276,6 +3331,18 @@ function renderUI(){
     tag.innerHTML = `Quentin a avancé <strong>${eur(q)}</strong> et Jessica <strong>${eur(j)}</strong> (écart indicatif de ${eur(due)}).`;
   } else {
     tag.innerHTML = `Jessica a avancé <strong>${eur(j)}</strong> et Quentin <strong>${eur(q)}</strong> (écart indicatif de ${eur(due)}).`;
+  }
+
+  const btLine = $('balanceTransfers');
+  if(btLine){
+    if(!isMoiMode && coupleTransfers.length){
+      btLine.innerHTML = 'Virements entre vous inclus dans les avances : ' + coupleTransfers.map(t => {
+        const f = transferFlow(t);
+        return `${esc(f.sender)} → ${esc(f.receiver)} <strong>${eur(t.amount)}</strong>`;
+      }).join(' · ');
+    } else {
+      btLine.innerHTML = '';
+    }
   }
 
   // Category map for donut
@@ -3345,43 +3412,9 @@ function renderUI(){
     inp.addEventListener('keydown', ev => { if(ev.key === 'Enter') inp.blur() });
   });
 
-  // Render Transactions (toutes les opérations visibles, y compris les transferts neutres)
-  const opCount = monthRows.length;
-  $('txCount').textContent = `${opCount} opération${opCount > 1 ? 's' : ''} en ${monthName(currentMonth)}` + (isMoiMode ? ' · communes + les miennes' : '');
-  const txList = $('txList');
-  if(!opCount){
-    txList.innerHTML = '<div style="color:var(--text-dim);font-size:13.5px;padding:24px 0;text-align:center">Aucune opération enregistrée sur cette période.</div>';
-  } else {
-    txList.innerHTML = monthRows.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(t => {
-      const meta = CATEGORY_META[t.category] || CATEGORY_META['Autres'];
-      const payerTag = t.payer === 'Jessica' ? 'j' : 'q';
-      const tr = isTransfer(t);
-      return `
-        <div class="tx-row${tr ? ' tr' : ''}">
-          <div class="tx-info">
-            <div class="tx-icon" style="background:${meta.bg}">${meta.emoji}</div>
-            <div style="min-width:0;flex:1;">
-              <div class="tx-label" title="${esc(t.label)}">${esc(t.label)}</div>
-              <div class="tx-sub">
-                <span title="${esc(t.date)}">${fmtDate(t.date)}</span>
-                <span>•</span>
-                <span class="tx-tag ${payerTag}">${esc(t.payer)}</span>
-                <span>•</span>
-                ${tr ? '<span class="tx-tag tr">transfert · non compté</span>' : `<span>${esc(t.category)}</span>`}
-              </div>
-            </div>
-          </div>
-          <div class="tx-right">
-            <div class="tx-amount${tr ? ' muted' : ''}">${tr ? '⇄ ' : ''}${eur(t.amount)}</div>
-            <div class="tx-actions">
-              <button class="tx-act" title="Modifier" onclick="openEditExpense('${t.id}')">&#9998;</button>
-              <button class="tx-act del" title="Supprimer" onclick="deleteExpense('${t.id}')">&#128465;</button>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
+  // Render Transactions (groupées par catégorie, dépliables)
+  txRowsCache = monthRows.slice();
+  renderTxList();
 
   // Render Shopping List
   renderShoppingUI();
@@ -3435,6 +3468,99 @@ function renderUI(){
   }
 
   updateMokaVisuals();
+}
+
+function txRowHtml(t){
+  const meta = CATEGORY_META[t.category] || CATEGORY_META['Autres'];
+  const payerTag = t.payer === 'Jessica' ? 'j' : 'q';
+  const tr = isTransfer(t);
+  const quick = (!tr && looksLikeTransferLabel(t.label))
+    ? `<button type="button" class="tx-quick" onclick="markAsTransfer('${t.id}')" title="Virement entre comptes ? Le sortir des dépenses sans le supprimer">⇄ transfert ?</button>`
+    : '';
+  return `
+    <div class="tx-row${tr ? ' tr' : ''}">
+      <div class="tx-info">
+        <div class="tx-icon" style="background:${meta.bg}">${meta.emoji}</div>
+        <div style="min-width:0;flex:1;">
+          <div class="tx-label" title="${esc(t.label)}">${esc(t.label)}</div>
+          <div class="tx-sub">
+            <span title="${esc(t.date)}">${fmtDate(t.date)}</span>
+            <span>•</span>
+            <span class="tx-tag ${payerTag}">${esc(t.payer)}</span>
+            <span>•</span>
+            ${tr ? `<span class="tx-tag tr">${esc(transferFlowLabel(t))}</span>` : `<span>${esc(t.category)}</span>`}
+            ${quick}
+          </div>
+        </div>
+      </div>
+      <div class="tx-right">
+        <div class="tx-amount${tr ? ' muted' : ''}">${tr ? '⇄ ' : ''}${eur(t.amount)}</div>
+        <div class="tx-actions">
+          <button class="tx-act" title="Modifier" onclick="openEditExpense('${t.id}')">&#9998;</button>
+          <button class="tx-act del" title="Supprimer" onclick="deleteExpense('${t.id}')">&#128465;</button>
+        </div>
+      </div>
+    </div>`;
+}
+function renderTxList(){
+  const txList = $('txList'); if(!txList) return;
+  const rows = txRowsCache || [];
+  const isMoiMode = userMode === 'moi';
+  const opCount = rows.length;
+  $('txCount').textContent = `${opCount} opération${opCount > 1 ? 's' : ''} en ${monthName(currentMonth)}` + (isMoiMode ? ' · communes + les miennes' : '');
+  if(!opCount){
+    txList.innerHTML = '<div style="color:var(--text-dim);font-size:13.5px;padding:24px 0;text-align:center">Aucune opération enregistrée sur cette période.</div>';
+    return;
+  }
+  const groups = {};
+  rows.forEach(t => { (groups[t.category] = groups[t.category] || []).push(t); });
+  const cats = Object.keys(groups).sort((a, b) => {
+    if(a === 'Transferts') return 1; if(b === 'Transferts') return -1;
+    return groups[b].reduce((s,x) => s + Number(x.amount || 0), 0) - groups[a].reduce((s,x) => s + Number(x.amount || 0), 0);
+  });
+  txList.innerHTML = cats.map(cat => {
+    const meta = CATEGORY_META[cat] || CATEGORY_META['Autres'];
+    const items = groups[cat].slice().sort((a,b) => String(b.date).localeCompare(String(a.date)));
+    const subtotal = items.reduce((s,x) => s + Number(x.amount || 0), 0);
+    const tr = cat === 'Transferts';
+    const open = txExpanded.has(cat);
+    const sub = tr ? `${items.length} virement(s) · neutres, non comptés` : `${items.length} opération(s) · <strong>${eur(subtotal)}</strong>`;
+    return `<div class="tx-group${open ? ' open' : ''}">
+      <button type="button" class="tx-cat" onclick="toggleTxCat('${esc(cat)}')">
+        <span class="tx-icon" style="background:${meta.bg}">${meta.emoji}</span>
+        <span class="tx-cat-name">${esc(cat)}</span>
+        <span class="tx-cat-sub">${sub}</span>
+        <span class="tx-cat-chev">▾</span>
+      </button>
+      <div class="tx-cat-body">${items.map(txRowHtml).join('')}</div>
+    </div>`;
+  }).join('') + '<div class="tx-foot"><button type="button" class="tx-expand-all" onclick="toggleTxAll()">Tout déplier / replier</button></div>';
+}
+function toggleTxCat(cat){
+  if(txExpanded.has(cat)) txExpanded.delete(cat); else txExpanded.add(cat);
+  renderTxList();
+}
+function toggleTxAll(){
+  const cats = [...new Set((txRowsCache || []).map(t => t.category))];
+  if(cats.length && cats.every(c => txExpanded.has(c))) txExpanded = new Set();
+  else txExpanded = new Set(cats);
+  renderTxList();
+}
+async function markAsTransfer(id){
+  const t = expenses.find(x => String(x.id) === String(id));
+  if(!t) return;
+  if(!confirm('Marquer « ' + t.label + ' » comme transfert entre comptes ?\n\nIl restera dans la liste (badge ⇄) mais sortira des totaux et de la répartition.')) return;
+  try{
+    const r = await fetch(API_BASE + '/api/expenses/update', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ id: id, date: t.date, label: t.label, category: 'Transferts', amount: t.amount, payer: t.payer, shared: t.shared })
+    });
+    const j = await r.json();
+    if(!r.ok) throw Error(j.detail || j.error || 'Erreur');
+    showToast('Transfert neutralisé ✓');
+    await loadState();
+  }catch(e){ showToast('Erreur: ' + e.message, false); }
 }
 
 function renderShoppingUI(){

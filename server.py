@@ -40,7 +40,7 @@ Règles:
 - Ne crée ni dépense ni budget tout seul: propose, l'humain confirme.
 - Si on te demande d'ajuster un budget, propose le nouveau montant et attends la confirmation.
 - Réponds à Quentin et Jessica, jamais en anglais technique, sans exposer ton raisonnement interne.
-- Les virements entre comptes de Quentin, de Jessica ou du foyer (catégorie « Transferts ») sont neutres : ne les compte jamais comme dépenses ni comme revenus, ni dans les totaux, ni dans les répartitions."""
+- Les virements entre comptes (catégorie « Transferts ») ne sont jamais des dépenses. Un virement d'un partenaire vers l'autre compte comme contribution de l'émetteur : il ajuste les avances (déjà intégré dans by_payer). Un virement entre ses propres comptes est totalement neutre."""
 
 
 def current_month():
@@ -695,6 +695,19 @@ def finance_context(expenses, month=None):
     for x in shared:
         cat = x.get("category", "Autres")
         by_cat[cat] = by_cat.get(cat, 0) + float(x.get("amount", 0) or 0)
+    # Virements entre partenaires : contribution de l'emetteur (ils ne sont jamais des depenses)
+    couple_transfers = []
+    for x in scoped:
+        if x.get("category") != TRANSFER_CAT or not x.get("shared", True):
+            continue
+        flow = _transfer_flow(x.get("label", ""), x.get("payer", ""))
+        if not flow:
+            continue
+        sender, receiver = flow
+        amt = float(x.get("amount", 0) or 0)
+        by_payer[sender] = by_payer.get(sender, 0) + amt
+        by_payer[receiver] = by_payer.get(receiver, 0) - amt
+        couple_transfers.append({"label": str(x.get("label", ""))[:60], "amount": amt, "from": sender, "to": receiver})
     due = abs(by_payer["Quentin"] - by_payer["Jessica"]) / 2
     recent = sorted(shared, key=lambda x: str(x.get("date", "")), reverse=True)[:12]
     envelopes = envelope_view(expenses, budgets, month)
@@ -712,6 +725,7 @@ def finance_context(expenses, month=None):
             else None
         ),
         "share_model": "parts égales",
+        "couple_transfers": couple_transfers,
         "envelopes": envelopes,
         "recent_expenses": [
             {
@@ -971,6 +985,24 @@ def _looks_like_transfer(label):
     if _TRANSFER_BANKS.search(low) and not _TRANSFER_SPEND.search(low):
         return True
     return False
+
+
+def _transfer_flow(label, payer):
+    """Sens d'un virement (categorie Transferts) entre les partenaires : ('Quentin','Jessica') etc., sinon None.
+    'de X' = recu de X ; sinon le nom cite = destinataire ; virement vers soi-meme = neutre."""
+    low = _ascii_low(label)
+    payer = "Jessica" if _ascii_low(payer).startswith("jessica") else "Quentin"
+    m = re.search(r"\bde\s+(?:mme |mle |m\. )?(quentin|jessica)", low)
+    if m:
+        sender, receiver = ("Quentin" if m.group(1) == "quentin" else "Jessica"), payer
+    else:
+        other = "jessica" if payer == "Quentin" else "quentin"
+        if not re.search(r"\b" + other + r"\b", low):
+            return None
+        sender, receiver = payer, ("Jessica" if other == "jessica" else "Quentin")
+    if sender == receiver:
+        return None
+    return sender, receiver
 
 
 def _normalize_statement_op(raw, month):
