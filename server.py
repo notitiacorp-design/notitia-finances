@@ -1,4 +1,4 @@
-import base64, difflib, io, json, os, re, urllib.error, urllib.parse, urllib.request
+import base64, difflib, io, json, os, re, unicodedata, urllib.error, urllib.parse, urllib.request
 from datetime import date
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
@@ -14,12 +14,16 @@ LOCAL_BUDGETS = []
 LOCAL_SHOPPING = []
 SHOPPING_TABLE = os.getenv("AIRTABLE_SHOPPING_TABLE", "Shopping")
 QWEN_KEY = os.getenv("QWEN_API_KEY") or os.getenv("OPENROUTER_API_KEY", "")
-QWEN_MODEL = os.getenv("QWEN_MODEL", "google/gemini-2.5-flash")
+# Modele de raisonnement du foyer : classifications, assistant, questions d'import.
+CHAT_MODEL = os.getenv("DUO_CHAT_MODEL", "deepseek/deepseek-v4.1-flash")
+QWEN_MODEL = os.getenv("QWEN_MODEL", CHAT_MODEL)
 QWEN_VISION_MODEL = os.getenv("QWEN_VISION_MODEL", "qwen/qwen2.5-vl-72b-instruct")
 QWEN_BASE = os.getenv("QWEN_BASE_URL", "https://openrouter.ai/api/v1")
 MAX_IMAGE_CHARS = 3_500_000
 MAX_DOC_CHARS = 4_000_000
 CATEGORIES = ("Courses", "Logement", "Transport", "Sorties", "Abonnements", "Santé", "Autres")
+TRANSFER_CAT = "Transferts"
+ALL_CATEGORIES = CATEGORIES + (TRANSFER_CAT,)
 PAYERS = ("Quentin", "Jessica")
 BUDGET_MARK = "kind=budget"
 
@@ -35,7 +39,8 @@ Règles:
 - Si une image est fournie (ticket, e-ticket, capture), extrais seulement le lisible.
 - Ne crée ni dépense ni budget tout seul: propose, l'humain confirme.
 - Si on te demande d'ajuster un budget, propose le nouveau montant et attends la confirmation.
-- Réponds à Quentin et Jessica, jamais en anglais technique, sans exposer ton raisonnement interne."""
+- Réponds à Quentin et Jessica, jamais en anglais technique, sans exposer ton raisonnement interne.
+- Les virements entre comptes de Quentin, de Jessica ou du foyer (catégorie « Transferts ») sont neutres : ne les compte jamais comme dépenses ni comme revenus, ni dans les totaux, ni dans les répartitions."""
 
 
 def current_month():
@@ -79,7 +84,7 @@ def normalize_expense(fields, rid):
         "id": rid,
         "date": fields.get("Date", ""),
         "label": label,
-        "category": fields.get("Catégorie", "Autres") if fields.get("Catégorie") in CATEGORIES else "Autres",
+        "category": fields.get("Catégorie") if fields.get("Catégorie") in ALL_CATEGORIES else "Autres",
         "amount": float(fields.get("Montant (€)", 0) or 0),
         "payer": display_payer(fields.get("Payé par", "Quentin")),
         "shared": bool(fields.get("Dépense commune", True)),
@@ -130,6 +135,8 @@ def delete_expense(record_id):
 
 def update_expense(record_id, item):
     item = dict(item)
+    if item.get("category") not in ALL_CATEGORIES:
+        raise ValueError("Catégorie invalide")
     item["payer"] = display_payer(item.get("payer"))
     fields = {
         "Dépense": item["label"],
@@ -657,7 +664,7 @@ def month_expenses(expenses, month):
 def envelope_view(expenses, budgets, month):
     spent = {cat: 0.0 for cat in CATEGORIES}
     for row in month_expenses(expenses, month):
-        if row.get("shared", True):
+        if row.get("shared", True) and row.get("category") != TRANSFER_CAT:
             spent[row.get("category", "Autres")] = spent.get(row.get("category", "Autres"), 0.0) + float(row.get("amount") or 0)
     envelopes = []
     for b in budgets:
@@ -678,7 +685,7 @@ def finance_context(expenses, month=None):
     month = month or current_month()
     budgets = get_budgets(month)
     scoped = month_expenses(expenses, month)
-    shared = [x for x in scoped if x.get("shared", True)]
+    shared = [x for x in scoped if x.get("shared", True) and x.get("category") != TRANSFER_CAT]
     total = sum(float(x.get("amount", 0) or 0) for x in shared)
     by_payer = {
         p: sum(float(x.get("amount", 0) or 0) for x in shared if x.get("payer") == p)
@@ -761,7 +768,7 @@ def sanitize_image(image):
 
 
 def parse_json_blob(text, key):
-    match = re.search(re.escape(key) + r"\s*(\{.*?\})", text, re.S)
+    match = re.search(re.escape(key) + r"\s*:?\s*(\{.*?\})", text, re.S)
     if match:
         try:
             return json.loads(match.group(1))
@@ -789,7 +796,7 @@ def parse_suggestion(text):
     label = str(raw.get("label") or raw.get("merchant") or "").strip()[:80]
     if not label:
         return None
-    category = raw.get("category") if raw.get("category") in CATEGORIES else "Autres"
+    category = raw.get("category") if raw.get("category") in ALL_CATEGORIES else "Autres"
     payer = display_payer(raw.get("payer"))
     day = str(raw.get("date") or "").strip()
     if not re.match(r"^\d{4}-\d{2}-\d{2}$", day):
@@ -916,7 +923,7 @@ def extract_document_text(doc):
 
 
 def parse_json_array(text, key):
-    match = re.search(re.escape(key) + r"\s*(\[.*\])", text or "", re.S)
+    match = re.search(re.escape(key) + r"\s*:?\s*(\[.*\])", text or "", re.S)
     if not match:
         return None
     try:
@@ -941,6 +948,31 @@ def _label_similarity(a, b):
     return difflib.SequenceMatcher(None, left, right).ratio()
 
 
+def _ascii_low(text):
+    return unicodedata.normalize("NFKD", str(text or "")).encode("ascii", "ignore").decode().lower()
+
+
+_TRANSFER_WORDS = re.compile(r"\bvir|transfer|alimentation")
+_TRANSFER_NAMES = re.compile(r"\bquentin\b|\bjessica\b")
+_TRANSFER_ACCOUNTS = re.compile(r"\b(compte|livret|epargne|joint)\b")
+_TRANSFER_BANKS = re.compile(r"revolut|trade republic|boursorama|bourso|fortuneo|n26|wise")
+_TRANSFER_SPEND = re.compile(r"\b(cb|carte|paiement|achat|prlv|prelevement|retrait)\b")
+
+
+def _looks_like_transfer(label):
+    """Virement entre comptes du foyer (neutre) : heuristique prudente sur le libelle."""
+    low = _ascii_low(label)
+    if "****" in low or not _TRANSFER_WORDS.search(low):
+        return False
+    if _TRANSFER_NAMES.search(low):
+        return True
+    if _TRANSFER_ACCOUNTS.search(low):
+        return True
+    if _TRANSFER_BANKS.search(low) and not _TRANSFER_SPEND.search(low):
+        return True
+    return False
+
+
 def _normalize_statement_op(raw, month):
     if not isinstance(raw, dict):
         return None
@@ -958,11 +990,22 @@ def _normalize_statement_op(raw, month):
         dd, mm, yy = match.group(1), match.group(2), match.group(3)
         year = str(month)[:4] if not yy else (yy if len(yy) == 4 else "20" + yy)
         day = "%s-%02d-%02d" % (year, int(mm), int(dd))
-    direction = "debit" if str(raw.get("direction") or "debit").lower().startswith("deb") else "credit"
-    category = raw.get("category") if raw.get("category") in CATEGORIES else "Autres"
+    raw_dir = str(raw.get("direction") or "debit").strip().lower()
+    if raw_dir.startswith("trans"):
+        direction = "transfert"
+    elif raw_dir.startswith("deb"):
+        direction = "debit"
+    else:
+        direction = "credit"
+    category = raw.get("category") if raw.get("category") in ALL_CATEGORIES else "Autres"
+    if direction == "transfert" or category == TRANSFER_CAT or _looks_like_transfer(label):
+        direction, category = "transfert", TRANSFER_CAT
     confidence = raw.get("confidence") if raw.get("confidence") in ("high", "medium", "low") else "medium"
     question = str(raw.get("question") or "").strip()[:140]
-    if direction == "debit" and category == "Autres" and not question:
+    options = [str(o) for o in (raw.get("options") or []) if str(o) in ALL_CATEGORIES][:3]
+    if direction == "transfert":
+        question, options = "", []
+    elif direction == "debit" and category == "Autres" and not question:
         letters = re.sub(r"[^A-Za-z\u00c0-\u00ff]", "", label)
         if len(letters) < 4 or "****" in label or re.match(r"^[\d\s\W]+$", label):
             question = "À quoi correspond « %s » ?" % label[:40]
@@ -974,6 +1017,7 @@ def _normalize_statement_op(raw, month):
         "category": category,
         "confidence": confidence,
         "question": question,
+        "options": options,
         "duplicate": False,
     }
 
@@ -1342,14 +1386,19 @@ IMPORT_RULES = (
     "- IGNORE : soldes (ancien/nouveau), totaux, sous-totaux, cumuls, reports, pagination, IBAN/BIC/agence, en-tetes et pieds de page.\n"
     "- N'invente jamais une operation, ne fusionne pas deux operations distinctes, n'oublie aucune petite depense.\n"
     "- Les depenses sont des 'debit' ; les entrees (virement recu, salaire, remboursement, depôt) sont des 'credit'.\n"
+    "- Les virements entre les comptes du foyer (comptes de Quentin, de Jessica, Revolut/Trade Republic/livrets/epargne, "
+    "alimentation d'un compte) ne sont PAS des depenses : direction 'transfert' et category 'Transferts'.\n"
+    "- N'utilise 'Autres' qu'en tout dernier recours : choisis toujours la categorie la plus plausible ; en cas d'hesitation, "
+    "confidence low, une question courte et un champ 'options' avec jusqu'a 3 categories probables.\n"
 )
 IMPORT_JSON_RULES = (
     "Reponds STRICTEMENT avec un tableau JSON prefixe par IMPORT_JSON: "
-    '[{"date":"AAAA-MM-JJ","label":"libelle lisible","amount":12.34,"direction":"debit|credit","category":"...","confidence":"high|medium|low","question":""}]\n'
-    "- category doit etre une de : " + ", ".join(CATEGORIES) + ".\n"
+    '[{"date":"AAAA-MM-JJ","label":"libelle lisible","amount":12.34,"direction":"debit|credit|transfert","category":"...","confidence":"high|medium|low","question":"","options":[]}]\n'
+    "- category doit etre une de : " + ", ".join(ALL_CATEGORIES) + ".\n"
     "- Si l'annee manque, prends {year}. Montants toujours positifs, en euros.\n"
-    "- Si un libelle est cryptique (PRLV SEPA sans nom, CB 4532, XXXX), category \"Autres\", confidence \"low\", "
-    "et une question courte : a quoi correspond cette depense ?\n"
+    "- Si un libelle est vraiment cryptique (PRLV SEPA sans nom, CB 4532, XXXX), category \"Autres\", confidence \"low\", "
+    "une question courte et concrete : a quoi correspond cette depense ? (ex. assurance, abonnement, achat en ligne)\n"
+    "- Le champ options ne contient que des categories autorisees, celles qui sont plausibles pour cette depense.\n"
     "- Si VRAIMENT aucune operation : IMPORT_JSON []\n"
 )
 
@@ -1431,7 +1480,8 @@ def analyze_statement(text, expenses, month, filename="", hint="", image=None):
                 op["duplicate"] = True
                 op["matched"] = {"id": match.get("id"), "label": match.get("label"), "date": match.get("date")}
     debits = [o for o in operations if o["direction"] == "debit"]
-    credits = [o for o in operations if o["direction"] != "debit"]
+    credits = [o for o in operations if o["direction"] == "credit"]
+    transfers = [o for o in operations if o["direction"] == "transfert"]
     fresh = [o for o in debits if not o.get("duplicate")]
     debug = {
         "chars": len(str(text or "")),
@@ -1459,6 +1509,7 @@ def analyze_statement(text, expenses, month, filename="", hint="", image=None):
             "total": len(operations),
             "debits": len(debits),
             "credits": len(credits),
+            "transfers": len(transfers),
             "duplicates": len(debits) - len(fresh),
             "to_import": len(fresh),
             "amount": round(sum(o["amount"] for o in fresh), 2),
@@ -1497,8 +1548,9 @@ def create_expenses_batch(items):
 
 
 def qwen_chat(messages, model, max_tokens=900):
-    # If the env has the legacy slow qwen model, use google/gemini-2.5-flash for ultra fast and clean answers
-    actual_model = "google/gemini-2.5-flash" if ("qwen" in model and "vl" not in model) else model
+    # Modele de raisonnement du foyer : deepseek-v4.1-flash ; les anciens slugs qwen/gemini sont rediriges.
+    low = str(model or "").lower()
+    actual_model = CHAT_MODEL if (("qwen" in low and "vl" not in low) or low.startswith("google/gemini")) else model
     payload = {
         "model": actual_model,
         "messages": messages,
@@ -1898,6 +1950,7 @@ class Handler(SimpleHTTPRequestHandler):
                     "mode": "airtable" if TOKEN and BASE_ID else "local-empty",
                     "baseConfigured": bool(TOKEN and BASE_ID),
                     "assistant": "qwen" if QWEN_KEY else "rules",
+                    "chat_model": CHAT_MODEL if QWEN_KEY else "rules",
                     "vision": bool(QWEN_KEY),
                     "people": list(PAYERS),
                 },
@@ -2060,7 +2113,7 @@ class Handler(SimpleHTTPRequestHandler):
                     clean.append({
                         "date": day,
                         "label": str(raw["label"]).strip()[:120],
-                        "category": raw["category"] if raw["category"] in CATEGORIES else "Autres",
+                        "category": raw["category"] if raw["category"] in ALL_CATEGORIES else "Autres",
                         "amount": round(amount, 2),
                         "payer": display_payer(raw.get("payer") or (self.app_user if self.app_user in USERS else "Quentin")),
                         "shared": bool(raw.get("shared", True)),
@@ -2148,7 +2201,7 @@ class Handler(SimpleHTTPRequestHandler):
             item.setdefault("shared", True)
             item.setdefault("status", "À équilibrer")
             item.setdefault("note", "")
-            if item.get("category") not in CATEGORIES:
+            if item.get("category") not in ALL_CATEGORIES:
                 item["category"] = "Autres"
             item["payer"] = display_payer(item.get("payer"))
             return self.send_json(201, {"expense": create_expense(item)})

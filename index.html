@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
-<title>DuoSpend · Finances & Sérénité à deux (v2.1)</title>
+<title>DuoSpend · Finances & Sérénité à deux (v2.4)</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -2430,6 +2430,7 @@ body{
             <option>Abonnements</option>
             <option>Santé</option>
             <option>Autres</option>
+            <option>Transferts</option>
           </select>
         </div>
         <div class="form-group">
@@ -2633,6 +2634,58 @@ input:focus,select:focus,textarea:focus{outline:none!important;border-color:var(
 [class*="legend"]{line-height:1.6!important}
 .card-subtitle{color:#635b51!important}
 [class*="amount" i],[class*="total" i],.bs-value{letter-spacing:.01em}
+
+/* ============ ROME ANTIQUE v2 - la domus de Crassus ============ */
+:root{--or:#c9a227;--or-pale:#f0e3bb;--bronze:#8a6a4a;--pourpre:#5b2a4e}
+body{background-color:#f7f3ea!important;
+  background-image:
+   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='520'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.02' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0.60 0 0 0 0 0.53 0 0 0 0 0.40 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23v)'/%3E%3C/svg%3E"),
+   linear-gradient(180deg,#fbf9f3 0%,#f6f1e6 52%,#efe8d7 100%)!important}
+html::after{content:'';position:fixed;left:0;right:0;top:0;height:8px;z-index:72;pointer-events:none;
+  background-image:radial-gradient(circle at 4.5px 4px, rgba(201,162,39,.5) 1.6px, transparent 2px);
+  background-size:14px 8px;opacity:.55}
+#totalDisplay{color:#8a6d1f!important}
+@supports(-webkit-background-clip:text){
+  #totalDisplay{
+    background:linear-gradient(105deg,#8a6d1f 0%,#c9a227 28%,#f3e3ae 48%,#c9a227 68%,#8a6d1f 100%);
+    background-size:230% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    animation:gilded 7.5s ease-in-out infinite}
+}
+@keyframes gilded{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.card{position:relative;transition:transform .25s ease, box-shadow .25s ease}
+.card::before{content:'';position:absolute;top:0;left:13%;right:13%;height:2px;border-radius:2px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,var(--or-line),transparent)}
+.card:hover{transform:translateY(-1px)}
+.rome-latin{font-family:var(--font-display);font-style:italic;font-size:.82rem;color:var(--gold);opacity:.9;margin-left:10px;letter-spacing:.05em}
+.tx-row{transition:background .18s}
+.tx-row:hover{background:#fbf7ec}
+.tx-row.tr .tx-label{color:var(--text-muted)}
+.tx-tag.tr,.imp-badge.tr{background:#f2ece0!important;color:#8a6a4a!important;border:1px solid rgba(138,106,74,.25)!important}
+.tx-amount.muted,.imp-amount.muted{color:#8a6a4a!important}
+.imp-opts{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.imp-opt{border:1px solid var(--hairline);background:#fff;border-radius:999px;font-size:11.5px;padding:4px 10px;cursor:pointer;font-family:inherit;color:var(--text-main)}
+.imp-opt.sel{border-color:var(--gold);background:#faf5e6;box-shadow:0 0 0 2px rgba(201,162,39,.16)}
+.envelope-bar-fill{position:relative;overflow:hidden}
+.envelope-bar-fill::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(100deg,transparent 25%,rgba(255,255,255,.55) 50%,transparent 75%);
+  background-size:220% 100%;animation:barSheen 3.4s ease-in-out infinite}
+@keyframes barSheen{0%{background-position:135% 0}55%{background-position:-95% 0}100%{background-position:-95% 0}}
+#romeMotes{position:fixed;inset:0;pointer-events:none;z-index:0}
+#romeMotes i{position:absolute;width:5px;height:5px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#f5e6b0,#c9a227 70%);opacity:0;
+  animation:moteFloat var(--dur,22s) linear infinite;animation-delay:var(--del,0s)}
+@keyframes moteFloat{0%{transform:translate3d(0,10vh,0) scale(.7);opacity:0}
+ 12%{opacity:.4}55%{opacity:.28}100%{transform:translate3d(var(--drift,4vw),-94vh,0) scale(1);opacity:0}}
+.rome-coin{position:fixed;width:15px;height:15px;border-radius:50%;z-index:9997;pointer-events:none;
+  background:radial-gradient(circle at 34% 28%,#f7ecc4,#d8b748 55%,#8a6d1f);
+  box-shadow:0 1px 3px rgba(60,45,10,.35),inset 0 0 2px rgba(255,255,255,.85);
+  animation:coinToss 1.15s cubic-bezier(.22,.7,.3,1) forwards}
+@keyframes coinToss{0%{transform:translate3d(0,0,0) rotateY(0);opacity:1}
+ 60%{opacity:1}100%{transform:translate3d(var(--dx,0),var(--dy,120px),0) rotateY(760deg);opacity:0}}
+.vs-pill{background:linear-gradient(180deg,#faf5e6,#f0e6c8)!important;border:1px solid rgba(201,162,39,.45)!important;color:#8a6d1f!important}
+@media(prefers-reduced-motion:reduce){
+  .envelope-bar-fill::after,#romeMotes i,.rome-coin{animation:none!important;opacity:0!important}
+}
 </style>
 
 <script>
@@ -2654,7 +2707,7 @@ let currentUser = '';
 try { currentUser = localStorage.getItem('duospend_user') || ''; } catch(e){}
 let userMode = 'foyer';
 try { userMode = localStorage.getItem('duospend_mode') || 'foyer'; } catch(e){}
-const passMode = x => userMode === 'moi' ? (x.payer === currentUser) : x.shared !== false;
+const passMode = x => userMode === 'moi' ? (x.shared !== false || x.payer === currentUser) : x.shared !== false;
 
 // — Verrou d'accès : envoi du code foyer sur chaque appel API —
 (function(){
@@ -2684,10 +2737,12 @@ const CATEGORY_META = {
   'Sorties': { color:'#e11d48', bg:'#ffe4e6', emoji:'🍸' },
   'Abonnements': { color:'#7c3aed', bg:'#ede9fe', emoji:'📱' },
   'Santé': { color:'#059669', bg:'#d1fae5', emoji:'💊' },
-  'Autres': { color:'#78716c', bg:'#f5f5f4', emoji:'📦' }
+  'Autres': { color:'#78716c', bg:'#f5f5f4', emoji:'📦' },
+  'Transferts': { color:'#8a6a4a', bg:'#f2ece0', emoji:'⇄' }
 };
 
 let expenses = [];
+const isTransfer = x => !!x && x.category === 'Transferts';
 let editingShared = true;
 let envelopes = [];
 let shopping = [];
@@ -2745,7 +2800,7 @@ const DECISION_SETS = {
 };
 
 function getComputedQuests(){
-  const monthRows = expenses.filter(x => String(x.date || '').startsWith(currentMonth) && passMode(x));
+  const monthRows = expenses.filter(x => String(x.date || '').startsWith(currentMonth) && passMode(x) && !isTransfer(x));
   const foodSpent = monthRows.filter(x => x.category === 'Courses').reduce((a,x) => a + Number(x.amount || 0), 0);
   const foodBudgetObj = envelopes.find(e => e.category === 'Courses');
   const foodBudget = foodBudgetObj ? foodBudgetObj.budget : 180;
@@ -2816,7 +2871,7 @@ async function loadPrevMonth(){
     const r = await fetch(API_BASE + '/api/state?month=' + encodeURIComponent(prev));
     const j = await r.json();
     if(r.ok){
-      prevMonthStats = { month: prev, total: (j.expenses || []).filter(passMode).reduce((a, x) => a + Number(x.amount || 0), 0) };
+      prevMonthStats = { month: prev, total: (j.expenses || []).filter(x => passMode(x) && !isTransfer(x)).reduce((a, x) => a + Number(x.amount || 0), 0) };
       renderQuestsUI();
     }
   } catch(e){}
@@ -2838,7 +2893,7 @@ const MONTHLY_DARES = {
 };
 
 function monthSignals(){
-  const rows = expenses.filter(x => String(x.date || '').startsWith(currentMonth) && passMode(x));
+  const rows = expenses.filter(x => String(x.date || '').startsWith(currentMonth) && passMode(x) && !isTransfer(x));
   const total = rows.reduce((a, x) => a + Number(x.amount || 0), 0);
   const [y, m] = currentMonth.split('-').map(Number);
   const now = new Date();
@@ -2995,7 +3050,7 @@ function toggleManualQuest(id, idx){
 function updateWhoPaysInfo(){
   const details = $('whoPaysDetails');
   if(!details) return;
-  const monthRows = expenses.filter(x => String(x.date || '').startsWith(currentMonth) && passMode(x));
+  const monthRows = expenses.filter(x => String(x.date || '').startsWith(currentMonth) && passMode(x) && !isTransfer(x));
   const qAmt = monthRows.filter(x => x.payer === 'Quentin').reduce((a,x) => a + Number(x.amount || 0), 0);
   const jAmt = monthRows.filter(x => x.payer === 'Jessica').reduce((a,x) => a + Number(x.amount || 0), 0);
   const total = qAmt + jAmt;
@@ -3017,7 +3072,7 @@ function playWhoPays(weighted = true){
   const btn = $('btnWhoPaysWeighted');
   if(!disp) return;
 
-  const monthRows = expenses.filter(x => String(x.date || '').startsWith(currentMonth) && passMode(x));
+  const monthRows = expenses.filter(x => String(x.date || '').startsWith(currentMonth) && passMode(x) && !isTransfer(x));
   const qAmt = monthRows.filter(x => x.payer === 'Quentin').reduce((a,x) => a + Number(x.amount || 0), 0);
   const jAmt = monthRows.filter(x => x.payer === 'Jessica').reduce((a,x) => a + Number(x.amount || 0), 0);
   const total = qAmt + jAmt;
@@ -3167,13 +3222,16 @@ function renderUI(){
   $('monthLabel').textContent = monthName(currentMonth);
 
   const monthRows = expenses.filter(x => String(x.date || '').startsWith(currentMonth) && passMode(x));
-  const total = monthRows.reduce((a, x) => a + Number(x.amount || 0), 0);
-  const q = monthRows.filter(x => x.payer === 'Quentin').reduce((a, x) => a + Number(x.amount || 0), 0);
-  const j = monthRows.filter(x => x.payer === 'Jessica').reduce((a, x) => a + Number(x.amount || 0), 0);
-
+  const moneyRows = monthRows.filter(x => !isTransfer(x));
+  const myMoneyRows = moneyRows.filter(x => x.payer === currentUser);
   const isMoiMode = userMode === 'moi';
-  const persoSum = monthRows.filter(x => x.shared === false).reduce((a, x) => a + Number(x.amount || 0), 0);
-  const communSum = monthRows.filter(x => x.shared !== false).reduce((a, x) => a + Number(x.amount || 0), 0);
+  const baseRows = isMoiMode ? myMoneyRows : moneyRows;
+  const total = baseRows.reduce((a, x) => a + Number(x.amount || 0), 0);
+  const q = moneyRows.filter(x => x.payer === 'Quentin').reduce((a, x) => a + Number(x.amount || 0), 0);
+  const j = moneyRows.filter(x => x.payer === 'Jessica').reduce((a, x) => a + Number(x.amount || 0), 0);
+
+  const persoSum = myMoneyRows.filter(x => x.shared === false).reduce((a, x) => a + Number(x.amount || 0), 0);
+  const communSum = myMoneyRows.filter(x => x.shared !== false).reduce((a, x) => a + Number(x.amount || 0), 0);
   const qnEl = $('qname'), jnEl = $('jname'), btEl = $('balanceTitle'), bsEl = $('balanceSubtitle');
   if(isMoiMode){
     if(qnEl) qnEl.textContent = 'Moi (perso)';
@@ -3205,10 +3263,10 @@ function renderUI(){
   const due = Math.abs(q - j) / 2;
   const tag = $('balanceText');
   if(isMoiMode){
-    tag.textContent = monthRows.length
+    tag.textContent = myMoneyRows.length
       ? "Mode perso : uniquement ce que tu as dépensé. L'équilibre du foyer se règle dans « Le foyer »."
       : "Aucune de tes dépenses ce mois-ci.";
-  } else if(!monthRows.length){
+  } else if(!moneyRows.length){
     tag.textContent = "Aucune dépense enregistrée ce mois-ci.";
   } else if(due < 0.05){
     tag.textContent = "Paiements équitablement partagés ce mois-ci.";
@@ -3220,7 +3278,7 @@ function renderUI(){
 
   // Category map for donut
   const catAmounts = {};
-  monthRows.forEach(x => {
+  baseRows.forEach(x => {
     catAmounts[x.category] = (catAmounts[x.category] || 0) + Number(x.amount || 0);
   });
   updateDonut(catAmounts, total);
@@ -3285,17 +3343,19 @@ function renderUI(){
     inp.addEventListener('keydown', ev => { if(ev.key === 'Enter') inp.blur() });
   });
 
-  // Render Transactions
-  $('txCount').textContent = `${monthRows.length} dépense${monthRows.length > 1 ? 's' : ''} en ${monthName(currentMonth)}`;
+  // Render Transactions (toutes les opérations visibles, y compris les transferts neutres)
+  const opCount = monthRows.length;
+  $('txCount').textContent = `${opCount} opération${opCount > 1 ? 's' : ''} en ${monthName(currentMonth)}` + (isMoiMode ? ' · communes + les miennes' : '');
   const txList = $('txList');
-  if(!monthRows.length){
-    txList.innerHTML = '<div style="color:var(--text-dim);font-size:13.5px;padding:24px 0;text-align:center">Aucune dépense enregistrée sur cette période.</div>';
+  if(!opCount){
+    txList.innerHTML = '<div style="color:var(--text-dim);font-size:13.5px;padding:24px 0;text-align:center">Aucune opération enregistrée sur cette période.</div>';
   } else {
     txList.innerHTML = monthRows.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(t => {
       const meta = CATEGORY_META[t.category] || CATEGORY_META['Autres'];
       const payerTag = t.payer === 'Jessica' ? 'j' : 'q';
+      const tr = isTransfer(t);
       return `
-        <div class="tx-row">
+        <div class="tx-row${tr ? ' tr' : ''}">
           <div class="tx-info">
             <div class="tx-icon" style="background:${meta.bg}">${meta.emoji}</div>
             <div style="min-width:0;flex:1;">
@@ -3305,12 +3365,12 @@ function renderUI(){
                 <span>•</span>
                 <span class="tx-tag ${payerTag}">${esc(t.payer)}</span>
                 <span>•</span>
-                <span>${esc(t.category)}</span>
+                ${tr ? '<span class="tx-tag tr">transfert · non compté</span>' : `<span>${esc(t.category)}</span>`}
               </div>
             </div>
           </div>
           <div class="tx-right">
-            <div class="tx-amount">${eur(t.amount)}</div>
+            <div class="tx-amount${tr ? ' muted' : ''}">${tr ? '⇄ ' : ''}${eur(t.amount)}</div>
             <div class="tx-actions">
               <button class="tx-act" title="Modifier" onclick="openEditExpense('${t.id}')">&#9998;</button>
               <button class="tx-act del" title="Supprimer" onclick="deleteExpense('${t.id}')">&#128465;</button>
@@ -3331,7 +3391,7 @@ function renderUI(){
   const aiTitle = $('aiStatusTitle');
   const aiText = $('aiStatusText');
   const overEnvelopes = envelopes.filter(e => e.budget > 0 && e.spent > e.budget);
-  if(!monthRows.length){
+  if(!moneyRows.length){
     aiTitle.textContent = "Foyer prêt pour " + monthName(currentMonth);
     aiText.textContent = "Aucune dépense n'est encore saisie. Déposez vos tickets ou captures pour faire le point.";
   } else if(overEnvelopes.length > 0){
@@ -3591,7 +3651,7 @@ function suggestBudgets(){
   Object.keys(CATEGORY_META).forEach(cat => {
     let sum = 0, n = 0;
     months.forEach(mo => {
-      const t = expenses.filter(x => String(x.date || '').startsWith(mo) && passMode(x) && x.category === cat)
+      const t = expenses.filter(x => String(x.date || '').startsWith(mo) && passMode(x) && !isTransfer(x) && x.category === cat)
                         .reduce((a,x) => a + Number(x.amount || 0), 0);
       if(t > 0){ sum += t; n++; }
     });
@@ -3825,7 +3885,7 @@ function appendImportCard(j, container){
     thread.appendChild(det);
     return;
   }
-  const ops = (j.operations || []).filter(o => o.direction === 'debit');
+  const ops = (j.operations || []).filter(o => o.direction === 'debit' || o.direction === 'transfert');
   const wrap = document.createElement('div');
   wrap.className = 'chat-msg bot';
   const card = document.createElement('div');
@@ -3834,10 +3894,15 @@ function appendImportCard(j, container){
     const meta = CATEGORY_META[op.category] || CATEGORY_META['Autres'];
     const catOpts = IMPORT_CATS.map(c => `<option value="${esc(c)}"${c === op.category ? ' selected' : ''}>${CATEGORY_META[c].emoji} ${esc(c)}</option>`).join('');
     const dateFr = (op.date || '').length >= 10 ? (op.date.slice(8,10) + '/' + op.date.slice(5,7)) : '';
+    const isTr = op.direction === 'transfert';
     const dupBadge = op.duplicate ? `<span class="imp-badge">déjà pointé${op.matched ? ' : ' + esc(String(op.matched.label || '').slice(0, 26)) : ''}</span>` : '';
-    const qLine = (!op.duplicate && (op.question || (op.category === 'Autres' && Number(op.amount) >= 10)))
+    const trBadge = isTr ? '<span class="imp-badge tr">⇄ transfert · neutre</span>' : '';
+    const qLine = (!op.duplicate && !isTr && (op.question || (op.category === 'Autres' && Number(op.amount) >= 10)))
       ? `<div class="imp-q">❓ ${esc(op.question || ('À quoi correspond « ' + op.label.slice(0,40) + ' » ?'))}
            <input class="imp-answer" data-i="${i}" placeholder="ex. : assurance habitation, abonnement…"></div>`
+      : '';
+    const optChips = (!op.duplicate && !isTr && (op.options || []).length)
+      ? `<div class="imp-opts">${op.options.map(c => `<button type="button" class="imp-opt" data-i="${i}" data-cat="${esc(c)}">${(CATEGORY_META[c] ? CATEGORY_META[c].emoji + ' ' : '')}${esc(c)}</button>`).join('')}</div>`
       : '';
     return `
       <div class="import-row" data-i="${i}">
@@ -3845,14 +3910,15 @@ function appendImportCard(j, container){
         <div class="imp-main">
           <div class="imp-top">
             <span class="imp-label" title="${esc(op.label)}">${meta.emoji} ${esc(op.label)}</span>
-            <span class="imp-amount">${eur(op.amount)}</span>
+            <span class="imp-amount${isTr ? ' muted' : ''}">${isTr ? '⇄ ' : ''}${eur(op.amount)}</span>
           </div>
           <div class="imp-meta">
             <span>${esc(dateFr)}</span>
             <select class="imp-cat" data-i="${i}">${catOpts}</select>
-            ${dupBadge}
+            ${dupBadge}${trBadge}
           </div>
           ${qLine}
+          ${optChips}
         </div>
       </div>`;
   }).join('');
@@ -3883,10 +3949,17 @@ function appendImportCard(j, container){
   const totalEl = card.querySelector('#impTotal');
   const refreshTotal = () => {
     const sel = checks.filter(c => c.checked);
-    const sum = sel.reduce((a, c) => a + Number((ops[Number(c.dataset.i)] || {}).amount || 0), 0);
-    totalEl.innerHTML = `${sel.length} sélectionnée(s) · <strong>${eur(sum)}</strong>`;
+    const money = sel.filter(c => (ops[Number(c.dataset.i)] || {}).direction !== 'transfert');
+    const trs = sel.length - money.length;
+    const sum = money.reduce((a, c) => a + Number((ops[Number(c.dataset.i)] || {}).amount || 0), 0);
+    totalEl.innerHTML = `${money.length} opération(s) · <strong>${eur(sum)}</strong>` + (trs ? ` · ${trs} transfert(s) neutre(s)` : '');
   };
   checks.forEach(c => c.onchange = refreshTotal);
+  card.querySelectorAll('.imp-opt').forEach(b => b.onclick = () => {
+    const sel = card.querySelector(`.imp-cat[data-i="${b.dataset.i}"]`);
+    if(sel) sel.value = b.dataset.cat;
+    card.querySelectorAll(`.imp-opt[data-i="${b.dataset.i}"]`).forEach(x => x.classList.toggle('sel', x === b));
+  });
   const all = card.querySelector('#impAll');
   if(all) all.onchange = () => { checks.forEach(c => c.checked = all.checked); refreshTotal(); };
   refreshTotal();
@@ -4609,6 +4682,84 @@ loadState().then(() => {
   motto(); egg();
   var pane=activePane(); if(pane) fadePane(pane);
   setTimeout(function(){ try{countUps();}catch(e){} },500);
+})();
+</script>
+
+<script>
+/* Rome antique v2 - domus de Crassus : sous-titres latins, poussiere d'or, pieces, legendes. */
+(function(){
+  'use strict';
+  if(window.__romeCrassus) return; window.__romeCrassus = 1;
+  var rm = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var LAT = {'tab-overview':'Conspectus','tab-envelopes':'Loculi','tab-shopping':'Macellum','tab-assistant':'Orator','tab-quests':'Sortes'};
+  function latins(){
+    Object.keys(LAT).forEach(function(id){
+      var pane=document.getElementById(id); if(!pane) return;
+      var head=pane.querySelector('.pane-head'); if(!head||head.querySelector('.rome-latin')) return;
+      var sp=document.createElement('span'); sp.className='rome-latin'; sp.textContent='· '+LAT[id];
+      head.appendChild(sp);
+    });
+  }
+  function motes(){
+    if(rm||document.getElementById('romeMotes')) return;
+    var c=document.createElement('div'); c.id='romeMotes';
+    for(var k=0;k<7;k++){ var d=document.createElement('i');
+      d.style.left=(4+Math.random()*92)+'vw';
+      d.style.bottom=(-4+Math.random()*26)+'vh';
+      d.style.setProperty('--dur',(16+Math.random()*18)+'s');
+      d.style.setProperty('--del',(-Math.random()*24)+'s');
+      d.style.setProperty('--drift',((Math.random()*8)-4)+'vw');
+      c.appendChild(d);
+    }
+    document.body.appendChild(c);
+  }
+  function coins(x,y,n){
+    if(rm) return;
+    for(var k=0;k<(n||7);k++){ var d=document.createElement('i'); d.className='rome-coin';
+      d.style.left=(x+(Math.random()*30-15))+'px'; d.style.top=y+'px';
+      d.style.setProperty('--dx',(Math.random()*170-85)+'px');
+      d.style.setProperty('--dy',(90+Math.random()*140)+'px');
+      d.style.animationDelay=(Math.random()*130)+'ms';
+      document.body.appendChild(d);
+      (function(el){setTimeout(function(){el.remove();},1600);})(d);
+    }
+  }
+  window.romeCoins=coins;
+  var tries=0,iv=setInterval(function(){
+    if(window.confetti&&window.confetti.__crassus){clearInterval(iv);return;}
+    if(window.confetti){ var base=window.confetti;
+      var wc=function(opts){ var o=Object.assign({},opts||{});
+        o.colors=['#c9a227','#f3e3ae','#8a6a4a','#5b2a4e']; try{base(o);}catch(e){}
+        if(!rm) coins(window.innerWidth/2+(Math.random()*90-45), Math.min(150,window.innerHeight*0.22), 8); };
+      wc.__crassus=1; window.confetti=wc; clearInterval(iv);
+    }
+    if(++tries>30) clearInterval(iv);
+  },320);
+  var taps=0,t0=0;
+  function bindHoards(){
+    var el=document.getElementById('totalDisplay'); if(!el||el.__cras) return; el.__cras=1;
+    el.style.cursor='pointer';
+    el.addEventListener('click',function(){
+      var now=Date.now(); if(now-t0>2400) taps=0; t0=now; taps++;
+      if(taps>=3){ taps=0;
+        var quotes=[
+          "« Crescit amor nummi quantum ipsa pecunia crevit » : plus l'argent croît, plus on l'aime. (Juvénal)",
+          "« Pecunia non olet » : l'argent n'a pas d'odeur. (Vespasien)",
+          "« Auri sacra fames » : la faim sacrée de l'or. (Virgile)"];
+        if(window.romeToast) window.romeToast(quotes[Math.floor(Math.random()*quotes.length)]);
+        if(window.romeSparks) try{ var r=el.getBoundingClientRect(); window.romeSparks(r.left+r.width/2, r.top+r.height/2, 22);}catch(e){}
+        if(!rm) coins(window.innerWidth/2, Math.min(170,window.innerHeight*0.2), 10);
+      }
+    });
+  }
+  latins(); motes(); bindHoards();
+  if(typeof window.loadState==='function'&&!window.loadState.__crassus){
+    var ol=window.loadState, wl=function(){ var p=ol.apply(this,arguments);
+      var a=function(){ setTimeout(function(){ latins(); bindHoards(); },120); };
+      if(p&&typeof p.then==='function'){p.then(a,a);} else a(); return p; };
+    wl.__crassus=1; window.loadState=wl;
+  }
+  setTimeout(function(){ latins(); bindHoards(); },1000);
 })();
 </script>
 </body>
