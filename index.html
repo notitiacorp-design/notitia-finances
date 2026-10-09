@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
-<title>DuoSpend · Finances & Sérénité à deux (v1.5)</title>
+<title>DuoSpend · Finances & Sérénité à deux (v1.6)</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -1515,6 +1515,30 @@ body{
   height:1px;
 }
 
+/* Import de releve (PDF/CSV) */
+.import-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px;font-size:12.5px;width:100%;max-width:100%;box-sizing:border-box}
+.import-card .import-head{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
+.import-card .import-globals{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:8px;color:var(--text-muted)}
+.import-card .import-globals select{border:1px solid var(--border);border-radius:8px;padding:4px 6px;font-size:12px;background:white;color:var(--text-main);font-family:inherit}
+.import-card .import-rows{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto;padding-right:2px}
+.import-card .import-row{display:flex;gap:8px;align-items:flex-start;border-top:1px dashed var(--border-subtle);padding-top:7px}
+.import-card .import-row.done{opacity:.55}
+.import-card .imp-main{flex:1;min-width:0}
+.import-card .imp-top{display:flex;justify-content:space-between;gap:8px}
+.import-card .imp-label{font-weight:600;color:var(--text-main);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.import-card .imp-amount{font-weight:800;font-family:'Cabinet Grotesk',sans-serif;color:var(--coral);white-space:nowrap}
+.import-card .imp-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px;color:var(--text-dim);font-size:11.5px}
+.import-card .imp-meta select{border:1px solid var(--border);border-radius:8px;padding:3px 5px;font-size:11.5px;background:var(--surface-card);color:var(--text-main);min-width:0;font-family:inherit}
+.import-card .imp-badge{background:var(--amber-light);color:#92400e;border-radius:999px;padding:2px 8px;font-size:10.5px;font-weight:700;white-space:nowrap}
+.import-card .imp-q{display:flex;gap:6px;align-items:center;margin-top:5px;color:#92400e;font-size:11.5px;flex-wrap:wrap}
+.import-card .imp-q input{flex:1;min-width:0;border:1px solid #fcd34d;background:#fffbeb;border-radius:8px;padding:5px 8px;font-size:12px;color:var(--text-main);font-family:inherit}
+.import-card .import-actions{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:10px;border-top:1px solid var(--border);padding-top:9px;flex-wrap:wrap}
+.import-card .imp-total{font-size:12px;color:var(--text-muted)}
+.import-card .imp-total strong{color:var(--text-main);font-family:'Cabinet Grotesk',sans-serif}
+.import-card .btn-import{background:var(--primary);color:white;border:0;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.import-card .btn-import:disabled{opacity:.6;cursor:default}
+.import-card .imp-ok{color:var(--primary);font-weight:700;font-size:12.5px}
+
 /* Modal Quick Add */
 .modal-overlay{
   position:fixed;
@@ -2134,7 +2158,7 @@ body{
       <div class="card-header">
         <div>
           <h2 class="card-title">Assistant DuoSpend</h2>
-          <p class="card-subtitle">Déposez un e-ticket ou posez une question</p>
+          <p class="card-subtitle">Déposez un e-ticket, un relevé PDF/CSV ou posez une question</p>
         </div>
         <button type="button" class="btn-export" id="btnClearChat" title="Effacer la conversation">🧹 Effacer</button>
       </div>
@@ -2160,19 +2184,19 @@ body{
       </div>
 
       <form class="chat-input-bar" id="chatForm">
-        <button type="button" class="btn-circle" id="btnAttach" title="Joindre une image ou capture" aria-label="Joindre">
+        <button type="button" class="btn-circle" id="btnAttach" title="Joindre une image, un relevé PDF ou CSV" aria-label="Joindre">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
         </button>
         <button type="button" class="btn-circle" id="btnCamera" title="Prendre en photo un ticket" aria-label="Photo">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
         </button>
-        <textarea id="chatInput" rows="1" placeholder="Posez une question ou collez un ticket…"></textarea>
+        <textarea id="chatInput" rows="1" placeholder="Posez une question, ou joignez un relevé PDF/CSV…"></textarea>
         <button type="submit" class="btn-circle btn-send" id="btnSend" aria-label="Envoyer">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
       </form>
 
-      <input type="file" id="fileInput" class="file-hidden" accept="image/*">
+      <input type="file" id="fileInput" class="file-hidden" accept="image/*,.pdf,.csv,.txt">
       <input type="file" id="cameraInput" class="file-hidden" accept="image/*" capture="environment">
     </div>
   </div>
@@ -2451,6 +2475,7 @@ let envelopes = [];
 let shopping = [];
 let currentMonth = new Date().toISOString().slice(0,7);
 let pendingImage = null;
+let pendingDoc = null;
 
 // Duo Progression, Dynamic Quests & Decision Hub
 const DECISION_SETS = {
@@ -3346,18 +3371,147 @@ function showAISuggestions(sug, bud){
   }
 }
 
+const IMPORT_CATS = Object.keys(CATEGORY_META);
+
+function importSummaryText(j){
+  const s = j.summary || {};
+  const parts = [`📄 Relevé « ${j.file || 'document'} » lu : ${s.debits || 0} dépense(s) détectée(s)`];
+  if(s.duplicates) parts.push(`${s.duplicates} déjà pointée(s)`);
+  if(s.credits) parts.push(`${s.credits} crédit(s) ignoré(s)`);
+  if(s.questions) parts.push(`${s.questions} à préciser`);
+  return parts.join(' · ') + '. Vérifie puis importe ci-dessous.';
+}
+
+function appendImportCard(j){
+  const thread = $('chatThread');
+  const ops = (j.operations || []).filter(o => o.direction === 'debit');
+  const wrap = document.createElement('div');
+  wrap.className = 'chat-msg bot';
+  const card = document.createElement('div');
+  card.className = 'import-card';
+  const rows = ops.map((op, i) => {
+    const meta = CATEGORY_META[op.category] || CATEGORY_META['Autres'];
+    const catOpts = IMPORT_CATS.map(c => `<option value="${esc(c)}"${c === op.category ? ' selected' : ''}>${CATEGORY_META[c].emoji} ${esc(c)}</option>`).join('');
+    const dateFr = (op.date || '').length >= 10 ? (op.date.slice(8,10) + '/' + op.date.slice(5,7)) : '';
+    const dupBadge = op.duplicate ? `<span class="imp-badge">déjà pointé${op.matched ? ' : ' + esc(String(op.matched.label || '').slice(0, 26)) : ''}</span>` : '';
+    const qLine = (!op.duplicate && (op.question || op.category === 'Autres'))
+      ? `<div class="imp-q">❓ ${esc(op.question || ('À quoi correspond « ' + op.label.slice(0,40) + ' » ?'))}
+           <input class="imp-answer" data-i="${i}" placeholder="ex. : assurance habitation, abonnement…"></div>`
+      : '';
+    return `
+      <div class="import-row" data-i="${i}">
+        <input type="checkbox" class="imp-check" data-i="${i}" ${op.duplicate ? '' : 'checked'}>
+        <div class="imp-main">
+          <div class="imp-top">
+            <span class="imp-label" title="${esc(op.label)}">${meta.emoji} ${esc(op.label)}</span>
+            <span class="imp-amount">${eur(op.amount)}</span>
+          </div>
+          <div class="imp-meta">
+            <span>${esc(dateFr)}</span>
+            <select class="imp-cat" data-i="${i}">${catOpts}</select>
+            ${dupBadge}
+          </div>
+          ${qLine}
+        </div>
+      </div>`;
+  }).join('');
+  card.innerHTML = `
+    <div class="import-head">
+      <strong>📄 ${esc(j.file || 'Relevé')}</strong>
+      <span style="color:var(--text-muted)">${ops.length} opération(s) · ${j.engine === 'qwen' ? 'lues par l’IA' : 'lues automatiquement'}</span>
+    </div>
+    <div class="import-globals">
+      <label>Payé par <select id="impPayer"><option>Quentin</option><option>Jessica</option></select></label>
+      <label><input type="checkbox" id="impShared" checked> Dépense commune</label>
+      <label style="cursor:pointer"><input type="checkbox" id="impAll"> Tout cocher</label>
+    </div>
+    <div class="import-rows">${rows || '<div style="color:var(--text-dim);padding:8px 0">Aucune dépense détectée dans ce document.</div>'}</div>
+    <div class="import-actions">
+      <span class="imp-total" id="impTotal"></span>
+      <button type="button" class="btn-import" id="impGo">${ops.length ? 'Importer' : 'Fermer'}</button>
+    </div>`;
+  wrap.appendChild(card);
+  thread.appendChild(wrap);
+  thread.scrollTop = thread.scrollHeight;
+
+  const checks = [...card.querySelectorAll('.imp-check')];
+  const totalEl = card.querySelector('#impTotal');
+  const refreshTotal = () => {
+    const sel = checks.filter(c => c.checked);
+    const sum = sel.reduce((a, c) => a + Number((ops[Number(c.dataset.i)] || {}).amount || 0), 0);
+    totalEl.innerHTML = `${sel.length} sélectionnée(s) · <strong>${eur(sum)}</strong>`;
+  };
+  checks.forEach(c => c.onchange = refreshTotal);
+  const all = card.querySelector('#impAll');
+  if(all) all.onchange = () => { checks.forEach(c => c.checked = all.checked); refreshTotal(); };
+  refreshTotal();
+
+  const go = card.querySelector('#impGo');
+  go.onclick = async () => {
+    if(!ops.length){ card.closest('.chat-msg').remove(); return; }
+    const sel = checks.filter(c => c.checked).map(c => Number(c.dataset.i));
+    if(!sel.length){ showToast('Aucune opération sélectionnée', false); return; }
+    const payer = card.querySelector('#impPayer').value;
+    const shared = card.querySelector('#impShared').checked;
+    const items = sel.map(i => {
+      const op = ops[i];
+      const answerEl = card.querySelector(`.imp-answer[data-i="${i}"]`);
+      const catEl = card.querySelector(`.imp-cat[data-i="${i}"]`);
+      const answer = answerEl ? answerEl.value.trim() : '';
+      const label = answer ? answer : op.label;
+      const note = 'Relevé ' + (j.file || '') + (answer ? ' · libellé banque : ' + op.label : '');
+      return { date: op.date, label: label, category: (catEl ? catEl.value : op.category), amount: op.amount, payer: payer, shared: shared, note: note.slice(0, 220) };
+    });
+    go.disabled = true;
+    go.textContent = 'Import en cours…';
+    try{
+      const r = await fetch(API_BASE + '/api/import/commit', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ items: items })
+      });
+      const jr = await r.json();
+      if(!r.ok) throw Error(jr.detail || jr.error || 'Import impossible');
+      card.querySelector('.import-actions').innerHTML = `<span class="imp-ok">✓ ${jr.count} dépense(s) importée(s)</span>`;
+      card.querySelectorAll('.import-row').forEach(el => el.classList.add('done'));
+      pushChat('bot', `Import du relevé terminé : ${jr.count} dépense(s) ajoutée(s).`);
+      addChatMessage('bot', `✓ ${jr.count} dépense(s) ajoutée(s) au carnet.`, null, {persist:false});
+      if(typeof confetti === 'function') confetti({ particleCount: 30, spread: 50, origin: { y: 0.8 }, colors: ['#2d6a4f','#2563eb','#52b788'] });
+      await loadState();
+    }catch(e){
+      showToast(e.message, false);
+      go.disabled = false;
+      go.textContent = 'Importer';
+    }
+  };
+}
+
 async function sendChat(questionText){
   const q = (questionText || $('chatInput').value || '').trim();
-  if(!q && !pendingImage) return;
+  if(!q && !pendingImage && !pendingDoc) return;
 
   const img = pendingImage;
-  addChatMessage('user', q || 'Analyse cette image de dépense.', img);
-  const botMsg = addChatMessage('bot', 'Analyse en cours avec DuoSpend…', null, {persist:false});
+  const doc = pendingDoc;
+  addChatMessage('user', q || (doc ? 'Analyse le relevé « ' + doc.name + ' ».' : 'Analyse cette image de dépense.'), img);
+  const botMsg = addChatMessage('bot', doc ? 'Lecture du relevé en cours (PDF/CSV)…' : 'Analyse en cours avec DuoSpend…', null, {persist:false});
 
   $('chatInput').value = '';
   clearAttachment();
 
   try{
+    if(doc){
+      const r = await fetch(API_BASE + '/api/import/analyze', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({document: doc, question: q, month: currentMonth})
+      });
+      const j = await r.json();
+      if(!r.ok) throw Error(j.detail || j.error || 'Analyse du relevé impossible');
+      botMsg.innerHTML = renderRichMarkdown(importSummaryText(j));
+      pushChat('bot', importSummaryText(j));
+      appendImportCard(j);
+      return;
+    }
     const r = await fetch(API_BASE + '/api/assistant', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -3378,11 +3532,19 @@ async function sendChat(questionText){
 function setAttachment(url, name){
   pendingImage = url;
   $('attachMini').style.display = 'flex';
+  $('attachImgPreview').style.display = '';
   $('attachImgPreview').src = url;
   $('attachName').textContent = name || 'Image jointe';
 }
+function setDocAttachment(doc){
+  pendingDoc = doc;
+  $('attachMini').style.display = 'flex';
+  $('attachImgPreview').style.display = 'none';
+  $('attachName').textContent = '📄 ' + (doc.name || 'Relevé');
+}
 function clearAttachment(){
   pendingImage = null;
+  pendingDoc = null;
   $('attachMini').style.display = 'none';
   $('fileInput').value = '';
   $('cameraInput').value = '';
@@ -3408,11 +3570,27 @@ function compressFile(file){
     img.src = u;
   });
 }
+function fileToDataURL(file){
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(fr.result);
+    fr.onerror = () => reject(new Error('Fichier illisible'));
+    fr.readAsDataURL(file);
+  });
+}
 async function handleFiles(file){
   if(!file) return;
+  const fname = String(file.name || '').toLowerCase();
+  const isDoc = /\.(pdf|csv|txt|tsv)$/.test(fname) || file.type === 'application/pdf' || file.type === 'text/csv';
   try{
-    const compressed = await compressFile(file);
-    setAttachment(compressed, file.name);
+    if(isDoc){
+      if(file.size > 3000000) throw new Error('Fichier trop lourd (3 Mo max). Exportez un CSV plus léger.');
+      const data = await fileToDataURL(file);
+      setDocAttachment({ name: file.name, data: data });
+    } else {
+      const compressed = await compressFile(file);
+      setAttachment(compressed, file.name);
+    }
   }catch(e){
     addChatMessage('bot', e.message);
   }

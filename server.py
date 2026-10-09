@@ -1,4 +1,4 @@
-import json, os, re, urllib.error, urllib.parse, urllib.request
+import base64, difflib, io, json, os, re, urllib.error, urllib.parse, urllib.request
 from datetime import date
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
@@ -18,6 +18,7 @@ QWEN_MODEL = os.getenv("QWEN_MODEL", "google/gemini-2.5-flash")
 QWEN_VISION_MODEL = os.getenv("QWEN_VISION_MODEL", "qwen/qwen2.5-vl-72b-instruct")
 QWEN_BASE = os.getenv("QWEN_BASE_URL", "https://openrouter.ai/api/v1")
 MAX_IMAGE_CHARS = 3_500_000
+MAX_DOC_CHARS = 4_000_000
 CATEGORIES = ("Courses", "Logement", "Transport", "Sorties", "Abonnements", "Santé", "Autres")
 PAYERS = ("Quentin", "Jessica")
 BUDGET_MARK = "kind=budget"
@@ -692,6 +693,284 @@ def parse_budget_suggestion(text, month):
     }
 
 
+def parse_fr_amount(value):
+    """« 1 234,56 EUR » / « -12.30 » -> float arrondi (ou None)."""
+    raw = str(value or "").replace("\u20ac", "").replace("EUR", "").replace(" ", "").replace("\u00a0", "").strip()
+    if not raw:
+        return None
+    if "," in raw and "." in raw:
+        raw = raw.replace(".", "").replace(",", ".")
+    elif "," in raw:
+        raw = raw.replace(",", ".")
+    match = re.search(r"-?\d+(?:\.\d+)?", raw)
+    if not match:
+        return None
+    try:
+        return round(float(match.group(0)), 2)
+    except ValueError:
+        return None
+
+
+def sanitize_document(doc):
+    if not doc or not isinstance(doc, dict):
+        return None
+    name = re.sub(r"[^\w.\- ()]", "_", str(doc.get("name") or "releve"))[:120]
+    data = str(doc.get("data") or "")
+    if ";base64," not in data:
+        return None
+    if len(data) > MAX_DOC_CHARS:
+        raise ValueError("Fichier trop lourd (3 Mo max). Utilisez le CSV de la banque.")
+    return {"name": name or "releve", "data": data}
+
+
+def extract_document_text(doc):
+    """(texte, kind) depuis un document data-URL : PDF (pypdf) ou CSV/TXT."""
+    name = str(doc.get("name") or "").lower()
+    try:
+        blob = base64.b64decode(doc["data"].split(";base64,", 1)[1], validate=False)
+    except Exception:
+        raise ValueError("Fichier illisible (encodage inattendu).")
+    if name.endswith(".pdf"):
+        try:
+            from pypdf import PdfReader
+        except Exception:
+            raise ValueError("Lecture PDF indisponible pour le moment. Envoyez plutot le CSV de la banque.")
+        try:
+            reader = PdfReader(io.BytesIO(blob))
+            pages = [(page.extract_text() or "") for page in reader.pages[:15]]
+        except Exception:
+            raise ValueError("Impossible d'ouvrir ce PDF (protege ?). Essayez le CSV de la banque.")
+        text = "\n".join(pages)
+        if len(text.strip()) < 40:
+            raise ValueError("Ce PDF est un scan sans texte. Envoyez une photo du releve ou le CSV.")
+        return text, "pdf"
+    if name.endswith((".csv", ".txt", ".tsv")):
+        for enc in ("utf-8-sig", "utf-8", "cp1252", "latin-1"):
+            try:
+                return blob.decode(enc), "csv"
+            except UnicodeDecodeError:
+                continue
+        raise ValueError("Encodage du fichier non reconnu. Exportez le releve en CSV UTF-8.")
+    raise ValueError("Format non pris en charge : joignez un PDF ou un CSV de releve.")
+
+
+def parse_json_array(text, key):
+    match = re.search(re.escape(key) + r"\s*(\[.*\])", text or "", re.S)
+    if not match:
+        return None
+    try:
+        data = json.loads(match.group(1))
+    except json.JSONDecodeError:
+        return None
+    return data if isinstance(data, list) else None
+
+
+def _iso_days_apart(a, b):
+    try:
+        return abs((date.fromisoformat(str(a)[:10]) - date.fromisoformat(str(b)[:10])).days)
+    except Exception:
+        return None
+
+
+def _label_similarity(a, b):
+    left = re.sub(r"[^a-z0-9]", "", str(a or "").lower())
+    right = re.sub(r"[^a-z0-9]", "", str(b or "").lower())
+    if not left or not right:
+        return 0.0
+    return difflib.SequenceMatcher(None, left, right).ratio()
+
+
+def _normalize_statement_op(raw, month):
+    if not isinstance(raw, dict):
+        return None
+    amount = parse_fr_amount(raw.get("amount"))
+    if amount is None or amount <= 0:
+        return None
+    label = str(raw.get("label") or raw.get("merchant") or "").strip()[:90]
+    if not label:
+        return None
+    day = str(raw.get("date") or "").strip()
+    if not re.match(r"^\d{4}-\d{2}-\d{2}$", day):
+        match = re.match(r"^(\d{1,2})[/.\-](\d{1,2})(?:[/.\-](\d{2,4}))?$", day)
+        if not match:
+            return None
+        dd, mm, yy = match.group(1), match.group(2), match.group(3)
+        year = str(month)[:4] if not yy else (yy if len(yy) == 4 else "20" + yy)
+        day = "%s-%02d-%02d" % (year, int(mm), int(dd))
+    direction = "debit" if str(raw.get("direction") or "debit").lower().startswith("deb") else "credit"
+    category = raw.get("category") if raw.get("category") in CATEGORIES else "Autres"
+    confidence = raw.get("confidence") if raw.get("confidence") in ("high", "medium", "low") else "medium"
+    question = str(raw.get("question") or "").strip()[:140]
+    if direction == "debit" and category == "Autres" and not question:
+        question = "À quoi correspond « %s » ?" % label[:40]
+    return {
+        "date": day,
+        "label": label,
+        "amount": round(amount, 2),
+        "direction": direction,
+        "category": category,
+        "confidence": confidence,
+        "question": question,
+        "duplicate": False,
+    }
+
+
+def _statement_ops_fallback(text):
+    """Parseur sans IA : lignes date + libelle + montant, facon releve FR."""
+    out = []
+    date_re = re.compile(r"\b(\d{2})[/.\-](\d{2})(?:[/.\-](\d{2,4}))?\b")
+    amount_re = re.compile(r"(-?\s?\d{1,3}(?:[ .]\d{3})*(?:[.,]\d{2}))\s*(?:\u20ac|EUR)?\s*$")
+    credit_words = ("virement recu", "virement re\u00e7u", "salaire", "remboursement", "avoir", "depot", "d\u00e9p\u00f4t", "versement")
+    debit_words = ("d\u00e9bit", "debit", "prlv", "pr\u00e9l\u00e8vement", "prelevement", "achat", "retrait", "cb ", "carte")
+    for raw_line in (text or "").splitlines():
+        line = re.sub(r"[;|]\s*", " ", raw_line).strip()
+        if len(line) < 10:
+            continue
+        m_date = date_re.search(line)
+        m_amount = amount_re.search(line)
+        if not m_date or not m_amount:
+            continue
+        amount = parse_fr_amount(m_amount.group(1))
+        if amount is None or amount == 0:
+            continue
+        negated = "-" in m_amount.group(1)
+        body = re.sub(r"\s{2,}", " ", line[m_date.end():m_amount.start()].strip(" .:-|+;,"))[:90]
+        if not body:
+            continue
+        low = body.lower()
+        if low.startswith(("solde", "ancien solde", "nouveau solde", "total", "sous-total", "cumul")):
+            continue
+        if any(w in low for w in credit_words) and not negated:
+            direction = "credit"
+        elif negated or any(w in low for w in debit_words):
+            direction = "debit"
+        else:
+            direction = "credit"
+        yy = m_date.group(3)
+        year = yy if (yy and len(yy) == 4) else ("20" + yy if yy else str(date.today().year))
+        out.append({
+            "date": "%s-%s-%s" % (year, m_date.group(2), m_date.group(1)),
+            "label": body,
+            "amount": abs(amount),
+            "direction": direction,
+            "category": "Autres",
+            "confidence": "low",
+            "question": "",
+        })
+    return out
+
+
+def _statement_ops_with_ai(text, month, hint=""):
+    prompt = (
+        "Voici le texte d'un releve de compte bancaire francais. Extrais TOUTES les operations, sans en inventer.\n"
+        "Reponds STRICTEMENT avec un tableau JSON prefixe par IMPORT_JSON:\n"
+        'IMPORT_JSON [{"date":"AAAA-MM-JJ","label":"libelle lisible","amount":12.34,"direction":"debit|credit","category":"Courses","confidence":"high|medium|low","question":""}]\n'
+        "- category doit etre une de : " + ", ".join(CATEGORIES) + ".\n"
+        "- Si l'annee manque, prends " + str(month)[:4] + ". Montants toujours positifs, en euros.\n"
+        "- Si un libelle est cryptique (PRLV SEPA sans nom, CB 4532, XXXX), mets category \"Autres\", confidence \"low\" et une question courte : a quoi correspond cette depense ?\n"
+        "- Ignore soldes, totaux, pagination, interets techniques. Si rien d'exploitable : IMPORT_JSON []\n"
+    )
+    if hint:
+        prompt += "Consigne de l'utilisateur : " + str(hint)[:300] + "\n"
+    prompt += "\nTEXTE DU RELEVE:\n" + str(text)[:55000]
+    answer = qwen_chat(
+        [
+            {"role": "system", "content": "Tu extrais des operations bancaires et tu reponds uniquement avec IMPORT_JSON."},
+            {"role": "user", "content": prompt},
+        ],
+        QWEN_MODEL,
+        max_tokens=1800,
+    )
+    return parse_json_array(answer, "IMPORT_JSON")
+
+
+def _find_duplicate(op, expenses):
+    for row in expenses or []:
+        try:
+            if abs(float(row.get("amount") or 0) - float(op["amount"])) > 0.011:
+                continue
+        except (TypeError, ValueError):
+            continue
+        days = _iso_days_apart(row.get("date"), op.get("date"))
+        if days is not None and days > 4:
+            continue
+        same_day = str(row.get("date") or "")[:10] == op.get("date")
+        if _label_similarity(row.get("label"), op.get("label")) >= 0.45 or same_day:
+            return row
+    return None
+
+
+def analyze_statement(text, expenses, month, filename="", hint=""):
+    raw_ops, engine = None, "rules"
+    if QWEN_KEY:
+        try:
+            raw_ops = _statement_ops_with_ai(text, month, hint)
+            if raw_ops is not None:
+                engine = "qwen"
+        except Exception:
+            raw_ops = None
+    if raw_ops is None:
+        raw_ops = _statement_ops_fallback(text)
+    operations = []
+    for raw in raw_ops or []:
+        norm = _normalize_statement_op(raw, month)
+        if norm:
+            operations.append(norm)
+    for op in operations:
+        if op["direction"] == "debit":
+            match = _find_duplicate(op, expenses)
+            if match:
+                op["duplicate"] = True
+                op["matched"] = {"id": match.get("id"), "label": match.get("label"), "date": match.get("date")}
+    debits = [o for o in operations if o["direction"] == "debit"]
+    credits = [o for o in operations if o["direction"] != "debit"]
+    fresh = [o for o in debits if not o.get("duplicate")]
+    return {
+        "engine": engine,
+        "file": filename,
+        "month": month,
+        "operations": operations,
+        "summary": {
+            "total": len(operations),
+            "debits": len(debits),
+            "credits": len(credits),
+            "duplicates": len(debits) - len(fresh),
+            "to_import": len(fresh),
+            "amount": round(sum(o["amount"] for o in fresh), 2),
+            "questions": sum(1 for o in debits if o.get("question")),
+        },
+    }
+
+
+def create_expenses_batch(items):
+    created = []
+    if TOKEN and BASE_ID:
+        records = []
+        for item in items:
+            records.append({"fields": {
+                "Dépense": item["label"],
+                "Date": item["date"],
+                "Catégorie": item["category"],
+                "Montant (€)": float(item["amount"]),
+                "Payé par": display_payer(item.get("payer")),
+                "Dépense commune": bool(item.get("shared", True)),
+                "Remboursement": item.get("status", "À équilibrer"),
+                "Note": item.get("note", ""),
+            }})
+        for i in range(0, len(records), 10):
+            data = airtable_request(
+                "POST",
+                f"{BASE_ID}/{urllib.parse.quote(TABLE)}",
+                {"records": records[i:i+10], "typecast": True},
+            )
+            for rec in (data or {}).get("records", []):
+                created.append(normalize_expense(rec.get("fields", {}), rec.get("id", "")))
+        return created
+    for item in items:
+        created.append(create_expense(item))
+    return created
+
+
 def qwen_chat(messages, model, max_tokens=900):
     # If the env has the legacy slow qwen model, use google/gemini-2.5-flash for ultra fast and clean answers
     actual_model = "google/gemini-2.5-flash" if ("qwen" in model and "vl" not in model) else model
@@ -949,6 +1228,55 @@ class Handler(SimpleHTTPRequestHandler):
                 )
             except Exception as e:
                 return self.send_json(400, {"error": "Question invalide", "detail": str(e)})
+        if path == "/api/import/analyze":
+            try:
+                body = self.read_json()
+                doc = sanitize_document(body.get("document"))
+                if not doc:
+                    return self.send_json(400, {"error": "Fichier requis (PDF ou CSV)."})
+                month = str(body.get("month") or current_month())[:7]
+                if not re.match(r"^\d{4}-\d{2}$", month):
+                    month = current_month()
+                hint = str(body.get("question") or "").strip()
+                text, kind = extract_document_text(doc)
+                result = analyze_statement(text, get_expenses(), month, doc["name"], hint)
+                result["kind"] = kind
+                return self.send_json(200, result)
+            except Exception as e:
+                return self.send_json(400, {"error": str(e) or "Analyse du releve impossible"})
+        if path == "/api/import/commit":
+            try:
+                body = self.read_json()
+                items = body.get("items")
+                if not isinstance(items, list) or not items:
+                    return self.send_json(400, {"error": "Aucune operation a importer"})
+                clean = []
+                for raw in items[:120]:
+                    if not isinstance(raw, dict):
+                        raise ValueError("Operation invalide")
+                    for key in ("date", "label", "category", "amount"):
+                        if key not in raw:
+                            raise ValueError("Champ manquant: " + key)
+                    amount = float(raw["amount"])
+                    if amount <= 0:
+                        raise ValueError("Montant invalide")
+                    day = str(raw["date"])[:10]
+                    if not re.match(r"^\d{4}-\d{2}-\d{2}$", day):
+                        raise ValueError("Date invalide: " + day)
+                    clean.append({
+                        "date": day,
+                        "label": str(raw["label"]).strip()[:120],
+                        "category": raw["category"] if raw["category"] in CATEGORIES else "Autres",
+                        "amount": round(amount, 2),
+                        "payer": display_payer(raw.get("payer")),
+                        "shared": bool(raw.get("shared", True)),
+                        "status": str(raw.get("status") or "À équilibrer")[:40],
+                        "note": str(raw.get("note") or "")[:240],
+                    })
+                created = create_expenses_batch(clean)
+                return self.send_json(201, {"created": created, "count": len(created), "expenses": get_expenses()})
+            except Exception as e:
+                return self.send_json(400, {"error": "Import impossible", "detail": str(e)})
         if path == "/api/budgets":
             try:
                 body = self.read_json()
