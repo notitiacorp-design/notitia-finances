@@ -4423,7 +4423,11 @@ function duoShowLock(msg){
   if (!ov || !inp || !btn) return;
   let unlockedAt = 0;
   try { unlockedAt = Number(localStorage.getItem('duospend_unlocked_at') || 0); } catch(e){}
-  if (Date.now() - unlockedAt < 90000) ov.classList.remove('open');
+  if (Date.now() - unlockedAt < 90000) { ov.classList.remove('open'); }
+  else {
+    try { localStorage.removeItem('duospend_code'); } catch(e){}
+    ov.classList.add('open');
+  }  // hors fenetre de 90 s : on redemande le code et on reverrouille l'acces
   const people = $('lockPeople');
   if(people){
     people.querySelectorAll('.lock-person').forEach(b => {
