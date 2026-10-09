@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
-<title>DuoSpend · Finances & Sérénité à deux (v1.9)</title>
+<title>DuoSpend · Finances & Sérénité à deux (v2.0)</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -1515,6 +1515,22 @@ body{
   height:1px;
 }
 
+/* Import de releve, profil, en-tetes de section (v2.0) */
+.pane-head{margin:2px 2px 14px}
+.pane-head h2{margin:0 0 2px;font-size:19px;font-weight:800;color:var(--text-main)}
+.pane-head p{margin:0;font-size:12.5px;color:var(--text-muted)}
+.import-card .import-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.import-help{margin-top:10px;font-size:12.5px;color:var(--text-muted);background:rgba(0,0,0,.03);border:1px solid var(--border);border-radius:12px;padding:10px 12px}
+.import-help p{margin:2px 0}
+.import-loading,.import-empty{margin-top:10px;font-size:12.5px;color:var(--text-muted);background:rgba(45,106,79,.06);border:1px solid var(--border);border-radius:12px;padding:10px 12px}
+.import-empty{background:rgba(217,119,6,.08)}
+#importZone .chat-msg{margin-top:10px}
+.lock-people{display:flex;gap:8px;margin:0 0 10px}
+.lock-person{flex:1;border:2px solid #e7e5e4;background:#fafaf9;border-radius:12px;padding:10px 6px;font-size:14px;font-weight:700;color:#57534e;cursor:pointer;font-family:inherit}
+.lock-person.active{border-color:#2d6a4f;background:rgba(45,106,79,.08);color:#2d6a4f}
+.lock-hint{margin:10px 0 0!important;font-size:11px!important;color:#a8a29e!important}
+.mode-user.switch{cursor:pointer;text-decoration:underline;border:0;background:none;font-family:inherit;padding:0}
+
 /* Defis contextuels & idees repas (v1.9) */
 .quest-theme{display:flex;gap:10px;align-items:flex-start;background:linear-gradient(135deg, rgba(45,106,79,.08), rgba(217,119,6,.08));border:1px solid var(--border);border-radius:14px;padding:10px 12px;margin-bottom:10px}
 .quest-theme-icon{font-size:18px}
@@ -1970,8 +1986,8 @@ body{
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"/><path d="M16 10a4 4 0 0 0-8 0v4a4 4 0 0 0 8 0"/></svg>
       </div>
       <div class="brand-titles">
-        <h1>DuoSpend <span class="badge-tag">Foyer</span></h1>
-        <p>Quentin & Jessica · Vision partagée</p>
+        <h1>DuoSpend <span class="badge-tag" id="brandBadge">Foyer</span></h1>
+        <p id="brandSub">Quentin & Jessica · Vision partagée</p>
       </div>
     </div>
 
@@ -1990,6 +2006,7 @@ body{
     <button type="button" class="mode-btn active" data-mode="foyer" title="Dépenses communes du foyer">Le foyer</button>
     <button type="button" class="mode-btn" data-mode="moi" title="Uniquement mes dépenses">Moi</button>
     <span class="mode-user" id="modeUser"></span>
+    <button type="button" class="mode-user switch" id="btnSwitchUser" hidden>changer de profil</button>
   </div>
 
   <!-- Universal View Switcher Tabs -->
@@ -2033,6 +2050,31 @@ body{
 
   <!-- PANE 1 : Overview & Balance -->
   <div class="tab-pane" id="tab-overview">
+    <div class="pane-head">
+      <h2>Vue d'ensemble</h2>
+      <p>Le mois en un coup d'œil : total, avances, dépenses récentes. Importez un relevé juste en dessous.</p>
+    </div>
+
+    <section class="card import-card" id="importCard">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">📄 Importer un relevé bancaire</h2>
+          <p class="card-subtitle">PDF, CSV ou photo : les dépenses sont détectées, vous vérifiez avant d'importer.</p>
+        </div>
+      </div>
+      <div class="import-actions">
+        <button type="button" class="btn-game" id="btnImportFile">📄 Choisir un fichier (PDF, CSV, photo)</button>
+        <input type="file" id="importFileInput" accept=".pdf,.csv,.txt,image/*" style="display:none">
+        <button type="button" class="btn-game btn-game-secondary" id="btnImportHelp">❔ Comment ça marche</button>
+      </div>
+      <div id="importHelp" class="import-help" hidden>
+        <p>1. Téléchargez le relevé (ou faites une capture d'écran nette) depuis l'app de votre banque.</p>
+        <p>2. Choisissez le fichier ici : les opérations sont lues, et une question est posée si un libellé est cryptique.</p>
+        <p>3. Vérifiez, décochez ce qui est déjà pointé, puis importez : les dépenses rejoignent le mois en un clic.</p>
+      </div>
+      <div id="importZone"></div>
+    </section>
+
     <!-- Top Visual Stats Grid -->
     <div class="dashboard-grid">
       <!-- Balance & Advances -->
@@ -2112,6 +2154,10 @@ body{
 
   <!-- PANE 2 : Envelopes -->
   <div class="tab-pane" id="tab-envelopes" style="display:none;">
+    <div class="pane-head">
+      <h2>Enveloppes & budgets</h2>
+      <p>Ce que vous avez prévu par catégorie, et ce qu'il reste à dépenser.</p>
+    </div>
     <section class="card budget-summary" id="budgetSummaryCard">
       <div class="card-header">
         <div>
@@ -2144,6 +2190,10 @@ body{
 
   <!-- PANE 3 : Smart Shopping & Seasonal AI -->
   <div class="tab-pane" id="tab-shopping" style="display:none;">
+    <div class="pane-head">
+      <h2>Courses & menus</h2>
+      <p>La liste partagée, le menu de la semaine et les idées repas du soir.</p>
+    </div>
     <div class="card shopping-card" style="margin-bottom:20px;">
       <div class="card-header">
         <div>
@@ -2201,6 +2251,10 @@ body{
 
   <!-- PANE 4 : Assistant -->
   <div class="tab-pane" id="tab-assistant" style="display:none;">
+    <div class="pane-head">
+      <h2>Assistant</h2>
+      <p>Posez une question, déposez un ticket ou discutez budgets et habitudes.</p>
+    </div>
     <div class="card chat-drawer">
       <div class="card-header">
         <div>
@@ -2265,6 +2319,10 @@ body{
 
   <!-- PANE 5 : Duo Quests & Goals -->
   <div class="tab-pane" id="tab-quests" style="display:none;">
+    <div class="pane-head">
+      <h2>Défis & Décideur</h2>
+      <p>Les objectifs du mois, et le Décideur pour trancher repas, sorties et tâches.</p>
+    </div>
     <div class="quests-container">
       
       <!-- Serenity & Couple Progress Gauge -->
@@ -2480,10 +2538,15 @@ body{
   <div class="duo-lock-card">
     <div class="duo-lock-logo"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"></path><path d="M16 10a4 4 0 0 0-8 0v4a4 4 0 0 0 8 0"></path></svg></div>
     <h2>DuoSpend</h2>
-    <p>Entrez votre code d'accès personnel pour ouvrir vos finances.</p>
-    <input id="duoLockInp" class="duo-lock-inp" type="password" inputmode="text" autocomplete="off" maxlength="20" placeholder="••••••" aria-label="Code d'accès">
+    <p id="lockIntro">Qui es-tu ? Choisis ton profil, puis entre ton code.</p>
+    <div class="lock-people" id="lockPeople">
+      <button type="button" class="lock-person" data-who="Quentin">Quentin</button>
+      <button type="button" class="lock-person" data-who="Jessica">Jessica</button>
+    </div>
+    <input id="duoLockInp" class="duo-lock-inp" type="password" inputmode="numeric" autocomplete="off" maxlength="20" placeholder="••••" aria-label="Code d'accès">
     <button id="duoLockBtn" class="duo-lock-btn" type="button">Déverrouiller</button>
     <div id="duoLockErr" class="duo-lock-err"></div>
+    <p class="lock-hint" id="lockHint">Code à 4 chiffres (les anciens codes fonctionnent aussi).</p>
   </div>
 </div>
 <style>
@@ -2564,31 +2627,31 @@ let pendingDoc = null;
 const DECISION_SETS = {
   dinner: [
     "🥩 Bavette de bœuf & Légumes sautés au beurre",
-    "🍳 Omelette campagnarde aux champignons & Salade verte",
+    "🍳 Omelette campagnarde aux champignons & Pommes de terre sautées",
     "🍗 Cuisses de poulet fermier rôties aux herbes & Patates douces",
-    "🐟 Pavé de saumon grillé & Courgettes vapeur au citron",
+    "🐟 Pavé de saumon grillé & Petits pois au beurre citronné",
     "🍝 Pâtes fraîches sauce bolognaise maison mijotée",
     "🥑 Assiette composée : Avocats, œufs mollets & Sardines fraîches",
     "🍲 Poêlée de bœuf haché, oignons confits & Riz complet",
-    "🥓 Tranches de foie de bœuf persillé & Épinards frais au beurre",
-    "🍖 Côtes de porc fermier à la moutarde & Chou-fleur rôti",
+    "🥓 Tranches de foie de bœuf persillé & Pommes de terre au four",
+    "🍖 Côtes de porc fermier à la moutarde & Carottes fondantes",
     "🥩 Steak haché 15% poêlé à l'échalote & Patates grenaille au four",
     "🍗 Poulet rôti du dimanche & Légumes racines fondants",
-    "🥚 Œufs au plat à la graisse de canard & Salade de mâche aux noix",
+    "🥚 Œufs au plat à la graisse de canard & Tomates rôties au thym",
     "🍲 Ragoût de bœuf mijoté carottes/oignons & Purée de céleri",
-    "🥘 Travers de porc laqués au miel & Haricots verts persillés",
-    "🧆 Boulettes de viande sauce tomate maison & Courgettes poêlées",
+    "🥘 Travers de porc laqués au miel & Petits pois",
+    "🧆 Boulettes de viande sauce tomate maison & Pommes de terre vapeur",
     "🦴 Osso buco de veau, gremolata & Riz basmati au bouillon",
     "🥞 Crêpes protéinées (œufs, fromage blanc) & Compote pomme-cannelle"
   ],
   quick: [
-    "🥪 Assiette express : œufs mollets, comté, jambon cru & crudités",
+    "🥪 Assiette express : œufs mollets, comté, jambon cru & tomates",
     "🔥 Steak haché minute & purée express pommes de terre/beurre",
-    "🍳 Omelette 3 œufs au comté & salade croquante",
-    "🍗 Restes de poulet rôti en salade (mayo maison, céleri, noix)",
+    "🍳 Omelette 3 œufs au comté & pommes de terre sautées",
+    "🍗 Restes de poulet rôti (mayo maison, noix, tomates)",
     "🥑 Avocat, œufs au plat, tomates & pain de campagne",
     "🧀 Planche fermière : fromages, jambon, noix, pommes",
-    "🌮 Poêlée express bœuf/oignons/poivrons façon fajita (sans tortillas)",
+    "🌮 Poêlée express bœuf/oignons/poivrons rouges façon fajita (sans tortillas)",
     "🥛 Skyr ou yaourt grec, miel et fruits de saison (dîner léger protéiné)"
   ],
   date: [
@@ -3681,8 +3744,8 @@ function importSummaryText(j){
   return parts.join(' · ') + '. Vérifie puis importe ci-dessous.';
 }
 
-function appendImportCard(j){
-  const thread = $('chatThread');
+function appendImportCard(j, container){
+  const thread = container || $('chatThread');
   const ops = (j.operations || []).filter(o => o.direction === 'debit');
   const wrap = document.createElement('div');
   wrap.className = 'chat-msg bot';
@@ -3940,6 +4003,14 @@ function stateCacheKey(){
   return 'duospend_state_' + (currentUser || 'anon') + '_' + userMode + '_' + currentMonth;
 }
 function syncUserUI(){
+  const badge = $('brandBadge');
+  if(badge) badge.textContent = userMode === 'moi' ? 'Moi' : 'Le foyer';
+  const sub = $('brandSub');
+  if(sub) sub.textContent = currentUser
+    ? ('Connecté : ' + currentUser + ' · ' + (userMode === 'moi' ? 'mode perso' : 'le foyer'))
+    : 'Quentin & Jessica · Vision partagée';
+  const sw = $('btnSwitchUser');
+  if(sw) sw.hidden = !currentUser;
   const who = $('modeUser');
   if(who){
     who.textContent = currentUser
@@ -4111,6 +4182,40 @@ $('shoppingForm').onsubmit = e => {
 $('btnRefreshShopAI').onclick = fetchSeasonalAnalysis;
 if($('btnSuggestBudgets')) $('btnSuggestBudgets').onclick = suggestBudgets;
 if($('btnExportCSV')) $('btnExportCSV').onclick = exportMonthCSV;
+// — Import de relevé depuis la vue d'ensemble (v2.0) —
+async function analyzeStatementFile(file){
+  const zone = $('importZone');
+  if(!zone || !file) return;
+  const reader = new FileReader();
+  reader.onload = async () => {
+    zone.innerHTML = '<div class="import-loading">Lecture du relevé…</div>';
+    try {
+      const r = await fetch(API_BASE + '/api/import/analyze', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({document: {name: file.name, data: reader.result}, month: currentMonth})
+      });
+      const j = await r.json();
+      if(!r.ok) throw Error(j.detail || j.error || 'Analyse impossible');
+      zone.innerHTML = j.message ? '<div class="import-empty">' + esc(j.message) + '</div>' : '';
+      appendImportCard(j, zone);
+      const nb = (j.summary && j.summary.debits) || 0;
+      showToast(nb ? (nb + ' dépense(s) détectée(s), vérifiez puis importez') : 'Rien à importer dans ce fichier', nb > 0);
+    } catch(e){
+      zone.innerHTML = '<div class="import-empty">' + esc(e.message) + '</div>';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+if($('btnImportFile')){
+  $('btnImportFile').onclick = () => $('importFileInput').click();
+  $('importFileInput').onchange = e => { const f = e.target.files && e.target.files[0]; if(f) analyzeStatementFile(f); e.target.value = ''; };
+}
+if($('btnImportHelp')) $('btnImportHelp').onclick = () => { const h = $('importHelp'); if(h) h.hidden = !h.hidden; };
+if($('btnSwitchUser')) $('btnSwitchUser').onclick = () => {
+  try { localStorage.removeItem('duospend_code'); localStorage.removeItem('duospend_user'); localStorage.removeItem('duospend_mode'); } catch(e){}
+  location.reload();
+};
 if($('btnClearChat')) $('btnClearChat').onclick = () => {
   if(!confirm('Effacer la conversation ?')) return;
   clearChatHistory();
@@ -4233,6 +4338,19 @@ function duoShowLock(msg){
   let stored = '';
   try { stored = localStorage.getItem('duospend_code') || ''; } catch(e){}
   if (stored) ov.classList.remove('open');
+  const people = $('lockPeople');
+  if(people){
+    people.querySelectorAll('.lock-person').forEach(b => {
+      b.onclick = () => {
+        people.querySelectorAll('.lock-person').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        const intro = $('lockIntro');
+        if(intro) intro.textContent = 'Entre le code de ' + b.dataset.who + '.';
+        const inp = $('duoLockInp');
+        if(inp) inp.focus();
+      };
+    });
+  }
   async function submitLock(){
     const v = (inp.value || '').trim();
     if (!v) { inp.focus(); return; }
@@ -4262,6 +4380,16 @@ function duoShowLock(msg){
 
 // Init
 loadState().then(() => {
+  try {
+    if(currentUser === 'Foyer' && !sessionStorage.getItem('duospend_switch_asked')){
+      sessionStorage.setItem('duospend_switch_asked', '1');
+      if(typeof duoShowLock === 'function'){
+        duoShowLock();
+        const intro = $('lockIntro');
+        if(intro) intro.textContent = 'Vous êtes en mode foyer (accès commun). Choisissez votre profil et entrez votre code perso pour retrouver vos dépenses.';
+      }
+    }
+  } catch(e){}
   if(chatHistory.length){
     renderChatHistory();
   } else {

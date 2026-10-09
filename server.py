@@ -370,6 +370,72 @@ def default_budgets(month):
 SHOPPING_MARK = "kind=shopping"
 
 
+AUTH_MARK = "kind=auth"
+_AUTH_CACHE = None
+
+
+def load_auth_hashes():
+    """Hashes des codes (par personne + Foyer) stockes dans Airtable, jamais dans le depot public."""
+    global _AUTH_CACHE
+    import time as _t
+    if _AUTH_CACHE and _t.time() - _AUTH_CACHE[0] < 60:
+        return _AUTH_CACHE[1]
+    hashes = {}
+    try:
+        for rec in get_all_records():
+            note = str(rec.get("note") or "")
+            if note.startswith(AUTH_MARK):
+                data = json.loads(note.split("\n", 1)[1])
+                if isinstance(data, dict):
+                    hashes = {str(k): str(v) for k, v in data.items() if v}
+                break
+    except Exception:
+        hashes = {}
+    _AUTH_CACHE = (_t.time(), hashes)
+    return hashes
+
+
+def save_auth_hashes(hashes):
+    global _AUTH_CACHE
+    clean = {str(k): str(v) for k, v in (hashes or {}).items() if v}
+    note = AUTH_MARK + "\n" + json.dumps(clean, ensure_ascii=False)
+    fields = {
+        "Dépense": "[Auth] codes d'accès",
+        "Date": current_month() + "-01",
+        "Catégorie": "Autres",
+        "Montant (€)": 0,
+        "Payé par": "Quentin",
+        "Dépense commune": False,
+        "Remboursement": "Auth",
+        "Note": note,
+    }
+    if TOKEN and BASE_ID:
+        try:
+            rid = ""
+            for rec in get_all_records():
+                if str(rec.get("note") or "").startswith(AUTH_MARK):
+                    rid = rec.get("id", "")
+                    break
+            if rid:
+                airtable_request("PATCH", f"{BASE_ID}/{urllib.parse.quote(TABLE)}/{rid}", {"fields": fields, "typecast": True})
+            else:
+                airtable_request("POST", f"{BASE_ID}/{urllib.parse.quote(TABLE)}", {"fields": fields, "typecast": True})
+        except RuntimeError:
+            pass
+        _AUTH_CACHE = None
+        return clean
+    for i, x in enumerate(LOCAL_EXPENSES):
+        if str(x.get("note") or "").startswith(AUTH_MARK):
+            LOCAL_EXPENSES[i] = dict(x, note=note)
+            _AUTH_CACHE = None
+            return clean
+    item = normalize_expense(fields, "local-auth")
+    item["id"] = "local-auth"
+    LOCAL_EXPENSES.insert(0, item)
+    _AUTH_CACHE = None
+    return clean
+
+
 CHAT_MARK = "kind=chat"
 MEMO_LIMIT = 18
 CHAT_LIMIT = 40
@@ -886,72 +952,156 @@ def _normalize_statement_op(raw, month):
     }
 
 
-def _statement_ops_fallback(text):
-    """Parseur sans IA : lignes date + libelle + montant, facon releve FR."""
+_STATEMENT_DATE_RE = re.compile(r"\b(\d{1,2})[/.\-](\d{1,2})(?:[/.\-](\d{2,4}))?\b")
+_STATEMENT_AMOUNT_RE = re.compile(r"([-+]?)\s?(\d{1,3}(?:[ .]\d{3})*[.,]\d{2})\s*(?:\u20ac|EUR)?\s*([DCdc])?\s*$")
+_STATEMENT_SKIP = ("solde", "ancien solde", "nouveau solde", "total", "sous-total", "cumul", "report",
+                   "page ", "iban", "bic", "releve n", "relev\u00e9 n", "echelle", "\u00e9chelle",
+                   "date valeur", "date operation", "date d'operation", "extrait n")
+_STATEMENT_CREDIT_WORDS = ("virement recu", "virement re\u00e7u", "salaire", "remboursement", "avoir",
+                           "depot", "d\u00e9p\u00f4t", "versement", "remise")
+_STATEMENT_DEBIT_WORDS = ("d\u00e9bit", "debit", "prlv", "pr\u00e9l\u00e8vement", "prelevement", "achat",
+                          "retrait", "cb ", "carte", "cheque", "ch\u00e8que", "facture", "cotisation", "frais")
+
+
+def _statement_year(yy, month):
+    if yy and len(str(yy)) == 4:
+        return str(yy)
+    if yy:
+        return "20" + str(yy)
+    return str(month)[:4]
+
+
+def _statement_mk_op(dd, mm, yy, label, amount, signed_negative, suffix, month):
+    label = re.sub(r"\s{2,}", " ", str(label or "")).strip(" .:-|+;,")[:90]
+    if not label:
+        label = "Operation"
+    low = label.lower()
+    if signed_negative or (suffix or "").lower() == "d":
+        direction = "debit"
+    elif (suffix or "").lower() == "c":
+        direction = "credit"
+    elif any(w in low for w in _STATEMENT_CREDIT_WORDS):
+        direction = "credit"
+    elif any(w in low for w in _STATEMENT_DEBIT_WORDS):
+        direction = "debit"
+    else:
+        direction = "credit"
+    return {
+        "date": "%s-%02d-%02d" % (_statement_year(yy, month), int(mm), int(dd)),
+        "label": label,
+        "amount": round(abs(float(amount)), 2),
+        "direction": direction,
+        "category": "Autres",
+        "confidence": "low",
+        "question": "",
+    }
+
+
+def _statement_ops_fallback(text, month=None):
+    """Parseur sans IA, tolerant : lignes completes (date + libelle + montant),
+    et repli en mode blocs (colonnes separees sur plusieurs lignes)."""
     out = []
-    date_re = re.compile(r"\b(\d{2})[/.\-](\d{2})(?:[/.\-](\d{2,4}))?\b")
-    amount_re = re.compile(r"(-?\s?\d{1,3}(?:[ .]\d{3})*(?:[.,]\d{2}))\s*(?:\u20ac|EUR)?\s*$")
-    credit_words = ("virement recu", "virement re\u00e7u", "salaire", "remboursement", "avoir", "depot", "d\u00e9p\u00f4t", "versement")
-    debit_words = ("d\u00e9bit", "debit", "prlv", "pr\u00e9l\u00e8vement", "prelevement", "achat", "retrait", "cb ", "carte")
-    for raw_line in (text or "").splitlines():
-        line = re.sub(r"[;|]\s*", " ", raw_line).strip()
-        if len(line) < 10:
+    lines = [re.sub(r"[;|]\s*", " ", l).strip() for l in (text or "").splitlines()]
+    if not lines:
+        return out
+
+    def skipped(line):
+        low = line.lower().strip()
+        return not low or any(low.startswith(w) or (" " + w) in low[:28] for w in _STATEMENT_SKIP)
+
+    # 1) lignes completes
+    for line in lines:
+        if len(line) < 8 or skipped(line):
             continue
-        m_date = date_re.search(line)
-        m_amount = amount_re.search(line)
+        m_date = _STATEMENT_DATE_RE.search(line)
+        m_amount = _STATEMENT_AMOUNT_RE.search(line)
         if not m_date or not m_amount:
             continue
-        amount = parse_fr_amount(m_amount.group(1))
+        try:
+            amount = parse_fr_amount(m_amount.group(2))
+        except Exception:
+            amount = None
         if amount is None or amount == 0:
             continue
-        negated = "-" in m_amount.group(1)
-        body = re.sub(r"\s{2,}", " ", line[m_date.end():m_amount.start()].strip(" .:-|+;,"))[:90]
-        if not body:
+        body = line[m_date.end():m_amount.start()]
+        if not body.strip():
             continue
-        low = body.lower()
-        if low.startswith(("solde", "ancien solde", "nouveau solde", "total", "sous-total", "cumul")):
+        out.append(_statement_mk_op(m_date.group(1), m_date.group(2), m_date.group(3), body,
+                                    amount, "-" in (m_amount.group(1) or ""), m_amount.group(3) or "", month))
+    if len(out) >= 3:
+        return out
+    base = list(out)
+
+    # 2) mode blocs : date seule -> libelle(s) -> montant seul
+    block_ops = []
+    pending = None
+    for line in lines:
+        if len(line) < 2 or skipped(line):
             continue
-        if any(w in low for w in credit_words) and not negated:
-            direction = "credit"
-        elif negated or any(w in low for w in debit_words):
-            direction = "debit"
-        else:
-            direction = "credit"
-        yy = m_date.group(3)
-        year = yy if (yy and len(yy) == 4) else ("20" + yy if yy else str(date.today().year))
-        out.append({
-            "date": "%s-%s-%s" % (year, m_date.group(2), m_date.group(1)),
-            "label": body,
-            "amount": abs(amount),
-            "direction": direction,
-            "category": "Autres",
-            "confidence": "low",
-            "question": "",
-        })
-    return out
+        m_amount_only = _STATEMENT_AMOUNT_RE.fullmatch(line)
+        m_date = _STATEMENT_DATE_RE.match(line)
+        if m_amount_only and pending:
+            try:
+                amount = parse_fr_amount(m_amount_only.group(2))
+            except Exception:
+                amount = None
+            if amount:
+                label = " ".join(pending["labels"]).strip()
+                block_ops.append(_statement_mk_op(pending["dd"], pending["mm"], pending["yy"], label, amount,
+                                                  "-" in (m_amount_only.group(1) or ""), m_amount_only.group(3) or "", month))
+            pending = None
+            continue
+        if m_date and not _STATEMENT_AMOUNT_RE.search(line[m_date.end():]):
+            rest = line[m_date.end():].strip(" .:-|")
+            pending = {"dd": m_date.group(1), "mm": m_date.group(2), "yy": m_date.group(3),
+                       "labels": [rest] if len(rest) > 1 else []}
+            continue
+        if pending and len(line) > 3:
+            pending["labels"].append(line[:70])
+    return block_ops if len(block_ops) > len(base) else base
 
 
-def _statement_ops_with_ai(text, month, hint=""):
+IMPORT_RULES = (
+    "CONTEXTE METIER (tu connais les releves bancaires francais) :\n"
+    "- Un releve liste des operations : date, libelle, montant. La date peut etre jj/mm, jj.mm.aa, jjmmaa ou jj/mm/aa ; "
+    "le montant peut etre en fin de ligne, dans une colonne, precede d'un moins ou suivi de D (debit) / C (credit).\n"
+    "- L'extraction du PDF colle parfois les colonnes : une date, puis le libelle, puis le montant se retrouvent sur des "
+    "LIGNES DIFFERENTES. Dans ce cas, RECONSTRUIS chaque operation en associant ces morceaux (date -> libelle(s) -> montant).\n"
+    "- IGNORE : soldes (ancien/nouveau), totaux, sous-totaux, cumuls, reports, pagination, IBAN/BIC/agence, en-tetes et pieds de page.\n"
+    "- N'invente jamais une operation, ne fusionne pas deux operations distinctes, n'oublie aucune petite depense.\n"
+    "- Les depenses sont des 'debit' ; les entrees (virement recu, salaire, remboursement, depôt) sont des 'credit'.\n"
+)
+IMPORT_JSON_RULES = (
+    "Reponds STRICTEMENT avec un tableau JSON prefixe par IMPORT_JSON: "
+    '[{"date":"AAAA-MM-JJ","label":"libelle lisible","amount":12.34,"direction":"debit|credit","category":"...","confidence":"high|medium|low","question":""}]\n'
+    "- category doit etre une de : " + ", ".join(CATEGORIES) + ".\n"
+    "- Si l'annee manque, prends {year}. Montants toujours positifs, en euros.\n"
+    "- Si un libelle est cryptique (PRLV SEPA sans nom, CB 4532, XXXX), category \"Autres\", confidence \"low\", "
+    "et une question courte : a quoi correspond cette depense ?\n"
+    "- Si VRAIMENT aucune operation : IMPORT_JSON []\n"
+)
+
+
+def _statement_ops_with_ai(text, month, hint="", image=None):
     prompt = (
-        "Voici le texte d'un releve de compte bancaire francais. Extrais TOUTES les operations, sans en inventer.\n"
-        "Reponds STRICTEMENT avec un tableau JSON prefixe par IMPORT_JSON:\n"
-        'IMPORT_JSON [{"date":"AAAA-MM-JJ","label":"libelle lisible","amount":12.34,"direction":"debit|credit","category":"Courses","confidence":"high|medium|low","question":""}]\n'
-        "- category doit etre une de : " + ", ".join(CATEGORIES) + ".\n"
-        "- Si l'annee manque, prends " + str(month)[:4] + ". Montants toujours positifs, en euros.\n"
-        "- Si un libelle est cryptique (PRLV SEPA sans nom, CB 4532, XXXX), mets category \"Autres\", confidence \"low\" et une question courte : a quoi correspond cette depense ?\n"
-        "- Ignore soldes, totaux, pagination, interets techniques. Si rien d'exploitable : IMPORT_JSON []\n"
+        "Voici le texte extrait d'un releve de compte bancaire francais. Extrais TOUTES les operations, sans en inventer.\n"
+        + IMPORT_RULES
+        + IMPORT_JSON_RULES.replace("{year}", str(month)[:4])
     )
     if hint:
         prompt += "Consigne de l'utilisateur : " + str(hint)[:300] + "\n"
     prompt += "\nTEXTE DU RELEVE:\n" + str(text)[:55000]
-    answer = qwen_chat(
-        [
-            {"role": "system", "content": "Tu extrais des operations bancaires et tu reponds uniquement avec IMPORT_JSON."},
-            {"role": "user", "content": prompt},
-        ],
-        QWEN_MODEL,
-        max_tokens=1800,
-    )
+    system = "Tu extrais des operations bancaires et tu reponds uniquement avec IMPORT_JSON."
+    if image:
+        content = [{"type": "text", "text": prompt.replace(
+            "Voici le texte extrait d'un releve de compte bancaire francais.",
+            "Voici la PHOTO d'un releve de compte ou d'un ecran bancaire francais (lis toutes les operations visibles, meme petites, meme floues).")}]
+        content.append({"type": "image_url", "image_url": {"url": image}})
+        answer = qwen_chat([{"role": "system", "content": system}, {"role": "user", "content": content}],
+                           QWEN_VISION_MODEL, max_tokens=1800)
+    else:
+        answer = qwen_chat([{"role": "system", "content": system}, {"role": "user", "content": prompt}],
+                           QWEN_MODEL, max_tokens=1800)
     return parse_json_array(answer, "IMPORT_JSON")
 
 
@@ -971,17 +1121,24 @@ def _find_duplicate(op, expenses):
     return None
 
 
-def analyze_statement(text, expenses, month, filename="", hint=""):
-    raw_ops, engine = None, "rules"
+def analyze_statement(text, expenses, month, filename="", hint="", image=None):
+    raw_ops, engine, notes = None, "rules", []
     if QWEN_KEY:
         try:
-            raw_ops = _statement_ops_with_ai(text, month, hint)
-            if raw_ops is not None:
-                engine = "qwen"
-        except Exception:
+            raw_ops = _statement_ops_with_ai(text, month, hint, image=image)
+            engine = "qwen"
+        except Exception as e:
             raw_ops = None
-    if raw_ops is None:
-        raw_ops = _statement_ops_fallback(text)
+            notes.append("ia_erreur:" + type(e).__name__)
+    if raw_ops is None or len(raw_ops) == 0:
+        secours = _statement_ops_fallback(text, month)
+        if secours:
+            if raw_ops is not None and len(raw_ops) == 0:
+                notes.append("ia_vide")
+            raw_ops = secours
+            engine = "rules" if engine == "rules" else "qwen+secours"
+        elif raw_ops is None:
+            raw_ops = []
     operations = []
     for raw in raw_ops or []:
         norm = _normalize_statement_op(raw, month)
@@ -996,10 +1153,25 @@ def analyze_statement(text, expenses, month, filename="", hint=""):
     debits = [o for o in operations if o["direction"] == "debit"]
     credits = [o for o in operations if o["direction"] != "debit"]
     fresh = [o for o in debits if not o.get("duplicate")]
+    debug = {
+        "chars": len(str(text or "")),
+        "lines": len(str(text or "").splitlines()),
+        "image": bool(image),
+        "notes": notes,
+    }
+    message = ""
+    if not operations:
+        if debug["chars"] < 40 and not image:
+            message = "Le fichier ne contient presque pas de texte lisible. Envoyez le CSV de la banque ou une photo (JPG/PNG) du releve."
+        else:
+            message = ("Aucune operation reconnue dans ce fichier (%d caracteres lus). "
+                       "Essayez le CSV de la banque, ou une photo nette du releve." % debug["chars"])
     return {
         "engine": engine,
         "file": filename,
         "month": month,
+        "debug": debug,
+        "message": message,
         "operations": operations,
         "summary": {
             "total": len(operations),
@@ -1190,25 +1362,25 @@ MEAL_PROTEINS = [
     "rôti de veau", "saucisses de Toulouse", "magret de canard", "boulettes boeuf/agneau",
 ]
 MEAL_VEGGIES = [
-    "courgettes poêlées", "patates douces rôties", "épinards au beurre", "chou-fleur rôti",
-    "haricots verts persillés", "poêlée de champignons", "carottes fondantes", "brocoli vapeur",
-    "salade croquante", "gratin de courge", "tomates rôties au thym",
+    "patates douces rôties", "poêlée de champignons", "carottes fondantes",
+    "petits pois au beurre", "gratin de courge", "tomates rôties au thym",
+    "oignons confits", "poivrons rouges rôtis",
 ]
 MEAL_STARCHES = [
-    "riz basmati au bouillon", "pommes de terre au four", "purée de céleri",
-    "quinoa aux herbes", "patates grenaille", "aucun accompagnement (assiette protéinée)",
+    "riz basmati au bouillon", "pommes de terre au four", "purée de pommes de terre maison",
+    "patates grenaille", "aucun accompagnement (assiette protéinée)",
 ]
 MEAL_STYLES = [
     "poêlé au beurre", "rôti au four", "à la plancha", "mijoté aux échalotes", "grillé, sauce maison",
 ]
 MEAL_QUICK = [
-    ("Assiette express : oeufs mollets, comté, jambon cru & crudités", "5 min, zéro cuisson"),
-    ("Omelette 3 oeufs au comté & salade croquante", "10 min"),
+    ("Assiette express : oeufs mollets, comté, jambon cru & tomates", "5 min, zéro cuisson"),
+    ("Omelette 3 oeufs au comté & pommes de terre sautées", "10 min"),
     ("Steak haché minute & purée express pommes de terre/beurre", "15 min"),
     ("Avocat, oeufs au plat, tomates & pain de campagne (option sans pain)", "10 min"),
     ("Planche fermière : fromages, jambon, noix, pommes", "5 min"),
-    ("Poêlée express boeuf/oignons/poivrons façon fajita (sans tortillas)", "15 min"),
-    ("Lardons sautés, oeufs brouillés & salade", "10 min"),
+    ("Poêlée express boeuf/oignons/poivrons rouges façon fajita (sans tortillas)", "15 min"),
+    ("Lardons sautés, oeufs brouillés & pommes de terre sautées", "10 min"),
     ("Skyr ou yaourt grec, miel, fruits de saison (dîner léger protéiné)", "3 min"),
 ]
 
@@ -1268,9 +1440,14 @@ def meals_ideas(items=None, reroll=False):
         try:
             prompt = (
                 "Tu es le cuisinier du foyer (Quentin et Jessica). Alimentation primal / animal-based : "
-                "viandes, oeufs, produits laitiers, fruits, légumes, miel, bonnes graisses ; on évite les céréales "
-                "industrielles et les plats préparés. Propose 3 idées de dîner du soir, simples (15-30 min), en "
-                "utilisant en priorité ces articles de la liste de courses actuelle : "
+                "viandes, oeufs, produits laitiers, fruits, miel, bonnes graisses ; on évite les céréales "
+                "industrielles et les plats préparés.\n"
+                "CONTRAINTES STRICTES DU FOYER : AUCUN légume vert SAUF les petits pois "
+                "(pas de salade, épinards, haricots verts, brocoli, courgettes, choux, poireaux) ; "
+                "assiettes SIMPLES, 30 à 45 minutes de préparation MAXIMUM (pas de recettes à rallonge, pas de four en 2 étapes) ; "
+                "autorisés : viandes, oeufs, fromages, pommes de terre, patates douces, riz, petits pois, carottes, "
+                "champignons, oignons, tomates, courge.\n"
+                "Propose 3 idées de dîner du soir en utilisant en priorité ces articles de la liste de courses actuelle : "
                 + (", ".join(items[:25]) if items else "aucune liste fournie, propose des classiques")
                 + ". Réponds UNIQUEMENT par un tableau JSON: "
                 '[{"title": "...", "why": "pourquoi cette idee marche ce soir", "time": "25 min", "using": ["articles de la liste"]}]'
@@ -1319,6 +1496,11 @@ def user_for_code(raw):
     if not raw:
         return None
     digest = code_digest(raw)
+    stored = load_auth_hashes()
+    for user in list(USERS) + ["Foyer"]:
+        hashed = stored.get(user)
+        if hashed and hmac.compare_digest(digest, str(hashed)):
+            return user
     for user, hashed in APP_CODES.items():
         if hashed and hmac.compare_digest(digest, hashed):
             return user
@@ -1523,6 +1705,26 @@ class Handler(SimpleHTTPRequestHandler):
                 return self.send_json(200, {"memo": store["memo"], "messages": store["messages"][-20:]})
             except Exception as e:
                 return self.send_json(400, {"error": "Memo invalide", "detail": str(e)[:120]})
+        if path == "/api/admin/pins":
+            try:
+                body = self.read_json()
+                pins = body.get("pins")
+                if not isinstance(pins, dict) or not pins:
+                    return self.send_json(400, {"error": "pins requis"})
+                hashes = dict(load_auth_hashes())
+                for who, pin in pins.items():
+                    who = str(who)
+                    if who not in list(USERS) + ["Foyer"]:
+                        raise ValueError("Personne inconnue: " + who)
+                    pin = str(pin).strip()
+                    if body.get("clear"):
+                        hashes.pop(who, None)
+                    elif pin:
+                        hashes[who] = code_digest(pin)
+                clean = save_auth_hashes(hashes)
+                return self.send_json(200, {"ok": True, "configured": sorted(clean.keys())})
+            except Exception as e:
+                return self.send_json(400, {"error": "Rotation impossible", "detail": str(e)[:140]})
         if path == "/api/meals":
             try:
                 body = self.read_json()
@@ -1537,14 +1739,20 @@ class Handler(SimpleHTTPRequestHandler):
                 body = self.read_json()
                 doc = sanitize_document(body.get("document"))
                 if not doc:
-                    return self.send_json(400, {"error": "Fichier requis (PDF ou CSV)."})
+                    return self.send_json(400, {"error": "Fichier requis (PDF, CSV ou photo)."})
                 month = str(body.get("month") or current_month())[:7]
                 if not re.match(r"^\d{4}-\d{2}$", month):
                     month = current_month()
                 hint = str(body.get("question") or "").strip()
-                text, kind = extract_document_text(doc)
-                result = analyze_statement(text, visible_expenses(get_expenses(), self.app_user), month, doc["name"], hint)
-                result["kind"] = kind
+                low_name = str(doc.get("name") or "").lower()
+                if low_name.endswith((".jpg", ".jpeg", ".png", ".webp", ".heic")):
+                    result = analyze_statement("", visible_expenses(get_expenses(), self.app_user), month,
+                                               doc["name"], hint, image=doc["data"])
+                    result["kind"] = "image"
+                else:
+                    text, kind = extract_document_text(doc)
+                    result = analyze_statement(text, visible_expenses(get_expenses(), self.app_user), month, doc["name"], hint)
+                    result["kind"] = kind
                 return self.send_json(200, result)
             except Exception as e:
                 return self.send_json(400, {"error": str(e) or "Analyse du releve impossible"})
