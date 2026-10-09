@@ -973,7 +973,9 @@ _STATEMENT_SKIP = ("solde", "ancien solde", "nouveau solde", "total", "sous-tota
                    "page ", "iban", "bic", "releve n", "relev\u00e9 n", "echelle", "\u00e9chelle",
                    "date valeur", "date operation", "date d'operation", "extrait n")
 _STATEMENT_CREDIT_WORDS = ("virement recu", "virement re\u00e7u", "salaire", "remboursement", "avoir",
-                           "depot", "d\u00e9p\u00f4t", "versement", "remise")
+                           "depot", "d\u00e9p\u00f4t", "versement", "remise", "refund", "salary", "received",
+                           "incoming", "top-up", "topup", "cashback", "reversal", "encaissement",
+                           "paiement recu", "paiement re\u00e7u")
 _STATEMENT_DEBIT_WORDS = ("d\u00e9bit", "debit", "prlv", "pr\u00e9l\u00e8vement", "prelevement", "achat",
                           "retrait", "cb ", "carte", "cheque", "ch\u00e8que", "facture", "cotisation", "frais")
 
