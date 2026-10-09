@@ -88,6 +88,7 @@ def normalize_expense(fields, rid):
         "is_budget": note.startswith(BUDGET_MARK) or label.startswith("[Budget]"),
         "is_shopping": note.startswith(SHOPPING_MARK) or label.startswith("[Shopping]"),
         "is_chat": note.startswith("kind=chat") or label.startswith("[Assistant]"),
+        "is_auth": note.startswith("kind=auth") or label.startswith("[Auth]"),
     }
 
 
@@ -114,7 +115,7 @@ def get_all_records():
 
 
 def get_expenses():
-    return [x for x in get_all_records() if not x.get("is_budget") and not x.get("is_shopping") and not x.get("is_chat")]
+    return [x for x in get_all_records() if not x.get("is_budget") and not x.get("is_shopping") and not x.get("is_chat") and not x.get("is_auth")]
 
 def delete_expense(record_id):
     if TOKEN and BASE_ID:
@@ -162,7 +163,7 @@ def clear_all_expenses():
         records = list_table(TABLE) or []
         for r in records:
             norm = normalize_expense(r.get("fields", {}), r.get("id"))
-            if not norm.get("is_budget") and not norm.get("is_shopping") and not norm.get("is_chat"):
+            if not norm.get("is_budget") and not norm.get("is_shopping") and not norm.get("is_chat") and not norm.get("is_auth"):
                 try:
                     airtable_request("DELETE", f"{BASE_ID}/{urllib.parse.quote(TABLE)}/{r['id']}")
                     deleted += 1
