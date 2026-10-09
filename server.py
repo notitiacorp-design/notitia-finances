@@ -1075,16 +1075,49 @@ def assistant_answer(question, expenses, image=None, month=None):
 
 
 APP_CODE_PEPPER = "duospend-v1"
+# Un code par personne : sha256(pepper|code en minuscules). Rotation via duospend_code_set.py.
+APP_CODES = {
+    "Quentin": "71f8d5186ce501af616ba82497b8a453b6e7d23707154fc9677efd67798fb658",
+    "Jessica": "3547b4447d0fcdc07d7878cf78c711dbf1232fad1e2e60e2a3436985ed9bf976",
+}
+# Code foyer historique : accès réduit, dépenses communes uniquement (pas de mode perso).
 APP_CODE_HASH = "25136f449fe4d380e451c5e05c9cea2f055c98e023511f80531f5931b662e155"
+USERS = tuple(APP_CODES)
 _AUTH_FAILS = {}
 
 
-def app_code_ok(raw):
-    import hashlib, hmac
+def code_digest(raw):
+    import hashlib
+    return hashlib.sha256((APP_CODE_PEPPER + "|" + str(raw).strip().lower()).encode()).hexdigest()
+
+
+def user_for_code(raw):
+    """Identifie qui se connecte : 'Quentin', 'Jessica', 'Foyer' (code collectif) ou None."""
+    import hmac
     if not raw:
-        return False
-    digest = hashlib.sha256((APP_CODE_PEPPER + "|" + str(raw).strip().lower()).encode()).hexdigest()
-    return hmac.compare_digest(digest, APP_CODE_HASH)
+        return None
+    digest = code_digest(raw)
+    for user, hashed in APP_CODES.items():
+        if hashed and hmac.compare_digest(digest, hashed):
+            return user
+    if APP_CODE_HASH and hmac.compare_digest(digest, APP_CODE_HASH):
+        return "Foyer"
+    return None
+
+
+def app_code_ok(raw):
+    return user_for_code(raw) is not None
+
+
+def visible_expenses(expenses, user):
+    """Ce que l'utilisateur voit : les dépenses communes + les siennes, jamais celles de l'autre."""
+    if user in USERS:
+        return [e for e in expenses if e.get("shared", True) or e.get("payer") == user]
+    return [e for e in expenses if e.get("shared", True)]
+
+
+def shared_only(expenses):
+    return [e for e in expenses if e.get("shared", True)]
 
 
 def auth_fail_register(ip):
@@ -1119,6 +1152,7 @@ class Handler(SimpleHTTPRequestHandler):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
+        self.app_user = None
 
     def end_headers(self):
         self.send_header("Access-Control-Allow-Origin", PUBLIC_ORIGIN)
@@ -1155,11 +1189,13 @@ class Handler(SimpleHTTPRequestHandler):
         if auth_blocked(ip):
             self.send_json(429, {"error": "Trop de tentatives, réessayez plus tard", "code_required": True})
             return False
-        if app_code_ok(self.headers.get("X-App-Code")):
+        user = user_for_code(self.headers.get("X-App-Code"))
+        if user:
+            self.app_user = user
             _AUTH_FAILS.pop(ip, None)
             return True
         auth_fail_register(ip)
-        self.send_json(401, {"error": "Code foyer requis", "code_required": True})
+        self.send_json(401, {"error": "Code d'accès requis", "code_required": True})
         return False
 
     def do_OPTIONS(self):
@@ -1185,19 +1221,19 @@ class Handler(SimpleHTTPRequestHandler):
         if path in ("/api/state", "/api/expenses", "/api/budgets", "/api/shopping"):
             try:
                 month = self.query().get("month") or current_month()
-                expenses = get_expenses()
+                expenses = visible_expenses(get_expenses(), self.app_user)
                 budgets = get_budgets(month)
                 shopping = get_shopping()
-                ctx = finance_context(expenses, month)
+                ctx = finance_context(shared_only(expenses), month)
                 if path == "/api/expenses":
-                    return self.send_json(200, {"expenses": expenses})
+                    return self.send_json(200, {"expenses": expenses, "user": self.app_user})
                 if path == "/api/budgets":
                     return self.send_json(200, {"month": month, "budgets": budgets, "envelopes": ctx["envelopes"]})
                 if path == "/api/shopping":
                     return self.send_json(200, {"shopping": shopping})
                 return self.send_json(
                     200,
-                    {"month": month, "expenses": expenses, "budgets": budgets, "envelopes": ctx["envelopes"], "shopping": shopping, "facts": ctx},
+                    {"month": month, "user": self.app_user, "users": list(USERS), "expenses": expenses, "budgets": budgets, "envelopes": ctx["envelopes"], "shopping": shopping, "facts": ctx},
                 )
             except Exception as e:
                 return self.send_json(502, {"error": "Données indisponibles", "detail": str(e)})
@@ -1215,7 +1251,7 @@ class Handler(SimpleHTTPRequestHandler):
                 month = str(body.get("month") or current_month())[:7]
                 if not question and not image:
                     return self.send_json(400, {"error": "Question ou image requise"})
-                answer, engine, suggestion, budget, ctx = assistant_answer(question, get_expenses(), image, month)
+                answer, engine, suggestion, budget, ctx = assistant_answer(question, visible_expenses(get_expenses(), self.app_user), image, month)
                 return self.send_json(
                     200,
                     {
@@ -1239,7 +1275,7 @@ class Handler(SimpleHTTPRequestHandler):
                     month = current_month()
                 hint = str(body.get("question") or "").strip()
                 text, kind = extract_document_text(doc)
-                result = analyze_statement(text, get_expenses(), month, doc["name"], hint)
+                result = analyze_statement(text, visible_expenses(get_expenses(), self.app_user), month, doc["name"], hint)
                 result["kind"] = kind
                 return self.send_json(200, result)
             except Exception as e:
@@ -1268,7 +1304,7 @@ class Handler(SimpleHTTPRequestHandler):
                         "label": str(raw["label"]).strip()[:120],
                         "category": raw["category"] if raw["category"] in CATEGORIES else "Autres",
                         "amount": round(amount, 2),
-                        "payer": display_payer(raw.get("payer")),
+                        "payer": display_payer(raw.get("payer") or (self.app_user if self.app_user in USERS else "Quentin")),
                         "shared": bool(raw.get("shared", True)),
                         "status": str(raw.get("status") or "À équilibrer")[:40],
                         "note": str(raw.get("note") or "")[:240],

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
-<title>DuoSpend · Finances & Sérénité à deux (v1.6)</title>
+<title>DuoSpend · Finances & Sérénité à deux (v1.7)</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -1515,6 +1515,15 @@ body{
   height:1px;
 }
 
+/* Mode foyer / moi */
+.mode-switch{display:flex;align-items:center;gap:8px;padding:12px 18px 0;flex-wrap:wrap}
+.mode-switch .mode-btn{border:1.5px solid var(--border);background:var(--surface);color:var(--text-muted);border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s}
+.mode-switch .mode-btn.active{background:var(--primary);border-color:var(--primary);color:#ffffff}
+.mode-switch .mode-btn:disabled{opacity:.45;cursor:not-allowed}
+.mode-switch .mode-user{margin-left:auto;font-size:12px;color:var(--text-muted);font-weight:600}
+.seg{display:flex;gap:6px;background:rgba(28,25,23,.05);border-radius:12px;padding:4px}
+.seg button{flex:1;border:0;background:transparent;color:var(--text-muted);border-radius:9px;padding:9px 8px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer}
+.seg button.active{background:var(--primary);color:#ffffff}
 /* Import de releve (PDF/CSV) */
 .import-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px;font-size:12.5px;width:100%;max-width:100%;box-sizing:border-box}
 .import-card .import-head{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
@@ -1945,6 +1954,12 @@ body{
     </div>
   </header>
 
+  <div class="mode-switch" id="modeSwitch">
+    <button type="button" class="mode-btn active" data-mode="foyer" title="Dépenses communes du foyer">Le foyer</button>
+    <button type="button" class="mode-btn" data-mode="moi" title="Uniquement mes dépenses">Moi</button>
+    <span class="mode-user" id="modeUser"></span>
+  </div>
+
   <!-- Universal View Switcher Tabs -->
   <nav class="nav-tabs" aria-label="Sections principales">
     <button type="button" class="tab-btn active" data-tab="tab-overview">
@@ -1992,21 +2007,21 @@ body{
       <div class="card">
         <div class="card-header">
           <div>
-            <h2 class="card-title">Avances du couple</h2>
-            <p class="card-subtitle">Répartition indicative des paiements</p>
+            <h2 class="card-title" id="balanceTitle">Avances du couple</h2>
+            <p class="card-subtitle" id="balanceSubtitle">Répartition indicative des paiements</p>
           </div>
         </div>
 
         <div class="balance-hero">
           <div class="person-col q">
-            <span class="person-name">Quentin</span>
+            <span class="person-name" id="qname">Quentin</span>
             <span class="person-amount" id="qtotal">0 €</span>
           </div>
           <div class="balance-vs">
             <span class="vs-pill">Partage</span>
           </div>
           <div class="person-col j right">
-            <span class="person-name">Jessica</span>
+            <span class="person-name" id="jname">Jessica</span>
             <span class="person-amount" id="jtotal">0 €</span>
           </div>
         </div>
@@ -2388,6 +2403,14 @@ body{
           </select>
         </div>
       </div>
+
+      <div class="form-group">
+        <label>Cette dépense compte pour</label>
+        <div class="seg" id="f_scope">
+          <button type="button" data-shared="true" class="active">Le foyer (commune)</button>
+          <button type="button" data-shared="false">Moi (perso)</button>
+        </div>
+      </div>
       <div class="form-group">
         <label for="f_note">Note (optionnelle)</label>
         <input type="text" id="f_note" placeholder="Détail utile…">
@@ -2403,8 +2426,8 @@ body{
   <div class="duo-lock-card">
     <div class="duo-lock-logo"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"></path><path d="M16 10a4 4 0 0 0-8 0v4a4 4 0 0 0 8 0"></path></svg></div>
     <h2>DuoSpend</h2>
-    <p>Entrez votre code foyer pour accéder à vos finances.</p>
-    <input id="duoLockInp" class="duo-lock-inp" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="••••••" aria-label="Code foyer">
+    <p>Entrez votre code d'accès personnel pour ouvrir vos finances.</p>
+    <input id="duoLockInp" class="duo-lock-inp" type="password" inputmode="text" autocomplete="off" maxlength="20" placeholder="••••••" aria-label="Code d'accès">
     <button id="duoLockBtn" class="duo-lock-btn" type="button">Déverrouiller</button>
     <div id="duoLockErr" class="duo-lock-err"></div>
   </div>
@@ -2437,6 +2460,12 @@ window.onerror = function(msg, url, line, col, err){
 };
 const API_BASE = window.NOTITIA_API || '';
 const $ = id => document.getElementById(id);
+// — Identité & portée des données (le foyer = communes, moi = mes dépenses) —
+let currentUser = '';
+try { currentUser = localStorage.getItem('duospend_user') || ''; } catch(e){}
+let userMode = 'foyer';
+try { userMode = localStorage.getItem('duospend_mode') || 'foyer'; } catch(e){}
+const passMode = x => userMode === 'moi' ? (x.payer === currentUser) : x.shared !== false;
 
 // — Verrou d'accès : envoi du code foyer sur chaque appel API —
 (function(){
@@ -2508,7 +2537,7 @@ const DECISION_SETS = {
 };
 
 function getComputedQuests(){
-  const monthRows = expenses.filter(x => String(x.date || '').startsWith(currentMonth) && x.shared !== false);
+  const monthRows = expenses.filter(x => String(x.date || '').startsWith(currentMonth) && passMode(x));
   const foodSpent = monthRows.filter(x => x.category === 'Courses').reduce((a,x) => a + Number(x.amount || 0), 0);
   const foodBudgetObj = envelopes.find(e => e.category === 'Courses');
   const foodBudget = foodBudgetObj ? foodBudgetObj.budget : 180;
@@ -2656,7 +2685,7 @@ function toggleManualQuest(id, idx){
 function updateWhoPaysInfo(){
   const details = $('whoPaysDetails');
   if(!details) return;
-  const monthRows = expenses.filter(x => String(x.date || '').startsWith(currentMonth) && x.shared !== false);
+  const monthRows = expenses.filter(x => String(x.date || '').startsWith(currentMonth) && passMode(x));
   const qAmt = monthRows.filter(x => x.payer === 'Quentin').reduce((a,x) => a + Number(x.amount || 0), 0);
   const jAmt = monthRows.filter(x => x.payer === 'Jessica').reduce((a,x) => a + Number(x.amount || 0), 0);
   const total = qAmt + jAmt;
@@ -2678,7 +2707,7 @@ function playWhoPays(weighted = true){
   const btn = $('btnWhoPaysWeighted');
   if(!disp) return;
 
-  const monthRows = expenses.filter(x => String(x.date || '').startsWith(currentMonth) && x.shared !== false);
+  const monthRows = expenses.filter(x => String(x.date || '').startsWith(currentMonth) && passMode(x));
   const qAmt = monthRows.filter(x => x.payer === 'Quentin').reduce((a,x) => a + Number(x.amount || 0), 0);
   const jAmt = monthRows.filter(x => x.payer === 'Jessica').reduce((a,x) => a + Number(x.amount || 0), 0);
   const total = qAmt + jAmt;
@@ -2797,24 +2826,49 @@ function updateDonut(categoryAmounts, total){
 function renderUI(){
   $('monthLabel').textContent = monthName(currentMonth);
 
-  const monthRows = expenses.filter(x => String(x.date || '').startsWith(currentMonth) && x.shared !== false);
+  const monthRows = expenses.filter(x => String(x.date || '').startsWith(currentMonth) && passMode(x));
   const total = monthRows.reduce((a, x) => a + Number(x.amount || 0), 0);
   const q = monthRows.filter(x => x.payer === 'Quentin').reduce((a, x) => a + Number(x.amount || 0), 0);
   const j = monthRows.filter(x => x.payer === 'Jessica').reduce((a, x) => a + Number(x.amount || 0), 0);
 
-  $('totalDisplay').textContent = eur(total);
-  $('qtotal').textContent = eur(q);
-  $('jtotal').textContent = eur(j);
+  const isMoiMode = userMode === 'moi';
+  const persoSum = monthRows.filter(x => x.shared === false).reduce((a, x) => a + Number(x.amount || 0), 0);
+  const communSum = monthRows.filter(x => x.shared !== false).reduce((a, x) => a + Number(x.amount || 0), 0);
+  const qnEl = $('qname'), jnEl = $('jname'), btEl = $('balanceTitle'), bsEl = $('balanceSubtitle');
+  if(isMoiMode){
+    if(qnEl) qnEl.textContent = 'Moi (perso)';
+    if(jnEl) jnEl.textContent = 'Moi (communes)';
+    if(btEl) btEl.textContent = 'Mes dépenses du mois';
+    if(bsEl) bsEl.textContent = 'Mode perso : uniquement ce que tu as dépensé';
+    $('totalDisplay').textContent = eur(total);
+    $('qtotal').textContent = eur(persoSum);
+    $('jtotal').textContent = eur(communSum);
+  } else {
+    if(qnEl) qnEl.textContent = 'Quentin';
+    if(jnEl) jnEl.textContent = 'Jessica';
+    if(btEl) btEl.textContent = 'Avances du couple';
+    if(bsEl) bsEl.textContent = 'Répartition indicative des paiements';
+    $('totalDisplay').textContent = eur(total);
+    $('qtotal').textContent = eur(q);
+    $('jtotal').textContent = eur(j);
+  }
 
   // Balance progress bar
-  const pctQ = total > 0 ? (q / total) * 100 : 50;
-  const pctJ = total > 0 ? (j / total) * 100 : 50;
+  const baseQ = isMoiMode ? persoSum : q;
+  const baseJ = isMoiMode ? communSum : j;
+  const baseTot = baseQ + baseJ;
+  const pctQ = baseTot > 0 ? (baseQ / baseTot) * 100 : 50;
+  const pctJ = baseTot > 0 ? (baseJ / baseTot) * 100 : 50;
   $('barQ').style.width = `${pctQ}%`;
   $('barJ').style.width = `${pctJ}%`;
 
   const due = Math.abs(q - j) / 2;
   const tag = $('balanceText');
-  if(!monthRows.length){
+  if(isMoiMode){
+    tag.textContent = monthRows.length
+      ? "Mode perso : uniquement ce que tu as dépensé. L'équilibre du foyer se règle dans « Le foyer »."
+      : "Aucune de tes dépenses ce mois-ci.";
+  } else if(!monthRows.length){
     tag.textContent = "Aucune dépense enregistrée ce mois-ci.";
   } else if(due < 0.05){
     tag.textContent = "Paiements équitablement partagés ce mois-ci.";
@@ -2945,8 +2999,10 @@ function renderUI(){
     aiTitle.textContent = "Alerte enveloppe budgétaire";
     aiText.textContent = `Plafond dépassé sur : ${names}. Attention à ajuster les dépenses d'ici la fin du mois.`;
   } else {
-    aiTitle.textContent = "Vue d'ensemble du mois";
-    let summaryLine = `Total de ${eur(total)} engagé sur le mois. Quentin a avancé ${eur(q)} et Jessica ${eur(j)}.`;
+    aiTitle.textContent = isMoiMode ? "Ta vue perso du mois" : "Vue d'ensemble du mois";
+    let summaryLine = isMoiMode
+      ? `Tu as dépensé ${eur(total)} ce mois-ci, dont ${eur(persoSum)} en perso et ${eur(communSum)} avancé pour le foyer.`
+      : `Total de ${eur(total)} engagé sur le mois. Quentin a avancé ${eur(q)} et Jessica ${eur(j)}.`;
     const capsSet = envelopes.filter(e => Number(e.budget) > 0);
     if(capsSet.length){
       const remainCaps = capsSet.reduce((a,e) => a + Math.max(0, Number(e.budget) - Number(e.spent || 0)), 0);
@@ -3195,7 +3251,7 @@ function suggestBudgets(){
   Object.keys(CATEGORY_META).forEach(cat => {
     let sum = 0, n = 0;
     months.forEach(mo => {
-      const t = expenses.filter(x => String(x.date || '').startsWith(mo) && x.shared !== false && x.category === cat)
+      const t = expenses.filter(x => String(x.date || '').startsWith(mo) && passMode(x) && x.category === cat)
                         .reduce((a,x) => a + Number(x.amount || 0), 0);
       if(t > 0){ sum += t; n++; }
     });
@@ -3433,6 +3489,10 @@ function appendImportCard(j){
   wrap.appendChild(card);
   thread.appendChild(wrap);
   thread.scrollTop = thread.scrollHeight;
+  const payerSel = card.querySelector('#impPayer');
+  if(payerSel && (currentUser === 'Jessica' || currentUser === 'Quentin')) payerSel.value = currentUser;
+  const sharedBox = card.querySelector('#impShared');
+  if(sharedBox) sharedBox.checked = userMode !== 'moi';
 
   const checks = [...card.querySelectorAll('.imp-check')];
   const totalEl = card.querySelector('#impTotal');
@@ -3599,7 +3659,7 @@ async function handleFiles(file){
 async function loadState(){
   // Load local cache immediately for zero-delay UX
   try {
-    const cached = localStorage.getItem('duospend_state_' + currentMonth);
+    const cached = localStorage.getItem(stateCacheKey());
     if(cached){
       const parsed = JSON.parse(cached);
       if(parsed.shopping && (!shopping || !shopping.length)) shopping = parsed.shopping;
@@ -3613,11 +3673,16 @@ async function loadState(){
     const r = await fetch(API_BASE + '/api/state?month=' + encodeURIComponent(currentMonth));
     const j = await r.json();
     if(r.ok){
-      expenses = j.expenses || [];
+      if(j.user && j.user !== currentUser){
+        currentUser = j.user;
+        try { localStorage.setItem('duospend_user', currentUser); } catch(e){}
+      }
+      syncUserUI();
+      expenses = (j.expenses || []).filter(passMode);
       envelopes = j.envelopes || [];
       shopping = j.shopping || [];
       try {
-        localStorage.setItem('duospend_state_' + currentMonth, JSON.stringify({expenses, envelopes, shopping}));
+        localStorage.setItem(stateCacheKey(), JSON.stringify({expenses, envelopes, shopping}));
       } catch(e) {}
     }
   }catch(e){
@@ -3626,11 +3691,63 @@ async function loadState(){
   renderUI();
 }
 
+// — Mode « Le foyer » / « Moi » -------------------------------------------
+function stateCacheKey(){
+  return 'duospend_state_' + (currentUser || 'anon') + '_' + userMode + '_' + currentMonth;
+}
+function syncUserUI(){
+  const who = $('modeUser');
+  if(who){
+    who.textContent = currentUser
+      ? (currentUser === 'Foyer' ? 'Code collectif : accès commun' : 'Connecté : ' + currentUser)
+      : '';
+  }
+  document.querySelectorAll('#modeSwitch .mode-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === userMode);
+    if(b.dataset.mode === 'moi') b.disabled = (!currentUser || currentUser === 'Foyer');
+  });
+}
+function applyMode(mode){
+  userMode = (mode === 'moi' && currentUser && currentUser !== 'Foyer') ? 'moi' : 'foyer';
+  try { localStorage.setItem('duospend_mode', userMode); } catch(e){}
+  syncUserUI();
+  return loadState();
+}
+(function initModeSwitch(){
+  const sw = $('modeSwitch');
+  if(!sw) return;
+  sw.querySelectorAll('.mode-btn').forEach(b => { b.onclick = () => applyMode(b.dataset.mode); });
+  syncUserUI();
+})();
+function scopeIsShared(){
+  const wrap = $('f_scope');
+  if(!wrap) return true;
+  const active = wrap.querySelector('button.active');
+  return !active || active.dataset.shared === 'true';
+}
+function setScope(isShared){
+  editingShared = !!isShared;
+  const wrap = $('f_scope');
+  if(!wrap) return;
+  wrap.querySelectorAll('button').forEach(b => {
+    b.classList.toggle('active', (b.dataset.shared === 'true') === !!isShared);
+  });
+}
+(function initScope(){
+  const wrap = $('f_scope');
+  if(!wrap) return;
+  wrap.querySelectorAll('button').forEach(b => {
+    b.onclick = () => setScope(b.dataset.shared === 'true');
+  });
+})();
+
 // Modal Handlers
 $('btnOpenModal').onclick = () => {
   $('modalTitle').textContent = 'Ajouter une dépense';
   $('f_id').value = '';
   $('f_date').value = new Date().toISOString().slice(0,10);
+  $('f_payer').value = (currentUser === 'Jessica') ? 'Jessica' : 'Quentin';
+  setScope(userMode !== 'moi');
   $('modalOverlay').classList.add('open');
 };
 $('btnCloseModal').onclick = () => $('modalOverlay').classList.remove('open');
@@ -3642,7 +3759,7 @@ $('manualForm').onsubmit = async e => {
     date: $('f_date').value,
     category: $('f_cat').value,
     payer: $('f_payer').value,
-    shared: true
+    shared: scopeIsShared()
   };
   const editId = $('f_id').value;
   const finalItem = editId ? {...item, shared: editingShared} : item;
@@ -3687,6 +3804,7 @@ function openEditExpense(id){
   $('modalTitle').textContent = 'Modifier la dépense';
   $('f_id').value = id;
   editingShared = t.shared !== false;
+  setScope(t.shared !== false);
   $('f_label').value = t.label || '';
   $('f_amount').value = t.amount || '';
   $('f_date').value = (t.date || '').slice(0,10);
@@ -3887,7 +4005,7 @@ loadState().then(() => {
   if(chatHistory.length){
     renderChatHistory();
   } else {
-    addChatMessage('bot', 'Bonjour Quentin & Jessica ! Je suis DuoSpend. Prêt pour un suivi fluide de vos dépenses et de vos objectifs !');
+    addChatMessage('bot', 'Bonjour ' + (currentUser && currentUser !== 'Foyer' ? currentUser : 'Quentin & Jessica') + ' ! Je suis DuoSpend. Prêt pour un suivi fluide de vos dépenses et de vos objectifs !');
   }
 });
 </script>
