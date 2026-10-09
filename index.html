@@ -3687,7 +3687,7 @@ function appendImportCard(j, container){
     const catOpts = IMPORT_CATS.map(c => `<option value="${esc(c)}"${c === op.category ? ' selected' : ''}>${CATEGORY_META[c].emoji} ${esc(c)}</option>`).join('');
     const dateFr = (op.date || '').length >= 10 ? (op.date.slice(8,10) + '/' + op.date.slice(5,7)) : '';
     const dupBadge = op.duplicate ? `<span class="imp-badge">déjà pointé${op.matched ? ' : ' + esc(String(op.matched.label || '').slice(0, 26)) : ''}</span>` : '';
-    const qLine = (!op.duplicate && (op.question || op.category === 'Autres'))
+    const qLine = (!op.duplicate && (op.question || (op.category === 'Autres' && Number(op.amount) >= 10)))
       ? `<div class="imp-q">❓ ${esc(op.question || ('À quoi correspond « ' + op.label.slice(0,40) + ' » ?'))}
            <input class="imp-answer" data-i="${i}" placeholder="ex. : assurance habitation, abonnement…"></div>`
       : '';

@@ -1030,10 +1030,26 @@ def _statement_mk_op(dd, mm, yy, label, amount, signed_negative, suffix, month):
     }
 
 
-_FR_MONTHS = {"janv": 1, "fevr": 2, "mars": 3, "avr": 4, "mai": 5, "juin": 6, "juil": 7,
-              "aout": 8, "sept": 9, "oct": 10, "nov": 11, "dec": 12}
-_REVOLUT_DATE_RE = re.compile(r"\b(\d{1,2})\s+(janv\.?|f[e\u00e9]vr\.?|mars|avr\.?|mai|juin|juil\.?|ao[\u00fbu]t|sept\.?|oct\.?|nov\.?|d[e\u00e9]c\.?)\s+(\d{4})\b", re.I)
-_REVOLUT_AMOUNT_RE = re.compile(r"(\d{1,6}(?:[ .\u00a0]\d{3})*[.,]\d{2})\s*\u20ac")
+_TEXT_MONTHS = {"jan": 1, "fev": 2, "feb": 2, "mar": 3, "avr": 4, "apr": 4, "mai": 5, "may": 5,
+                "jun": 6, "jul": 7, "aou": 8, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12}
+
+
+def _text_month_num(name):
+    n = re.sub(r"[^a-z]", "", str(name or "").lower().strip(".")
+               .replace("\u00e9", "e").replace("\u00e8", "e").replace("\u00fb", "u")
+               .replace("\u00ee", "i").replace("\u00f4", "o").replace("\u00e0", "a"))
+    if n.startswith("juil"):
+        return 7
+    if n.startswith("juin"):
+        return 6
+    return _TEXT_MONTHS.get(n[:3])
+
+
+# dates en toutes lettres : « 8 oct. 2026 », « 8 octobre 2026 », « 8 January 2026 »...
+_REVOLUT_DATE_RE = re.compile(r"\b(\d{1,2})\s+([A-Za-z\u00c0-\u00ff]{3,10})\.?\s+(\d{4})\b")
+# ... et en anglais : « Oct 8, 2026 »
+_REVOLUT_DATE_MF_RE = re.compile(r"\b([A-Za-z\u00c0-\u00ff]{3,10})\.?\s+(\d{1,2}),?\s+(\d{4})\b")
+_REVOLUT_AMOUNT_RE = re.compile(r"(\d{1,6}(?:[ .\u00a0]\d{3})*[.,]\d{2})\s*(?:\u20ac|EUR|\$|USD)?")
 
 
 def _statement_ops_revolut(text, month=None):
@@ -1041,7 +1057,7 @@ def _statement_ops_revolut(text, month=None):
     (Argent sortant / Argent entrant). Les colonnes bougent d'une page a l'autre : on relit
     l'en-tete au fil du texte."""
     src_text = str(text or "")
-    if not _REVOLUT_DATE_RE.search(src_text):
+    if not (_REVOLUT_DATE_RE.search(src_text) or _REVOLUT_DATE_MF_RE.search(src_text)):
         return []
     sortant_x = entrant_x = None
     skip_section = False
@@ -1059,12 +1075,16 @@ def _statement_ops_revolut(text, month=None):
         if "transactions du compte" in low_line or "en attente" in low_line or "r\u00e9sum\u00e9" in low_line:
             skip_section = False
         m = _REVOLUT_DATE_RE.search(line)
-        if not m:
-            continue
+        if m:
+            dd, mm_name, yy = m.group(1), m.group(2), m.group(3)
+        else:
+            m = _REVOLUT_DATE_MF_RE.search(line)
+            if not m:
+                continue
+            mm_name, dd, yy = m.group(1), m.group(2), m.group(3)
         if skip_section:
             continue
-        key = m.group(2).lower().rstrip(".")[:4].replace("\u00fb", "u").replace("\u00e9", "e")
-        mm = _FR_MONTHS.get(key)
+        mm = _text_month_num(mm_name)
         amts = [(a.start(), a.group(1)) for a in _REVOLUT_AMOUNT_RE.finditer(line)]
         if not mm or not amts:
             continue
@@ -1076,18 +1096,17 @@ def _statement_ops_revolut(text, month=None):
         amount = parse_fr_amount(raw_amt)
         if not amount:
             continue
-        direction = "debit"
+        suffix = ""
         if entrant_x is not None and sortant_x is not None:
-            direction = "credit" if abs(pos - entrant_x) <= abs(pos - sortant_x) else "debit"
-        out.append(_statement_mk_op(m.group(1), str(mm), m.group(3), label, amount, False,
-                                    "C" if direction == "credit" else "D", month))
+            suffix = "C" if abs(pos - entrant_x) <= abs(pos - sortant_x) else "D"
+        out.append(_statement_mk_op(dd, str(mm), yy, label, amount, False, suffix, month))
     return out
 
 
 def _statement_ops_fallback(text, month=None):
     """Parseur sans IA, tolerant : lignes completes (date + libelle + montant),
     et repli en mode blocs (colonnes separees sur plusieurs lignes)."""
-    if _REVOLUT_DATE_RE.search(str(text or "")):
+    if _REVOLUT_DATE_RE.search(str(text or "")) or _REVOLUT_DATE_MF_RE.search(str(text or "")):
         revolut_ops = _statement_ops_revolut(text, month)
         if revolut_ops:
             return revolut_ops
@@ -1222,7 +1241,7 @@ def _find_duplicate(op, expenses):
 
 def analyze_statement(text, expenses, month, filename="", hint="", image=None):
     raw_ops, engine, notes = None, "rules", []
-    if _REVOLUT_DATE_RE.search(str(text or "")):
+    if ("Argent sortant" in str(text or "")) or ("Argent entrant" in str(text or "")):
         try:
             revolut_ops = _statement_ops_revolut(text, month)
         except Exception:
