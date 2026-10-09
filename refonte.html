@@ -117,6 +117,11 @@ a{color:inherit}
   border-left:2px solid var(--laiton);font-size:12.5px;color:var(--gris);
 }
 .notice a{color:var(--encre);text-decoration:none;border-bottom:1px solid var(--laiton)}
+.notice-form{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
+.notice-form input{flex:1;min-width:130px;border:1px solid var(--hairline);background:var(--ivoire-clair);padding:10px 12px;border-radius:var(--r1);font-size:14px;letter-spacing:.18em;outline:none;color:var(--encre)}
+.notice-form input:focus{border-color:var(--encre)}
+.notice-form .btn-primary{padding:10px 15px}
+.notice-err{margin-top:6px;font-size:11.5px;color:var(--terrecuite)}
 
 /* ---------- bloc patrimoine ---------- */
 .hero{margin-top:30px}
@@ -519,9 +524,9 @@ let selCat = 'Courses', selPayer = 'Quentin', selShared = true;
 let bigTarget = null, qTarget = null, jTarget = null;
 
 /* ---------- données ---------- */
-const code = () => { try { return localStorage.getItem('duospend_code') || ''; } catch(e){ return ''; } };
-async function fetchState(month){
-  const r = await fetch('/api/state?month=' + month, { headers: {'X-App-Code': code()} });
+const code = () => { try { return localStorage.getItem('foyer_refonte_code') || localStorage.getItem('duospend_code') || ''; } catch(e){ return ''; } };
+async function fetchState(month, codeOverride){
+  const r = await fetch('/api/state?month=' + month, { headers: {'X-App-Code': codeOverride || code()} });
   if(r.status === 401) throw new Error('auth');
   if(!r.ok) throw new Error('http ' + r.status);
   return r.json();
@@ -858,6 +863,33 @@ async function submitSheet(){
 
 /* ---------- bandeau ---------- */
 function showNotice(html){ const n = $('notice'); n.innerHTML = html; n.hidden = false; }
+function showAuthNotice(){
+  const n = $('notice');
+  n.innerHTML = '<div>Cet aperçu lit les données de l’application (mêmes comptes, mêmes totaux). Saisissez votre code d’accès une fois sur cet appareil :</div>' +
+    '<div class="notice-form"><input id="codeInp" inputmode="numeric" placeholder="Code d’accès" autocomplete="one-time-code">' +
+    '<button type="button" class="btn-primary" id="codeGo">Afficher le registre</button></div>' +
+    '<div class="notice-err" id="codeErr"></div>';
+  n.hidden = false;
+  $('codeGo').addEventListener('click', tryCode);
+  $('codeInp').addEventListener('keydown', ev => { if(ev.key === 'Enter') tryCode(); });
+  setTimeout(() => { try { $('codeInp').focus(); } catch(e){} }, 200);
+}
+async function tryCode(){
+  const c = String(($('codeInp') && $('codeInp').value) || '').trim();
+  if(!c){ return; }
+  $('codeErr').textContent = '';
+  try {
+    const st = await fetchState(CUR_MONTH, c);
+    try { localStorage.setItem('foyer_refonte_code', c); } catch(e){}
+    state = st; me = st.user || me;
+    if(st.user && ['Quentin','Jessica'].includes(st.user)){ selPayer = st.user; buildSheet(); }
+    try { const p = await fetchState(prevMonthOf(CUR_MONTH), c); prevTotal = Number((p.facts || {}).total || 0); } catch(e){ prevTotal = null; }
+    $('notice').hidden = true;
+    renderAll({sweep:true});
+  } catch(e){
+    $('codeErr').textContent = String(e.message) === 'auth' ? 'Code refusé.' : 'Lecture impossible, réessayez.';
+  }
+}
 
 /* ---------- chargement ---------- */
 async function load(){
@@ -874,7 +906,7 @@ async function load(){
     renderAll({sweep:true});
   } catch(e){
     if(String(e.message) === 'auth'){
-      showNotice('Le registre nécessite votre code d’accès. Ouvrez d’abord <a href="/">l’application</a> sur cet appareil, puis revenez ici.');
+      showAuthNotice();
     } else {
       showNotice('Lecture du registre impossible pour l’instant. <a href="#" id="retryLink">Réessayer</a>');
       const rl = $('retryLink'); if(rl) rl.addEventListener('click', ev => { ev.preventDefault(); load(); });
