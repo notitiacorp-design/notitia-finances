@@ -1005,6 +1005,52 @@ def _transfer_flow(label, payer):
     return sender, receiver
 
 
+CLASSIFY_RULES = (
+    "Tu classes une opération bancaire d'un foyer (France) dans UNE seule catégorie.\n"
+    "Catégories : " + ", ".join(ALL_CATEGORIES) + ".\n"
+    "Repères : Courses = supermarchés, épicerie ; Logement = loyer, charges, énergie, internet, assurance habitation, meubles et équipement de la maison ; "
+    "Transport = carburant, train, péages, parking, transports en commun ; Sorties = restaurants, bars, cinéma, loisirs, vacances, jeux ; "
+    "Abonnements = services récurrents (streaming, téléphone, box, Amazon Prime, cloud, presse) ; Santé = pharmacie, médecin, mutuelle, optique ; Autres = indéterminable.\n"
+    "Enseignes multi-produits (Amazon, Fnac, Leclerc, CDiscount...) : Prime/abonnement → Abonnements ; meubles/maison/outillage → Logement ; sinon la plus probable avec confidence low.\n"
+    "Réponds STRICTEMENT en JSON : {\"category\":\"...\",\"confidence\":\"high|medium|low\",\"why\":\"3 à 6 mots\"}"
+)
+
+
+def classify_expense(label, note="", amount=0.0):
+    """Classe une opération ; retombe sur des règles simples si l'IA est indisponible ou illisible."""
+    if QWEN_KEY:
+        try:
+            user = "Libellé : " + str(label) + "\nNote : " + (str(note) or "aucune") + ("\nMontant : %.2f €" % float(amount or 0))
+            rep = qwen_chat([
+                {"role": "system", "content": CLASSIFY_RULES},
+                {"role": "user", "content": user},
+            ], QWEN_MODEL, max_tokens=120)
+            m = re.search(r"\{.*\}", rep or "", re.S)
+            if m:
+                data = json.loads(m.group(0))
+                cat = data.get("category")
+                if cat in ALL_CATEGORIES:
+                    conf = data.get("confidence") if data.get("confidence") in ("high", "medium", "low") else "medium"
+                    why = str(data.get("why") or "")[:60]
+                    return cat, conf, why, "ai"
+        except Exception:
+            pass
+    low = _ascii_low(str(label) + " " + str(note))
+    if re.search(r"prime|netflix|spotify|disney|canal|abonnement|cloud|icloud|google one|telephone|mobile|box|presse", low):
+        return "Abonnements", "medium", "service récurrent", "rules"
+    if re.search(r"meuble|ikea|maison|deco|bricolage|leroy|castorama|cuisine|linge|outil", low):
+        return "Logement", "medium", "équipement maison", "rules"
+    if re.search(r"pharmacie|medecin|docteur|mutuelle|optic|dentiste|labo", low):
+        return "Santé", "medium", "santé", "rules"
+    if re.search(r"resto|restaurant|bar |cafe|cinema|concert|theatre|jeu|steam|fnac", low):
+        return "Sorties", "medium", "loisirs", "rules"
+    if re.search(r"carrefour|leclerc|intermarche|lidl|aldi|monoprix|casino|epicerie|marche", low):
+        return "Courses", "medium", "alimentaire", "rules"
+    if re.search(r"sncf|total|esso|shell|essence|peage|parking|uber|blablacar|ratp|train", low):
+        return "Transport", "medium", "transport", "rules"
+    return "Autres", "low", "indéterminé", "rules"
+
+
 def _normalize_statement_op(raw, month):
     if not isinstance(raw, dict):
         return None
@@ -1422,6 +1468,10 @@ IMPORT_RULES = (
     "alimentation d'un compte) ne sont PAS des depenses : direction 'transfert' et category 'Transferts'.\n"
     "- N'utilise 'Autres' qu'en tout dernier recours : choisis toujours la categorie la plus plausible ; en cas d'hesitation, "
     "confidence low, une question courte et un champ 'options' avec jusqu'a 3 categories probables.\n"
+    "- Postes types : Courses=supermarchés/épicerie ; Logement=loyer, énergie, internet, assurance habitation, meubles/équipement maison ; "
+    "Transport=carburant, train, péages, parking ; Sorties=restaurants, bars, cinéma, loisirs, vacances ; "
+    "Abonnements=services récurrents (streaming, téléphone, Prime, cloud) ; Santé=pharmacie, médecin, mutuelle.\n"
+    "- Enseignes multi-produits (Amazon, Fnac, Leclerc...) : Prime/abonnement → Abonnements ; meubles/maison/outillage → Logement ; si ambigu : confidence low + question + options.\n"
 )
 IMPORT_JSON_RULES = (
     "Reponds STRICTEMENT avec un tableau JSON prefixe par IMPORT_JSON: "
@@ -2101,6 +2151,18 @@ class Handler(SimpleHTTPRequestHandler):
                 return self.send_json(200, {"ideas": ideas, "engine": engine})
             except Exception as e:
                 return self.send_json(400, {"error": "Idees indisponibles", "detail": str(e)[:120]})
+        if path == "/api/classify":
+            try:
+                body = self.read_json()
+                label = str(body.get("label", "")).strip()[:140]
+                note = str(body.get("note", "")).strip()[:200]
+                amount = float(body.get("amount", 0) or 0)
+                if not label:
+                    return self.send_json(400, {"error": "Libellé requis"})
+                category, confidence, why, engine = classify_expense(label, note, amount)
+                return self.send_json(200, {"category": category, "confidence": confidence, "why": why, "engine": engine})
+            except Exception as e:
+                return self.send_json(400, {"error": "Classification impossible", "detail": str(e)})
         if path == "/api/import/analyze":
             try:
                 body = self.read_json()

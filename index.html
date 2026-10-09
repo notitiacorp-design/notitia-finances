@@ -2688,7 +2688,8 @@ body{background-color:#f7f3ea!important;
  60%{opacity:1}100%{transform:translate3d(var(--dx,0),var(--dy,120px),0) rotateY(760deg);opacity:0}}
 .vs-pill{background:linear-gradient(180deg,#faf5e6,#f0e6c8)!important;border:1px solid rgba(201,162,39,.45)!important;color:#8a6d1f!important}
 @media(prefers-reduced-motion:reduce){
-  .envelope-bar-fill::after,#romeMotes i,.rome-coin{animation:none!important;opacity:0!important}
+  .envelope-bar-fill::after,#romeMotes i,.rome-coin,.rome-sweep,.rome-in,.fab-add::after,.tx-group.open .tx-cat-body .tx-row{animation:none!important;opacity:1!important}
+  .rome-twinkle,.donut-wrap::before,.donut-wrap::after{display:none!important}
 }
 /* liste groupée par catégorie, dépliable */
 .tx-group{border:1px solid var(--border-subtle);border-radius:14px;margin-bottom:8px;overflow:hidden;background:#fff}
@@ -2707,6 +2708,41 @@ body{background-color:#f7f3ea!important;
 .tx-quick{border:1px dashed rgba(138,106,74,.5);background:#faf5e6;color:#8a6a4a;border-radius:999px;font-size:10.5px;padding:2px 8px;cursor:pointer;font-family:inherit;margin-left:6px}
 .balance-transfers{margin-top:8px;font-size:12px;color:var(--text-muted);line-height:1.5}
 .balance-transfers strong{font-family:'Cabinet Grotesk',sans-serif;color:var(--text-main)}
+/* ===== v2.6 : animations visibles ===== */
+@keyframes romeIn{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
+.rome-in{animation:romeIn .55s cubic-bezier(.22,.9,.28,1) both;animation-delay:var(--rd,0s)}
+.rome-sweep{position:fixed;inset:0;z-index:9998;pointer-events:none;
+  background:linear-gradient(105deg,transparent 32%,rgba(201,162,39,.18) 50%,rgba(243,227,174,.12) 58%,transparent 72%);
+  background-size:260% 100%;animation:sweepGo .78s ease both}
+@keyframes sweepGo{from{background-position:190% 0}to{background-position:-90% 0}}
+.donut-wrap{position:relative}
+.donut-wrap::before{content:'';position:absolute;inset:-10px;border-radius:50%;border:1.5px dashed rgba(201,162,39,.5);pointer-events:none;animation:haloSpin 28s linear infinite}
+.donut-wrap::after{content:'';position:absolute;inset:-4px;border-radius:50%;pointer-events:none;background:radial-gradient(circle, rgba(201,162,39,.10) 0%, transparent 62%);animation:haloGlow 5.5s ease-in-out infinite}
+@keyframes haloSpin{to{transform:rotate(360deg)}}
+@keyframes haloGlow{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.9;transform:scale(1.05)}}
+#donutSvg circle{transform-origin:50% 50%;transform-box:view-box;animation:donutSeg .7s cubic-bezier(.22,.9,.28,1) both}
+@keyframes donutSeg{from{opacity:0;transform:scale(.9) rotate(-8deg)}}
+.donut-center{animation:donutPop .65s cubic-bezier(.22,.9,.28,1) both}
+@keyframes donutPop{from{opacity:0;transform:scale(.55)}}
+.rome-twinkle{position:absolute;width:7px;height:7px;pointer-events:none;z-index:3;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,236,170,.95) 0%,rgba(201,162,39,.55) 45%,transparent 70%);
+  animation:twinkle 2.8s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:0;transform:scale(.4)}50%{opacity:.9;transform:scale(1)}}
+.fab-add::after{content:'';position:absolute;inset:-5px;border-radius:inherit;border:2px solid rgba(201,162,39,.55);pointer-events:none;animation:fabRing 3.8s ease-out infinite}
+@keyframes fabRing{0%{transform:scale(.86);opacity:0}30%{opacity:.75}100%{transform:scale(1.22);opacity:0}}
+.envelope-bar-fill{transition:width .9s cubic-bezier(.22,.9,.28,1)}
+.tx-cat{transition:background .2s, transform .15s}
+.tx-cat:active{transform:scale(.995)}
+.tx-cat .tx-icon{transition:transform .25s}
+.tx-group.open .tx-cat .tx-icon{transform:scale(1.1)}
+.tx-group.open .tx-cat-body .tx-row{animation:romeIn .45s cubic-bezier(.22,.9,.28,1) both}
+.tx-group.open .tx-cat-body .tx-row:nth-child(1){animation-delay:.02s}
+.tx-group.open .tx-cat-body .tx-row:nth-child(2){animation-delay:.06s}
+.tx-group.open .tx-cat-body .tx-row:nth-child(3){animation-delay:.1s}
+.tx-group.open .tx-cat-body .tx-row:nth-child(4){animation-delay:.14s}
+.tx-group.open .tx-cat-body .tx-row:nth-child(5){animation-delay:.18s}
+.tx-group.open .tx-cat-body .tx-row:nth-child(6){animation-delay:.22s}
+.tx-group.open .tx-cat-body .tx-row:nth-child(n+7){animation-delay:.26s}
 </style>
 
 <script>
@@ -3478,6 +3514,10 @@ function txRowHtml(t){
   const quick = (!tr && looksLikeTransferLabel(t.label))
     ? `<button type="button" class="tx-quick" onclick="markAsTransfer('${t.id}')" title="Virement entre comptes ? Le sortir des dépenses sans le supprimer">⇄ transfert ?</button>`
     : '';
+  const needClass = (!tr && (t.category === 'Autres' || /(?:^|·)\s*ia:low/.test(String(t.note || ''))));
+  const classBtn = needClass
+    ? `<button type="button" class="tx-quick need" onclick="openClasser('${t.id}')" title="Renseigne cette dépense : écris une note et l'IA la classe, ou choisis la catégorie">❓ à classer</button>`
+    : '';
   return `
     <div class="tx-row${tr ? ' tr' : ''}">
       <div class="tx-info">
@@ -3490,7 +3530,7 @@ function txRowHtml(t){
             <span class="tx-tag ${payerTag}">${esc(t.payer)}</span>
             <span>•</span>
             ${tr ? `<span class="tx-tag tr">${esc(transferFlowLabel(t))}</span>` : `<span>${esc(t.category)}</span>`}
-            ${quick}
+            ${quick}${classBtn}
           </div>
         </div>
       </div>
@@ -3562,6 +3602,60 @@ async function markAsTransfer(id){
     showToast('Transfert neutralisé ✓');
     await loadState();
   }catch(e){ showToast('Erreur: ' + e.message, false); }
+}
+
+function openClasser(id){
+  const t = expenses.find(x => String(x.id) === String(id));
+  if(!t) return;
+  let ov = document.getElementById('classerOverlay');
+  if(!ov){
+    ov = document.createElement('div'); ov.id = 'classerOverlay'; ov.className = 'classer-overlay';
+    ov.innerHTML = '<div class="classer-card">' +
+      '<div class="classer-title">❓ Classer la dépense</div>' +
+      '<div class="classer-label" id="classerLabel"></div>' +
+      '<label class="classer-field">Catégorie<select id="classerCat"></select></label>' +
+      '<label class="classer-field">Note pour l\'IA<textarea id="classerNote" rows="2" placeholder="ex. : abonnement prime, meubles pour la maison…"></textarea></label>' +
+      '<div class="classer-actions">' +
+        '<button type="button" class="classer-btn ghost" id="classerIA">🪄 Classer avec l\'IA</button>' +
+        '<button type="button" class="classer-btn" id="classerSave">Enregistrer</button>' +
+      '</div>' +
+      '<button type="button" class="classer-x" aria-label="Fermer">×</button>' +
+      '</div>';
+    document.body.appendChild(ov);
+    ov.querySelector('#classerCat').innerHTML = Object.keys(CATEGORY_META).map(c => '<option value="' + esc(c) + '">' + CATEGORY_META[c].emoji + ' ' + esc(c) + '</option>').join('');
+    ov.querySelector('.classer-x').onclick = () => ov.classList.remove('open');
+    ov.addEventListener('click', e => { if(e.target === ov) ov.classList.remove('open'); });
+  }
+  ov.dataset.id = String(id);
+  ov.querySelector('#classerLabel').textContent = t.label + ' · ' + eur(t.amount) + ' · ' + fmtDate(t.date) + ' · ' + t.payer + (t.shared !== false ? ' · commune' : ' · perso');
+  ov.querySelector('#classerCat').value = t.category;
+  ov.querySelector('#classerNote').value = '';
+  ov.querySelector('#classerIA').onclick = async () => {
+    const note = ov.querySelector('#classerNote').value.trim();
+    const btn = ov.querySelector('#classerIA'); const o = btn.textContent;
+    btn.disabled = true; btn.textContent = '🪄 …';
+    try{
+      const r = await fetch(API_BASE + '/api/classify', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ label: t.label, note: note, amount: t.amount }) });
+      const jr = await r.json();
+      if(r.ok && jr.category){
+        ov.querySelector('#classerCat').value = jr.category;
+        showToast('🪄 ' + jr.category + (jr.why ? ' · ' + jr.why : ''));
+      } else { showToast('Classification impossible', false); }
+    }catch(e){ showToast('Erreur: ' + e.message, false); }
+    btn.disabled = false; btn.textContent = o;
+  };
+  ov.querySelector('#classerSave').onclick = async () => {
+    const cat = ov.querySelector('#classerCat').value;
+    const note = ov.querySelector('#classerNote').value.trim();
+    let base = String(t.note || '').replace(/\s*·\s*ia:(low|medium|high)/g, '').replace(/\s*·\s*classé\s*·?/g, '').trim();
+    const parts = []; if(base) parts.push(base); if(note) parts.push('Note: ' + note); parts.push('classé');
+    try{
+      const r = await fetch(API_BASE + '/api/expenses/update', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id: t.id, date: t.date, label: t.label, category: cat, amount: t.amount, payer: t.payer, shared: t.shared, note: parts.join(' · ') }) });
+      const jr = await r.json(); if(!r.ok) throw Error(jr.detail || jr.error || 'Erreur');
+      ov.classList.remove('open'); showToast('Dépense classée ✓'); await loadState();
+    }catch(e){ showToast('Erreur: ' + e.message, false); }
+  };
+  ov.classList.add('open');
 }
 
 function renderShoppingUI(){
@@ -4026,9 +4120,12 @@ function appendImportCard(j, container){
     const isTr = op.direction === 'transfert';
     const dupBadge = op.duplicate ? `<span class="imp-badge">déjà pointé${op.matched ? ' : ' + esc(String(op.matched.label || '').slice(0, 26)) : ''}</span>` : '';
     const trBadge = isTr ? '<span class="imp-badge tr">⇄ transfert · neutre</span>' : '';
-    const qLine = (!op.duplicate && !isTr && (op.question || (op.category === 'Autres' && Number(op.amount) >= 10)))
-      ? `<div class="imp-q">❓ ${esc(op.question || ('À quoi correspond « ' + op.label.slice(0,40) + ' » ?'))}
-           <input class="imp-answer" data-i="${i}" placeholder="ex. : assurance habitation, abonnement…"></div>`
+    const lowBadge = (op.confidence === 'low' && !op.duplicate && !isTr) ? '<span class="imp-badge low">à préciser</span>' : '';
+    const needsInfo = !op.duplicate && !isTr && (op.question || op.category === 'Autres' || op.confidence === 'low');
+    const qLine = needsInfo
+      ? `<div class="imp-q">❓ ${esc(op.question || ('À quoi correspond « ' + op.label.slice(0,40) + ' » ? Dis-le ici, ou choisis la catégorie.'))}
+           <input class="imp-answer" data-i="${i}" placeholder="ex. : abonnement prime, meubles…">
+           <button type="button" class="imp-magic" data-i="${i}" title="Laisser l'IA classer d'après ta note">🪄</button></div>`
       : '';
     const optChips = (!op.duplicate && !isTr && (op.options || []).length)
       ? `<div class="imp-opts">${op.options.map(c => `<button type="button" class="imp-opt" data-i="${i}" data-cat="${esc(c)}">${(CATEGORY_META[c] ? CATEGORY_META[c].emoji + ' ' : '')}${esc(c)}</button>`).join('')}</div>`
@@ -4044,7 +4141,7 @@ function appendImportCard(j, container){
           <div class="imp-meta">
             <span>${esc(dateFr)}</span>
             <select class="imp-cat" data-i="${i}">${catOpts}</select>
-            ${dupBadge}${trBadge}
+            ${dupBadge}${trBadge}${lowBadge}
           </div>
           ${qLine}
           ${optChips}
@@ -4089,6 +4186,21 @@ function appendImportCard(j, container){
     if(sel) sel.value = b.dataset.cat;
     card.querySelectorAll(`.imp-opt[data-i="${b.dataset.i}"]`).forEach(x => x.classList.toggle('sel', x === b));
   });
+  card.querySelectorAll('.imp-magic').forEach(b => b.onclick = async () => {
+    const i = b.dataset.i; const op = ops[Number(i)]; if(!op) return;
+    const inp = card.querySelector('.imp-answer[data-i="' + i + '"]');
+    const note = inp ? inp.value.trim() : '';
+    const old = b.textContent; b.disabled = true; b.textContent = '…';
+    try{
+      const r = await fetch(API_BASE + '/api/classify', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ label: op.label, note: note, amount: op.amount }) });
+      const jr = await r.json();
+      if(r.ok && jr.category){
+        const sel = card.querySelector('.imp-cat[data-i="' + i + '"]'); if(sel) sel.value = jr.category;
+        showToast('🪄 ' + jr.category + (jr.why ? ' · ' + jr.why : ''));
+      } else { showToast('Classification impossible', false); }
+    }catch(e){ showToast('Erreur: ' + e.message, false); }
+    b.disabled = false; b.textContent = old;
+  });
   const all = card.querySelector('#impAll');
   if(all) all.onchange = () => { checks.forEach(c => c.checked = all.checked); refreshTotal(); };
   refreshTotal();
@@ -4106,7 +4218,7 @@ function appendImportCard(j, container){
       const catEl = card.querySelector(`.imp-cat[data-i="${i}"]`);
       const answer = answerEl ? answerEl.value.trim() : '';
       const label = answer ? answer : op.label;
-      const note = 'Relevé ' + (j.file || '') + (answer ? ' · libellé banque : ' + op.label : '');
+      const note = 'Relevé ' + (j.file || '') + (answer ? ' · libellé banque : ' + op.label : '') + (op.confidence === 'low' ? ' · ia:low' : '');
       return { date: op.date, label: label, category: (catEl ? catEl.value : op.category), amount: op.amount, payer: payer, shared: shared, note: note.slice(0, 220) };
     });
     go.disabled = true;
@@ -4888,7 +5000,59 @@ loadState().then(() => {
       if(p&&typeof p.then==='function'){p.then(a,a);} else a(); return p; };
     wl.__crassus=1; window.loadState=wl;
   }
-  setTimeout(function(){ latins(); bindHoards(); },1000);
+  function cascade(){
+    try{
+      if(rm) return;
+      var pane = Array.prototype.filter.call(document.querySelectorAll('.tab-pane'), function(p){ return getComputedStyle(p).display !== 'none'; })[0];
+      if(!pane) return;
+      var els = pane.querySelectorAll('.card, .pane-head');
+      Array.prototype.slice.call(els, 0, 9).forEach(function(el, idx){
+        el.classList.remove('rome-in'); void el.offsetWidth;
+        el.style.setProperty('--rd', (idx * 0.07).toFixed(2) + 's');
+        el.classList.add('rome-in');
+      });
+    }catch(e){}
+  }
+  window.romeSweep = function(){
+    if(rm) return;
+    var d = document.createElement('div'); d.className = 'rome-sweep';
+    document.body.appendChild(d); setTimeout(function(){ d.remove(); }, 850);
+  };
+  document.addEventListener('click', function(e){
+    var t = e.target && e.target.closest ? e.target.closest('.tab-btn') : null;
+    if(!t) return;
+    window.romeSweep(); setTimeout(cascade, 130);
+  }, true);
+  function twinkles(){
+    if(rm) return;
+    var w = document.querySelector('.donut-wrap'); if(!w || w.__tw) return; w.__tw = 1;
+    for(var k = 0; k < 3; k++){
+      var sp = document.createElement('i'); sp.className = 'rome-twinkle';
+      var ang = [-42, 78, 205][k], rad = 44 + Math.random() * 9;
+      sp.style.left = (50 + Math.cos(ang * Math.PI / 180) * rad) + '%';
+      sp.style.top = (50 + Math.sin(ang * Math.PI / 180) * rad) + '%';
+      sp.style.animationDelay = (k * 0.9) + 's';
+      w.appendChild(sp);
+    }
+  }
+  (function(){
+    var ost = window.showToast;
+    if(ost && !ost.__crassus){
+      var wst = function(msg){
+        try{ if(/ajout|modifi|import|class|neutralis/i.test(String(msg))) { if(!rm) coins(window.innerWidth / 2, Math.min(150, window.innerHeight * 0.25), 7); } }catch(e){}
+        return ost.apply(this, arguments);
+      };
+      wst.__crassus = 1; window.showToast = wst;
+    }
+  })();
+  latins(); motes(); bindHoards(); cascade(); twinkles();
+  if(typeof window.loadState==='function'&&!window.loadState.__crassus){
+    var ol=window.loadState, wl=function(){ var p=ol.apply(this,arguments);
+      var a=function(){ setTimeout(function(){ latins(); bindHoards(); cascade(); twinkles(); },140); };
+      if(p&&typeof p.then==='function'){p.then(a,a);} else a(); return p; };
+    wl.__crassus=1; window.loadState=wl;
+  }
+  setTimeout(function(){ latins(); bindHoards(); cascade(); twinkles(); },1000);
 })();
 </script>
 </body>
