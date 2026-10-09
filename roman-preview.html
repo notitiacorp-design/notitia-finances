@@ -2236,6 +2236,21 @@ input:focus,select:focus,textarea:focus{outline:none!important;border-color:var(
 </style>
 </head>
 <body>
+<script>
+/* Page d'apercu (theme) : donnees fictives, aucune donnee reelle, verrou saute */
+(function(){
+  try{ localStorage.setItem('duospend_unlocked_at', String(Date.now())); localStorage.setItem('duospend_code','apercu'); }catch(e){}
+  var MOCK = {"month": "2026-10", "user": "Foyer", "users": ["Quentin", "Jessica"], "expenses": [{"id": "e1", "date": "2026-10-01", "label": "Carrefour", "amount": 86.4, "category": "Courses", "payer": "Quentin", "shared": true, "status": "Payé", "note": ""}, {"id": "e2", "date": "2026-10-02", "label": "EDF", "amount": 84.9, "category": "Logement", "payer": "Jessica", "shared": true, "status": "Payé", "note": ""}, {"id": "e3", "date": "2026-10-03", "label": "Basic Fit", "amount": 24.99, "category": "Santé", "payer": "Quentin", "shared": true, "status": "À équilibrer", "note": ""}, {"id": "e4", "date": "2026-10-04", "label": "Deliveroo", "amount": 29.24, "category": "Sorties", "payer": "Jessica", "shared": true, "status": "À équilibrer", "note": ""}, {"id": "e5", "date": "2026-10-05", "label": "SNCF", "amount": 45.0, "category": "Transport", "payer": "Quentin", "shared": false, "status": "Payé", "note": ""}, {"id": "e6", "date": "2026-10-06", "label": "Primeo Energie", "amount": 38.2, "category": "Logement", "payer": "Quentin", "shared": true, "status": "Payé", "note": ""}, {"id": "e7", "date": "2026-10-07", "label": "Netflix", "amount": 17.99, "category": "Abonnements", "payer": "Jessica", "shared": true, "status": "Payé", "note": ""}, {"id": "e8", "date": "2026-10-08", "label": "Marché Torcy", "amount": 32.1, "category": "Courses", "payer": "Jessica", "shared": true, "status": "À équilibrer", "note": ""}, {"id": "e9", "date": "2026-10-08", "label": "Amazon", "amount": 54.85, "category": "Sorties", "payer": "Quentin", "shared": true, "status": "À équilibrer", "note": ""}, {"id": "e10", "date": "2026-10-09", "label": "LycaMobile", "amount": 4.99, "category": "Logement", "payer": "Jessica", "shared": true, "status": "Payé", "note": ""}], "budgets": [{"category": "Courses", "amount": 450, "month": "2026-10"}, {"category": "Logement", "amount": 300, "month": "2026-10"}, {"category": "Sorties", "amount": 180, "month": "2026-10"}, {"category": "Transport", "amount": 120, "month": "2026-10"}, {"category": "Abonnements", "amount": 90, "month": "2026-10"}, {"category": "Santé", "amount": 80, "month": "2026-10"}], "shopping": [{"id": "s1", "item": "Lait de coco", "checked": false}, {"id": "s2", "item": "Beurre cru", "checked": true}, {"id": "s3", "item": "Œufs plein air", "checked": false}], "facts": {"income": 4200, "savings": 350}, "envelopes": [], "memo": [], "messages": []};
+  window.fetch = function(u,o){
+    var s = String(u);
+    var send = function(x){ return Promise.resolve({ok:true,status:200,json:function(){return Promise.resolve(x);}}); };
+    if(s.indexOf('/api/state')>=0) return send(MOCK);
+    if(s.indexOf('/api/assistant/history')>=0) return send({user:'Quentin',memo:['Anniversaire Jessica le 14 mars','Loyer versé le 5'],messages:[]});
+    return send({});
+  };
+})();
+</script>
+
 
 <div class="container">
   <!-- Header -->
