@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
-<title>DuoSpend · Finances & Sérénité à deux (v2.0)</title>
+<title>DuoSpend · Finances & Sérénité à deux (v2.1)</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -1516,6 +1516,9 @@ body{
 }
 
 /* Import de releve, profil, en-tetes de section (v2.0) */
+.import-sample{margin-top:10px;font-size:12px}
+.import-sample summary{cursor:pointer;color:var(--text-muted);font-weight:600}
+.import-sample pre{margin-top:6px;white-space:pre-wrap;background:rgba(0,0,0,.04);border:1px solid var(--border);border-radius:10px;padding:8px;font-size:11px;max-height:220px;overflow:auto}
 .pane-head{margin:2px 2px 14px}
 .pane-head h2{margin:0 0 2px;font-size:19px;font-weight:800;color:var(--text-main)}
 .pane-head p{margin:0;font-size:12.5px;color:var(--text-muted)}
@@ -2028,8 +2031,8 @@ body{
       <span>Assistant</span>
     </button>
     <button type="button" class="tab-btn" data-tab="tab-quests">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-      <span>Défis</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+      <span>Décideur</span>
     </button>
   </nav>
 
@@ -2042,10 +2045,6 @@ body{
       </div>
       <p id="aiStatusText" style="margin:0;font-size:0.86rem;color:var(--text-muted);line-height:1.4;">Chargement des dépenses…</p>
     </div>
-    <button class="btn-secondary" style="padding:7px 12px;font-size:12.5px;border-radius:10px;" onclick="openCoupleQuests()" title="Voir les défis du couple">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-      <span>Défis</span>
-    </button>
   </section>
 
   <!-- PANE 1 : Overview & Balance -->
@@ -2065,12 +2064,6 @@ body{
       <div class="import-actions">
         <button type="button" class="btn-game" id="btnImportFile">📄 Choisir un fichier (PDF, CSV, photo)</button>
         <input type="file" id="importFileInput" accept=".pdf,.csv,.txt,image/*" style="display:none">
-        <button type="button" class="btn-game btn-game-secondary" id="btnImportHelp">❔ Comment ça marche</button>
-      </div>
-      <div id="importHelp" class="import-help" hidden>
-        <p>1. Téléchargez le relevé (ou faites une capture d'écran nette) depuis l'app de votre banque.</p>
-        <p>2. Choisissez le fichier ici : les opérations sont lues, et une question est posée si un libellé est cryptique.</p>
-        <p>3. Vérifiez, décochez ce qui est déjà pointé, puis importez : les dépenses rejoignent le mois en un clic.</p>
       </div>
       <div id="importZone"></div>
     </section>
@@ -2320,80 +2313,11 @@ body{
   <!-- PANE 5 : Duo Quests & Goals -->
   <div class="tab-pane" id="tab-quests" style="display:none;">
     <div class="pane-head">
-      <h2>Défis & Décideur</h2>
-      <p>Les objectifs du mois, et le Décideur pour trancher repas, sorties et tâches.</p>
+      <h2>Décideur</h2>
+      <p>Tranchez à deux : repas du soir, sorties, tâches du foyer, et qui règle ce soir.</p>
     </div>
     <div class="quests-container">
       
-      <!-- Serenity & Couple Progress Gauge -->
-      <section class="card" style="padding:24px;">
-        <div class="serenity-stats-section">
-          <div class="serenity-header">
-            <div>
-              <div class="serenity-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                <span>Indice de Sérénité du Foyer</span>
-              </div>
-              <p class="serenity-sub" id="serenitySubtitle">Votre complicité budgétaire est au beau fixe !</p>
-            </div>
-            <div class="serenity-score-box">
-              <span class="serenity-score" id="serenityScoreVal">85</span>
-              <span class="serenity-max">/100</span>
-            </div>
-          </div>
-          <div class="serenity-bar-track">
-            <div class="serenity-bar-fill" id="serenityBarFill" style="width: 85%;"></div>
-          </div>
-
-          <!-- Evolutionary Levels Roadmap -->
-          <div class="levels-roadmap">
-            <div class="level-step done" id="lvlStep1">
-              <div class="step-dot">✓</div>
-              <div class="step-info">
-                <span class="step-name">Niveau 1</span>
-                <span class="step-unlock">Base Duo</span>
-              </div>
-            </div>
-            <div class="level-step active" id="lvlStep2">
-              <div class="step-dot">2</div>
-              <div class="step-info">
-                <span class="step-name">Niveau 2</span>
-                <span class="step-unlock">Duo Complice</span>
-              </div>
-            </div>
-            <div class="level-step" id="lvlStep3">
-              <div class="step-dot">3</div>
-              <div class="step-info">
-                <span class="step-name">Niveau 3</span>
-                <span class="step-unlock">Foyer Serein</span>
-              </div>
-            </div>
-            <div class="level-step" id="lvlStep4">
-              <div class="step-dot">4</div>
-              <div class="step-info">
-                <span class="step-name">Niveau 4</span>
-                <span class="step-unlock">Maîtrise Budget</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Active Couple Quests -->
-      <section class="card quests-card">
-        <div class="card-header">
-          <div>
-            <h2 class="card-title">Défis & Objectifs Financiers Concrets</h2>
-            <p class="card-subtitle">Habitudes et actions calculées en direct sur vos dépenses réelles</p>
-          </div>
-          <div class="badge-tag" id="activeQuestsCount">4 défis actifs</div>
-        </div>
-
-        <div class="quests-list" id="questsList">
-          <!-- Dynamic Quests will be rendered here -->
-        </div>
-      </section>
-
       <!-- Decision Games & Arbitrage Hub -->
       <div class="decision-games-grid">
         
@@ -3746,6 +3670,13 @@ function importSummaryText(j){
 
 function appendImportCard(j, container){
   const thread = container || $('chatThread');
+  if(j && j.debug && j.debug.sample && !(j.operations || []).length && thread){
+    const det = document.createElement('details');
+    det.className = 'import-sample';
+    det.innerHTML = '<summary>Voir le texte lu par l\'app (utile si rien n\'est reconnu)</summary><pre>' + esc(String(j.debug.sample).slice(0, 600)) + '</pre>';
+    thread.appendChild(det);
+    return;
+  }
   const ops = (j.operations || []).filter(o => o.direction === 'debit');
   const wrap = document.createElement('div');
   wrap.className = 'chat-msg bot';
@@ -4007,19 +3938,26 @@ function syncUserUI(){
   if(badge) badge.textContent = userMode === 'moi' ? 'Moi' : 'Le foyer';
   const sub = $('brandSub');
   if(sub) sub.textContent = currentUser
-    ? ('Connecté : ' + currentUser + ' · ' + (userMode === 'moi' ? 'mode perso' : 'le foyer'))
+    ? (currentUser === 'Foyer'
+        ? ('Accès commun · ' + (userMode === 'moi' ? 'mode perso' : 'le foyer'))
+        : ('Connecté : ' + currentUser + ' · ' + (userMode === 'moi' ? 'mode perso' : 'le foyer')))
     : 'Quentin & Jessica · Vision partagée';
   const sw = $('btnSwitchUser');
   if(sw) sw.hidden = !currentUser;
   const who = $('modeUser');
   if(who){
     who.textContent = currentUser
-      ? (currentUser === 'Foyer' ? 'Code collectif : accès commun' : 'Connecté : ' + currentUser)
+      ? (currentUser === 'Foyer'
+          ? (userMode === 'moi' ? '⚠️ Mode perso : choisissez votre profil (bouton « changer de profil »)' : 'Accès commun (code foyer)')
+          : 'Connecté : ' + currentUser + (userMode === 'moi' ? ' · mes dépenses' : ''))
       : '';
   }
   document.querySelectorAll('#modeSwitch .mode-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.mode === userMode);
-    if(b.dataset.mode === 'moi') b.disabled = (!currentUser || currentUser === 'Foyer');
+    if(b.dataset.mode === 'moi'){
+      b.disabled = (!currentUser || currentUser === 'Foyer');
+      b.title = b.disabled ? 'Entrez votre code perso (bouton « changer de profil ») pour activer le mode Moi' : 'Uniquement mes dépenses';
+    }
   });
 }
 function applyMode(mode){
@@ -4335,9 +4273,9 @@ function duoShowLock(msg){
 (function initLockUI(){
   const ov = $('duoLock'), inp = $('duoLockInp'), btn = $('duoLockBtn'), err = $('duoLockErr');
   if (!ov || !inp || !btn) return;
-  let stored = '';
-  try { stored = localStorage.getItem('duospend_code') || ''; } catch(e){}
-  if (stored) ov.classList.remove('open');
+  let unlockedAt = 0;
+  try { unlockedAt = Number(localStorage.getItem('duospend_unlocked_at') || 0); } catch(e){}
+  if (Date.now() - unlockedAt < 90000) ov.classList.remove('open');
   const people = $('lockPeople');
   if(people){
     people.querySelectorAll('.lock-person').forEach(b => {
@@ -4361,7 +4299,10 @@ function duoShowLock(msg){
     try{
       const r = await (window.__duoFetch || fetch)(API_BASE + '/api/state?month=' + encodeURIComponent(currentMonth), { headers: { 'X-App-Code': v } });
       if (r.ok){
-        try { localStorage.setItem('duospend_code', v); } catch(e){}
+        try {
+          localStorage.setItem('duospend_code', v);
+          localStorage.setItem('duospend_unlocked_at', String(Date.now()));
+        } catch(e){}
         location.reload();
         return;
       }

@@ -874,7 +874,19 @@ def extract_document_text(doc):
             raise ValueError("Lecture PDF indisponible pour le moment. Envoyez plutot le CSV de la banque.")
         try:
             reader = PdfReader(io.BytesIO(blob))
-            pages = [(page.extract_text() or "") for page in reader.pages[:15]]
+            pages = []
+            for page in reader.pages[:15]:
+                chunk = ""
+                try:
+                    chunk = page.extract_text(extraction_mode="layout") or ""
+                except Exception:
+                    chunk = ""
+                if len(chunk.strip()) < 20:
+                    try:
+                        chunk = page.extract_text() or ""
+                    except Exception:
+                        chunk = ""
+                pages.append(chunk)
         except Exception:
             raise ValueError("Impossible d'ouvrir ce PDF (protege ?). Essayez le CSV de la banque.")
         text = "\n".join(pages)
@@ -973,6 +985,8 @@ def _statement_year(yy, month):
 
 def _statement_mk_op(dd, mm, yy, label, amount, signed_negative, suffix, month):
     label = re.sub(r"\s{2,}", " ", str(label or "")).strip(" .:-|+;,")[:90]
+    if len(re.findall(r"\b\w\b", label)) >= 3:
+        label = re.sub(r"(?<=\b\w)\s(?=\w\b)", "", label)
     if not label:
         label = "Operation"
     low = label.lower()
@@ -1058,7 +1072,15 @@ def _statement_ops_fallback(text, month=None):
             continue
         if pending and len(line) > 3:
             pending["labels"].append(line[:70])
-    return block_ops if len(block_ops) > len(base) else base
+    result = block_ops if len(block_ops) > len(base) else base
+    if result:
+        return result
+    # 3) dernier recours : texte extrait glyphe par glyphe ("0 2 / 1 0 / 2 0 2 6")
+    collapsed = re.sub(r"(?<=\d)\s*([/.,\-])\s*(?=\d)", r"\1", str(text or ""))
+    collapsed = re.sub(r"(?<=\d)[ \t]+(?=\d)", "", collapsed)
+    if collapsed.strip() and collapsed != str(text or ""):
+        return _statement_ops_fallback(collapsed, month)
+    return result
 
 
 IMPORT_RULES = (
@@ -1159,6 +1181,8 @@ def analyze_statement(text, expenses, month, filename="", hint="", image=None):
         "image": bool(image),
         "notes": notes,
     }
+    if not operations:
+        debug["sample"] = re.sub(r"\s+", " ", str(text or ""))[:500]
     message = ""
     if not operations:
         if debug["chars"] < 40 and not image:
