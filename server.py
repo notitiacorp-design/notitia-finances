@@ -1011,7 +1011,7 @@ CLASSIFY_RULES = (
     "Repères : Courses = supermarchés, épicerie ; Logement = loyer, charges, énergie, internet, assurance habitation, meubles et équipement de la maison ; "
     "Transport = carburant, train, péages, parking, transports en commun ; Sorties = restaurants, bars, cinéma, loisirs, vacances, jeux ; "
     "Abonnements = services récurrents (streaming, téléphone, box, Amazon Prime, cloud, presse) ; Santé = pharmacie, médecin, mutuelle, optique ; "
-    "Pro Quentin = dépenses professionnelles de Quentin (SaaS et outils pro, hébergement et noms de domaine, matériel informatique pro, déplacements et services pro) ; Autres = indéterminable.\n"
+    "Pro Quentin = dépenses professionnelles de Quentin (activité indépendante) : hébergeurs et cloud techniques (OVH, Scaleway, Vercel, Hetzner...), noms de domaine, GitHub, outils de développement, SaaS pro, matériel informatique pro, déplacements et services pro ; Autres = indéterminable.\n"
     "Enseignes multi-produits (Amazon, Fnac, Leclerc, CDiscount...) : Prime/abonnement → Abonnements ; meubles/maison/outillage → Logement ; sinon la plus probable avec confidence low.\n"
     "Si la note ou le libellé indique un usage professionnel de Quentin (outil, hébergement, matériel pro), classe en 'Pro Quentin' ; en cas de doute pro/perso : confidence low.\n"
     "Réponds STRICTEMENT en JSON : {\"category\":\"...\",\"confidence\":\"high|medium|low\",\"why\":\"3 à 6 mots\"}"
