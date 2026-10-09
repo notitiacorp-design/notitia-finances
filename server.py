@@ -1105,9 +1105,114 @@ def _statement_ops_revolut(text, month=None):
     return out
 
 
+
+# --- Trade Republic : date sur deux lignes (« 01 oct. » puis « 2026 »), colonnes
+# ENTRÉE/SORTIE, solde courant en fin de ligne : le sens se deduit de la variation du solde.
+_TR_ROW_RE = re.compile(r"^(\d{1,2})\s+([A-Za-z\u00c0-\u00ff]{3,10})\.?(?:\s+(\d{4}))?\s{1,14}(\S.*)$")
+_TR_AMT_RE = re.compile(r"(\d{1,6}(?:[ .\u00a0]\d{3})*[.,]\d{2})\s*(?:\u20ac|EUR)")
+_TR_TAIL_RE = re.compile(r"(\d{1,3}(?:[ .\u00a0]\d{3})*(?:[.,]\d{2})?)\s*$")
+_TR_DE_MONTHS = {"okt": 10, "dez": 12, "mrz": 3, "maerz": 3, "maer": 3, "okto": 10, "dezember": 12}
+
+
+def _tr_month(name):
+    mm = _text_month_num(name)
+    if mm:
+        return mm
+    clean = re.sub(r"[^a-z]", "", str(name or "").lower())
+    for k, v in _TR_DE_MONTHS.items():
+        if clean.startswith(k):
+            return v
+    return None
+
+
+def _statement_ops_traderepublic(text, month=None):
+    src = str(text or "")
+    if "trade republic" not in src.lower() and "traderepublic" not in src.lower():
+        return []
+    lines = src.splitlines()
+    entree_x = sortie_x = None
+    out = []
+    prev_bal = None
+    i, n = 0, len(lines)
+    while i < n:
+        line = lines[i]
+        if "ENTR" in line and "SORTIE" in line:
+            je, js = line.find("ENTR"), line.find("SORTIE")
+            if je >= 0:
+                entree_x = je
+            if js >= 0:
+                sortie_x = js
+            i += 1
+            continue
+        m = _TR_ROW_RE.match(line)
+        if not m:
+            i += 1
+            continue
+        mm = _tr_month(m.group(2))
+        if not mm:
+            i += 1
+            continue
+        dd, yy, rest = m.group(1), m.group(3), m.group(4)
+        if not yy:
+            for j in (i + 1, i + 2):
+                if j < n and re.match(r"^\s*20\d{2}\b", lines[j]):
+                    yy = re.search(r"20\d{2}", lines[j]).group(0)
+                    break
+        if not yy:
+            i += 1
+            continue
+        amts = [(a.start(), a.group(1)) for a in _TR_AMT_RE.finditer(line)]
+        if not amts:
+            i += 1
+            continue
+        pos, raw_amt = amts[0]
+        bal = None
+        if len(amts) >= 2:
+            try:
+                bal = parse_fr_amount(amts[-1][1])
+            except Exception:
+                bal = None
+        if bal is None:
+            t = _TR_TAIL_RE.search(line)
+            if t:
+                try:
+                    cand = parse_fr_amount(t.group(1))
+                except Exception:
+                    cand = None
+                if cand:
+                    bal = cand
+        label = re.sub(r"[\s\u00a0]+", " ", line[m.start(4):pos]).strip(" .:-|")
+        label = re.sub(r"^Avoir\s+", "", label)
+        m2 = re.match(r"Virement\s*Incoming transfer from ([A-Za-z0-9 .&-]+)", label, re.I)
+        if m2:
+            label = "Virement recu de " + m2.group(1).strip()
+        label = re.split(r"\s*,\s*(?:exchange rate|ECB rate|markup)|,\s*\d[\d.,]*\s*\$", label)[0]
+        label = re.sub(r"VirementIncoming", "Virement Incoming", label).strip(" ,")
+        label = re.sub(r"\s*\([A-Z]{2}\d{6,}\)", "", label)[:90]
+        try:
+            amount = parse_fr_amount(raw_amt)
+        except Exception:
+            amount = None
+        if not amount:
+            i += 1
+            continue
+        suffix = ""
+        if bal is not None and prev_bal is not None and bal != prev_bal:
+            suffix = "C" if bal > prev_bal else "D"
+        elif entree_x is not None and sortie_x is not None:
+            suffix = "C" if abs(pos - entree_x) <= abs(pos - sortie_x) else "D"
+        if bal is not None:
+            prev_bal = bal
+        out.append(_statement_mk_op(dd, str(mm), yy, label, amount, False, suffix, month))
+        i += 1
+    return out
+
 def _statement_ops_fallback(text, month=None):
     """Parseur sans IA, tolerant : lignes completes (date + libelle + montant),
     et repli en mode blocs (colonnes separees sur plusieurs lignes)."""
+    tr_ops = _statement_ops_traderepublic(text, month)
+    if tr_ops:
+        return tr_ops
     if _REVOLUT_DATE_RE.search(str(text or "")) or _REVOLUT_DATE_MF_RE.search(str(text or "")):
         revolut_ops = _statement_ops_revolut(text, month)
         if revolut_ops:
