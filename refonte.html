@@ -151,7 +151,7 @@ a{color:inherit}
   padding-top:4px;
 }
 .viz-info .vi-hint{font-size:var(--t-micro);letter-spacing:var(--ls-caps);text-transform:uppercase;color:var(--gris);opacity:.92}
-.viz-info .vi-amt{font-family:var(--serif);font-size:23px;line-height:1.1;color:var(--laiton)}
+.viz-info .vi-amt{font-family:var(--serif);font-size:23px;line-height:1.1;color:#8a6a35}
 .viz-info .vi-meta{font-size:var(--t-small);color:var(--gris)}
 .viz-info .vi-amt,.viz-info .vi-meta{animation:fadeRise var(--t-med) var(--ease-out)}
 @keyframes fadeRise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
@@ -181,14 +181,15 @@ a{color:inherit}
 .bal-row .lead{flex:1;border-bottom:1px dotted rgba(41,40,36,.3);margin:0 10px;transform:translateY(-4px)}
 .bal-row .val{font-family:var(--serif);font-size:22px;line-height:1}
 .bal-row.q .val{color:var(--pourpre)}
-.bal-row.j .val{color:var(--laiton)}
+.bal-row.j .val{color:#8a6a35}
 .bal-bar{display:flex;height:3px;margin-top:16px;background:var(--pierre);overflow:hidden}
 .bal-bar .seg-q{background:var(--pourpre);transform-origin:left center;transform:scaleX(0)}
 .bal-bar .seg-j{background:var(--laiton);transform-origin:left center;transform:scaleX(0)}
 .bal-bar.on .seg-q,.bal-bar.on .seg-j{transition:transform 760ms var(--ease-out)}
 .bal-bar.on .seg-q{transform:scaleX(1)}
 .bal-bar.on .seg-j{transform:scaleX(1)}
-.bal-note{margin-top:14px;font-size:12.5px;color:var(--gris)}
+.bal-leg{margin-top:9px;font-size:10.5px;font-weight:600;letter-spacing:var(--ls-caps);text-transform:uppercase;color:var(--gris)}
+.bal-note{margin-top:12px;font-size:12.5px;color:var(--gris)}
 .bal-note b{color:var(--encre);font-weight:600}
 .calc-toggle{
   margin-top:8px;display:inline-flex;align-items:center;gap:6px;
@@ -207,6 +208,7 @@ a{color:inherit}
 .register .kicker{margin-bottom:6px}
 .reg-row{border-bottom:1px solid var(--hairline-soft);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .reg-row:active{background:rgba(41,40,36,.025)}
+.reg-row.open{background:rgba(41,40,36,.022)}
 .reg-top{display:flex;align-items:center;gap:12px;padding:13px 2px}
 .reg-mark{flex:0 0 auto;width:7px;height:7px;border:1px solid var(--gris);transform:rotate(45deg);opacity:.65}
 .reg-row.tr .reg-mark{border-style:dashed;opacity:.5}
@@ -423,6 +425,7 @@ a{color:inherit}
       <span class="seg-q" id="segQ" style="width:50%"></span>
       <span class="seg-j" id="segJ" style="width:50%"></span>
     </div>
+    <div class="bal-leg" id="balLeg"></div>
     <div class="bal-note" id="balNote"></div>
     <button class="calc-toggle" id="calcToggle"><span>Détail du calcul</span><span class="chev">▼</span></button>
     <div class="calc-body" id="calcBody"><div><p id="calcText"></p></div></div>
@@ -697,11 +700,12 @@ function renderBalance(){
   $('segQ').style.width = (tot ? (q / tot * 100) : 50) + '%';
   $('segJ').style.width = (tot ? (j / tot * 100) : 50) + '%';
   $('balBar').classList.add('on');
+  $('balLeg').textContent = tot ? ('Quentin ' + Math.round(q / tot * 100) + ' % · Jessica ' + Math.round(j / tot * 100) + ' % des avances du mois') : '';
   const due = Number(f.balance_to_adjust || 0), who = f.who_should_cover || '';
   if(!tot){
     $('balNote').innerHTML = 'Aucune avance enregistrée ce mois-ci.';
   } else if(due >= 0.01 && who){
-    $('balNote').innerHTML = 'Pour équilibrer, <b>' + esc(who) + '</b> couvre environ <b class="num">' + fmtEur(due) + '</b> de plus ce mois-ci.';
+    $('balNote').innerHTML = 'Pour équilibrer, <b>' + esc(who) + '</b> doit encore avancer environ <b class="num">' + fmtEur(due) + '</b> ce mois-ci.';
   } else {
     $('balNote').innerHTML = '<b>Avances équilibrées</b> ce mois-ci.';
   }
@@ -714,7 +718,7 @@ function renderBalance(){
 function regRow(x){
   const t = isTr(x);
   const d = String(x.date || '');
-  const dateTxt = d.length >= 10 ? (d.slice(8,10) + ' ' + monthShort(d)) : '';
+  const dateTxt = d.length >= 10 ? (d.slice(8,10) + ' ' + monthShort(d) + ' ' + d.slice(2,4)) : '';
   const meta = [
     t ? 'Virement' : esc(x.category || 'Autres'),
     dateTxt,
