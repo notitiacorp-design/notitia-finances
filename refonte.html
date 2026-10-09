@@ -700,18 +700,19 @@ function renderBalance(){
   $('segQ').style.width = (tot ? (q / tot * 100) : 50) + '%';
   $('segJ').style.width = (tot ? (j / tot * 100) : 50) + '%';
   $('balBar').classList.add('on');
-  $('balLeg').textContent = tot ? ('Quentin ' + Math.round(q / tot * 100) + ' % · Jessica ' + Math.round(j / tot * 100) + ' % des avances du mois') : '';
+  $('balLeg').textContent = tot ? ('Quentin ' + Math.round(q / tot * 100) + ' % · Jessica ' + Math.round(j / tot * 100) + ' %') : '';
   const due = Number(f.balance_to_adjust || 0), who = f.who_should_cover || '';
   if(!tot){
     $('balNote').innerHTML = 'Aucune avance enregistrée ce mois-ci.';
   } else if(due >= 0.01 && who){
-    $('balNote').innerHTML = 'Pour équilibrer, <b>' + esc(who) + '</b> doit encore avancer environ <b class="num">' + fmtEur(due) + '</b> ce mois-ci.';
+    const other = q > j ? 'Quentin' : 'Jessica';
+    $('balNote').innerHTML = 'Pour équilibrer, <b>' + esc(who) + '</b> peut reverser environ <b class="num">' + fmtEur(due) + '</b> à <b>' + other + '</b>.';
   } else {
     $('balNote').innerHTML = '<b>Avances équilibrées</b> ce mois-ci.';
   }
-  $('calcText').textContent = 'Écart des avances divisé par deux (partage 50/50). ' +
-    'Quentin a avancé ' + fmtEur(q) + ', Jessica ' + fmtEur(j) + ', virements entre vous inclus. ' +
-    (due >= 0.01 && who ? 'Pour équilibrer, la moitié de l’écart (' + fmtEur(due) + ') revient à ' + who + '.' : 'Les avances sont à l’équilibre.');
+  $('calcText').textContent = 'Partage configuré : 50/50. Écart des avances ce mois-ci : ' + fmtEur(Math.abs(q - j)) +
+    ' (Quentin ' + fmtEur(q) + ', Jessica ' + fmtEur(j) + ', virements entre vous inclus). ' +
+    (due >= 0.01 && who ? 'Pour équilibrer, la moitié de cet écart revient à ' + who + ' : environ ' + fmtEur(due) + '.' : 'Les avances sont à l’équilibre.');
 }
 
 /* ---------- registre ---------- */
