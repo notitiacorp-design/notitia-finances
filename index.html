@@ -2743,6 +2743,23 @@ body{background-color:#f7f3ea!important;
 .tx-group.open .tx-cat-body .tx-row:nth-child(5){animation-delay:.18s}
 .tx-group.open .tx-cat-body .tx-row:nth-child(6){animation-delay:.22s}
 .tx-group.open .tx-cat-body .tx-row:nth-child(n+7){animation-delay:.26s}
+/* ===== v2.6 : classer une dépense (modale) + badges ===== */
+.imp-badge.low{background:#fdf3d9!important;color:#8a6d1f!important;border:1px solid rgba(201,162,39,.45)!important}
+.imp-magic{border:1px solid #fcd34d;background:#fffbeb;border-radius:8px;padding:5px 9px;cursor:pointer;font-size:13px;font-family:inherit}
+.imp-magic:disabled{opacity:.6;cursor:default}
+.tx-quick.need{border-color:rgba(201,162,39,.65);background:#fdf3d9;color:#8a6d1f}
+.classer-overlay{position:fixed;inset:0;background:rgba(40,30,20,.45);display:none;align-items:center;justify-content:center;z-index:99990;padding:18px}
+.classer-overlay.open{display:flex;animation:romeFade .2s ease}
+.classer-card{background:#fff;border-radius:18px;max-width:430px;width:100%;padding:18px 16px 14px;position:relative;box-shadow:0 18px 50px rgba(58,27,51,.28);animation:romeIn .35s cubic-bezier(.22,.9,.28,1)}
+.classer-title{font-weight:800;font-size:15px;margin-bottom:6px}
+.classer-label{font-size:12.5px;color:var(--text-muted);margin-bottom:12px;line-height:1.5}
+.classer-field{display:block;font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:10px}
+.classer-field select,.classer-field textarea{width:100%;margin-top:4px;border:1px solid var(--border-subtle);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:13.5px;color:var(--text-main);background:#fdfbf6}
+.classer-actions{display:flex;gap:8px;margin-top:6px}
+.classer-btn{flex:1;border:0;border-radius:11px;padding:10px 12px;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;background:var(--primary);color:#fff}
+.classer-btn.ghost{background:#faf5e6;color:#8a6d1f;border:1px solid rgba(201,162,39,.45)}
+.classer-btn:disabled{opacity:.6}
+.classer-x{position:absolute;top:8px;right:10px;border:0;background:none;font-size:20px;color:var(--faint);cursor:pointer;line-height:1}
 </style>
 
 <script>
