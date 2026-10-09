@@ -4471,6 +4471,23 @@ function duoShowLock(msg){
   inp.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); submitLock(); } });
 })();
 
+// — Reverrouillage apres un long moment en arriere-plan (app laissee ouverte) —
+(function(){
+  const BG_RELOCK_MS = 10 * 60 * 1000; // delai avant de redemander le code (modifiable ici)
+  let hiddenSince = 0;
+  document.addEventListener('visibilitychange', function(){
+    try {
+      if (document.visibilityState === 'hidden') { if (!hiddenSince) hiddenSince = Date.now(); return; }
+      const away = hiddenSince ? (Date.now() - hiddenSince) : 0;
+      hiddenSince = 0;
+      if (away > BG_RELOCK_MS && (localStorage.getItem('duospend_code') || '')) {
+        localStorage.removeItem('duospend_code');
+        if (typeof duoShowLock === 'function') duoShowLock();
+      }
+    } catch(e){}
+  });
+})();
+
 // Init
 loadState().then(() => {
   try {
