@@ -99,7 +99,7 @@ a{color:inherit}
 .avatar{
   width:30px;height:30px;border-radius:50%;border:1px solid var(--hairline);
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--serif);font-size:14px;color:var(--pourpre);text-decoration:none;
+  font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--pourpre);text-decoration:none;
   transition:border-color var(--t-fast) var(--ease-out);
 }
 .avatar:active{border-color:var(--laiton)}
@@ -127,19 +127,19 @@ a{color:inherit}
   font-size:clamp(44px,12.5vw,60px);line-height:1.0;letter-spacing:-.012em;
   color:var(--encre);
 }
-.amount .eur{font-size:.46em;vertical-align:.34em;margin-left:.12em;letter-spacing:0}
-.amount-rule{width:46px;height:1.5px;background:var(--laiton);margin-top:12px;transform-origin:left center}
+.amount .eur{font-size:.46em;vertical-align:.34em;margin-left:.18em;letter-spacing:0}
+.amount-rule{width:30px;height:2px;background:var(--laiton);margin-top:15px;transform-origin:left center}
 .amount-rule.sweep{animation:sweep 900ms var(--ease-out)}
 @keyframes sweep{0%{transform:scaleX(0)}45%{transform:scaleX(1)}100%{transform:scaleX(1)}}
 .amount-sub{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
 .delta{font-size:var(--t-small);font-weight:500;color:var(--gris)}
 .delta b{font-weight:600}
 .delta .ar{font-size:9px;vertical-align:1px;margin-right:3px}
-.precision{font-size:var(--t-small);color:var(--gris);opacity:.85}
+.precision{font-size:12px;color:var(--gris);opacity:.95}
 
 /* ---------- visualisation vivante ---------- */
 .viz{margin-top:6px}
-.viz svg{display:block;width:100%;height:158px;overflow:visible}
+.viz svg{display:block;width:100%;height:168px;overflow:visible}
 .viz .curve{fill:none;stroke-linecap:round;transition:opacity var(--t-med) var(--ease-out),stroke-width var(--t-med) var(--ease-out)}
 .viz .hit{fill:none;stroke:transparent;stroke-width:30px;cursor:pointer;pointer-events:stroke}
 .viz.touched .curve.dim{opacity:.14}
@@ -150,8 +150,8 @@ a{color:inherit}
   min-height:36px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
   padding-top:4px;
 }
-.viz-info .vi-hint{font-size:var(--t-micro);letter-spacing:var(--ls-caps);text-transform:uppercase;color:var(--gris);opacity:.75}
-.viz-info .vi-amt{font-family:var(--serif);font-size:23px;line-height:1.1}
+.viz-info .vi-hint{font-size:var(--t-micro);letter-spacing:var(--ls-caps);text-transform:uppercase;color:var(--gris);opacity:.92}
+.viz-info .vi-amt{font-family:var(--serif);font-size:23px;line-height:1.1;color:var(--laiton)}
 .viz-info .vi-meta{font-size:var(--t-small);color:var(--gris)}
 .viz-info .vi-amt,.viz-info .vi-meta{animation:fadeRise var(--t-med) var(--ease-out)}
 @keyframes fadeRise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
@@ -240,7 +240,7 @@ a{color:inherit}
 
 /* ---------- feuille de saisie ---------- */
 .veil{
-  position:fixed;inset:0;background:rgba(53,33,47,.34);z-index:60;
+  position:fixed;inset:0;background:rgba(53,33,47,.4);z-index:60;
   opacity:0;pointer-events:none;transition:opacity var(--t-med) var(--ease-out);
 }
 .veil.open{opacity:1;pointer-events:auto}
@@ -254,20 +254,20 @@ a{color:inherit}
   transform:translateY(102%);transition:transform var(--t-med) var(--ease-out);
 }
 .sheet.open{transform:translateY(0)}
-.sheet-grip{width:34px;height:3px;background:var(--hairline);border-radius:2px;margin:0 auto 14px}
+.sheet-grip{width:38px;height:3px;background:rgba(41,40,36,.2);border-radius:2px;margin:0 auto 14px}
 .sheet h2{font-family:var(--serif);font-weight:400;font-size:24px;margin-bottom:16px}
 .f-amt{display:flex;align-items:baseline;gap:8px;border-bottom:1px solid var(--hairline);padding-bottom:6px}
 .f-amt input{
   flex:1;min-width:0;border:0;background:transparent;outline:none;
   font-family:var(--serif);font-size:32px;color:var(--encre);
-  font-variant-numeric:tabular-nums;
+  font-variant-numeric:tabular-nums;text-align:right;padding-right:6px;
 }
 .f-amt input::placeholder{color:rgba(41,40,36,.25)}
 .f-amt .cur{font-family:var(--serif);font-size:22px;color:var(--gris)}
 .f-field{width:100%;border:0;border-bottom:1px solid var(--hairline);background:transparent;
   outline:none;padding:11px 0 7px;font-size:15px;transition:border-color var(--t-fast)}
 .f-field:focus{border-bottom-color:var(--encre)}
-.f-label{margin-top:16px;font-size:var(--t-micro);font-weight:600;letter-spacing:var(--ls-caps);text-transform:uppercase;color:var(--gris);margin-bottom:8px}
+.f-label{margin-top:16px;font-size:var(--t-micro);font-weight:600;letter-spacing:var(--ls-caps);text-transform:uppercase;color:var(--encre);opacity:.78;margin-bottom:8px}
 .chips{display:flex;flex-wrap:wrap;gap:7px}
 .chip{
   border:1px solid var(--hairline);border-radius:var(--r1);
@@ -275,7 +275,7 @@ a{color:inherit}
   color:var(--encre);transition:all var(--t-fast) var(--ease-out);
 }
 .chip:active{transform:translateY(1px)}
-.chip.sel{background:var(--pourpre);color:var(--ivoire);border-color:var(--pourpre)}
+.chip.sel{background:var(--encre);color:var(--ivoire);border-color:var(--encre)}
 .segs{display:flex;gap:7px}
 .seg{
   border:1px solid var(--hairline);border-radius:var(--r1);
@@ -286,6 +286,7 @@ a{color:inherit}
 .sheet-err{min-height:16px;margin-top:10px;font-size:12px;color:var(--terrecuite)}
 .sheet-actions{display:flex;align-items:center;gap:18px;margin-top:12px}
 .sheet-actions .btn-primary{padding:13px 22px}
+.sheet-actions .btn-text{color:var(--encre);opacity:.75;font-size:12.5px}
 .date-line{margin-top:10px;font-size:12px;color:var(--gris);display:flex;align-items:center;gap:8px}
 .date-line input{background:transparent;border:0;border-bottom:1px solid var(--hairline);padding:3px 0;font-size:12.5px;outline:none;color:var(--encre)}
 
@@ -387,7 +388,7 @@ a{color:inherit}
 
   <!-- ============ le patrimoine du mois ============ -->
   <section class="hero">
-    <div class="kicker">Dépenses du foyer · <span id="monthLabel2">&#160;</span></div>
+    <div class="kicker">Dépenses du foyer</div>
     <div class="amount-wrap">
       <div class="amount num" id="bigAmount">—</div>
       <div class="amount-rule" id="amountRule"></div>
@@ -398,7 +399,7 @@ a{color:inherit}
     </div>
 
     <div class="viz" id="viz">
-      <svg viewBox="0 0 360 158" preserveAspectRatio="none" aria-label="Répartition vivante des dépenses par poste"></svg>
+      <svg viewBox="0 0 360 168" preserveAspectRatio="none" aria-label="Répartition vivante des dépenses par poste"></svg>
       <div class="viz-info" id="vizInfo">
         <span class="vi-hint">Touchez une ligne pour explorer un poste</span>
       </div>
@@ -456,7 +457,8 @@ a{color:inherit}
     <input id="fAmount" inputmode="decimal" placeholder="0,00" autocomplete="off">
     <span class="cur">€</span>
   </div>
-  <input class="f-field" id="fLabel" placeholder="Libellé (ex. : courses Monoprix)" autocomplete="off">
+  <div class="f-label">Libellé</div>
+  <input class="f-field" id="fLabel" placeholder="ex. : courses Monoprix" autocomplete="off">
   <div class="f-label">Catégorie</div>
   <div class="chips" id="fCats"></div>
   <div class="f-label">Avancé par</div>
@@ -584,7 +586,7 @@ function tweenVal(el, target){
 const vizSvg = () => $('viz').querySelector('svg');
 function wavePath(baseY, A, k, phi){
   const pts = [];
-  for(let x = 0; x <= 360; x += 6){
+  for(let x = 3; x <= 357; x += 6){
     pts.push([x, baseY + A * Math.sin((x / 360) * Math.PI * 2 * k + phi)]);
   }
   let d = 'M' + pts[0][0] + ' ' + pts[0][1].toFixed(2);
@@ -604,22 +606,22 @@ function buildViz(pulseCat){
   const bc = (state.facts && state.facts.by_category) || {};
   const entries = CATS.map(c => [c, Number(bc[c] || 0)]).filter(e => e[1] > 0.005).sort((a, b) => b[1] - a[1]);
   if(!entries.length){
-    svg.appendChild(mk('path', {d:'M6 80 C 90 74, 180 86, 270 78 S 340 81, 354 79', class:'curve', stroke:'rgba(41,40,36,.16)', 'stroke-width':'1.1', fill:'none', 'vector-effect':'non-scaling-stroke'}));
+    svg.appendChild(mk('path', {d:'M3 84 C 90 78, 180 90, 270 82 S 340 85, 357 83', class:'curve', stroke:'rgba(41,40,36,.22)', 'stroke-width':'1.2', fill:'none', 'vector-effect':'non-scaling-stroke'}));
     setHint('Aucune ligne à explorer pour l’instant.');
     return;
   }
   const total = entries.reduce((a, e) => a + e[1], 0);
   const n = entries.length;
-  const top = 30, bot = 128;
+  const top = 32, bot = 136;
   entries.forEach((e, i) => {
     const share = e[1] / total;
-    const A = 6 + 38 * Math.pow(share, .85);
+    const A = 8 + 40 * Math.pow(share, .85);
     const k = 1 + i * 0.37;
     const phi = i * 0.92 + 0.4;
     const baseY = n === 1 ? 79 : top + (bot - top) * (i / (n - 1));
     const d = wavePath(baseY, A, k, phi);
-    const sw = 1.05 + 1.35 * share;
-    const stroke = i === 0 ? '#35212F' : (share >= 0.15 ? 'rgba(41,40,36,.72)' : '#766C60');
+    const sw = 1.4 + 1.3 * share;
+    const stroke = i === 0 ? '#35212F' : (share >= 0.15 ? 'rgba(41,40,36,.82)' : '#6b6156');
     const p = mk('path', {d, class:'curve', stroke, 'stroke-width': sw.toFixed(2), 'data-cat': e[0], fill:'none', 'vector-effect':'non-scaling-stroke'});
     const hit = mk('path', {d, class:'hit', 'data-cat': e[0], fill:'none'});
     svg.appendChild(p); svg.appendChild(hit);
@@ -654,7 +656,7 @@ function selectCat(cat, silent){
   const share = tot ? Math.round(amt / tot * 100) : 0;
   const ops = monthExpenses().filter(x => !isTr(x) && (x.category || 'Autres') === selectedCat).length;
   $('vizInfo').innerHTML = '<span class="vi-amt num">' + fmtEur(amt) + '</span>' +
-    '<span class="vi-meta">' + esc(selectedCat) + ' · ' + share + ' % du mois · ' + ops + ' opération' + (ops > 1 ? 's' : '') + '</span>';
+    '<span class="vi-meta">' + esc(selectedCat) + ' · ' + share + ' % du total · ' + ops + ' opération' + (ops > 1 ? 's' : '') + '</span>';
 }
 
 /* ---------- dérive ambiante ---------- */
@@ -864,7 +866,7 @@ async function load(){
     if(st.user && ['Quentin','Jessica'].includes(st.user)){ selPayer = st.user; buildSheet(); }
     try { const p = await fetchState(prevMonthOf(CUR_MONTH)); prevTotal = Number((p.facts || {}).total || 0); } catch(e){ prevTotal = null; }
     $('notice').hidden = true;
-    renderAll({});
+    renderAll({sweep:true});
   } catch(e){
     if(String(e.message) === 'auth'){
       showNotice('Le registre nécessite votre code d’accès. Ouvrez d’abord <a href="/">l’application</a> sur cet appareil, puis revenez ici.');
@@ -899,6 +901,7 @@ function bind(){
 /* ---------- finalisation (QA / capture) ---------- */
 window.__finalize = function(){
   const intro = $('intro'); if(intro) intro.remove();
+  document.querySelectorAll('.rv').forEach(el => el.classList.add('on'));
   if(bigTarget != null){ const el = $('bigAmount'); el.dataset.v = bigTarget; el.innerHTML = nf.format(bigTarget) + '<span class="eur">€</span>'; }
   if(qTarget != null){ const el = $('valQ'); el.dataset.v = qTarget; el.textContent = fmtEur(qTarget); }
   if(jTarget != null){ const el = $('valJ'); el.dataset.v = jTarget; el.textContent = fmtEur(jTarget); }
@@ -906,9 +909,23 @@ window.__finalize = function(){
   $('balBar').classList.add('on');
 };
 
+/* ---------- révélations au défilement ---------- */
+function armReveals(){
+  const els = document.querySelectorAll('.rv');
+  if(REDUCED || !('IntersectionObserver' in window)){
+    els.forEach(el => el.classList.add('on'));
+    return;
+  }
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('on'); io.unobserve(e.target); } });
+  }, {threshold:0.1, rootMargin:'0px 0px -6% 0px'});
+  els.forEach(el => io.observe(el));
+}
+
 /* ---------- démarrage ---------- */
 buildSheet();
 bind();
+armReveals();
 load();
 })();
 
