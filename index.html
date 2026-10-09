@@ -2641,15 +2641,15 @@ body{background-color:#f7f3ea!important;
   background-image:
    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='520'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.02' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0.60 0 0 0 0 0.53 0 0 0 0 0.40 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23v)'/%3E%3C/svg%3E"),
    linear-gradient(180deg,#fbf9f3 0%,#f6f1e6 52%,#efe8d7 100%)!important}
-html::after{content:'';position:fixed;left:0;right:0;top:0;height:8px;z-index:72;pointer-events:none;
-  background-image:radial-gradient(circle at 4.5px 4px, rgba(201,162,39,.5) 1.6px, transparent 2px);
-  background-size:14px 8px;opacity:.55}
+html::after{content:'';position:fixed;left:0;right:0;top:0;height:9px;z-index:72;pointer-events:none;
+  background-image:radial-gradient(circle at 5px 4.5px, rgba(170,132,30,.75) 2px, transparent 2.4px);
+  background-size:15px 9px;opacity:.75}
 #totalDisplay{color:#8a6d1f!important}
 @supports(-webkit-background-clip:text){
   #totalDisplay{
-    background:linear-gradient(105deg,#8a6d1f 0%,#c9a227 28%,#f3e3ae 48%,#c9a227 68%,#8a6d1f 100%);
+    background:linear-gradient(105deg,#6f5714 0%,#a98322 30%,#dec37a 50%,#a98322 70%,#6f5714 100%);
     background-size:230% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
-    animation:gilded 7.5s ease-in-out infinite}
+    font-weight:700;animation:gilded 7.5s ease-in-out infinite}
 }
 @keyframes gilded{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .card{position:relative;transition:transform .25s ease, box-shadow .25s ease}
@@ -2671,11 +2671,11 @@ html::after{content:'';position:fixed;left:0;right:0;top:0;height:8px;z-index:72
   background-size:220% 100%;animation:barSheen 3.4s ease-in-out infinite}
 @keyframes barSheen{0%{background-position:135% 0}55%{background-position:-95% 0}100%{background-position:-95% 0}}
 #romeMotes{position:fixed;inset:0;pointer-events:none;z-index:0}
-#romeMotes i{position:absolute;width:5px;height:5px;border-radius:50%;
+#romeMotes i{position:absolute;width:6px;height:6px;border-radius:50%;
   background:radial-gradient(circle at 35% 30%,#f5e6b0,#c9a227 70%);opacity:0;
   animation:moteFloat var(--dur,22s) linear infinite;animation-delay:var(--del,0s)}
 @keyframes moteFloat{0%{transform:translate3d(0,10vh,0) scale(.7);opacity:0}
- 12%{opacity:.4}55%{opacity:.28}100%{transform:translate3d(var(--drift,4vw),-94vh,0) scale(1);opacity:0}}
+ 12%{opacity:.55}55%{opacity:.38}100%{transform:translate3d(var(--drift,4vw),-94vh,0) scale(1);opacity:0}}
 .rome-coin{position:fixed;width:15px;height:15px;border-radius:50%;z-index:9997;pointer-events:none;
   background:radial-gradient(circle at 34% 28%,#f7ecc4,#d8b748 55%,#8a6d1f);
   box-shadow:0 1px 3px rgba(60,45,10,.35),inset 0 0 2px rgba(255,255,255,.85);
@@ -3264,7 +3264,7 @@ function renderUI(){
   const tag = $('balanceText');
   if(isMoiMode){
     tag.textContent = myMoneyRows.length
-      ? "Mode perso : uniquement ce que tu as dépensé. L'équilibre du foyer se règle dans « Le foyer »."
+      ? "L'équilibre du foyer se règle dans « Le foyer »."
       : "Aucune de tes dépenses ce mois-ci.";
   } else if(!moneyRows.length){
     tag.textContent = "Aucune dépense enregistrée ce mois-ci.";
