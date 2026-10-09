@@ -2131,6 +2131,28 @@ body{
       </div>
     </div>
 
+    <!-- Pro Quentin (compta) -->
+    <div class="card pro-card" id="proCard" style="margin-bottom:20px;">
+      <div class="card-header">
+        <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+          <div class="pro-icon">💼</div>
+          <div>
+            <h2 class="card-title">Pro Quentin</h2>
+            <p class="card-subtitle" id="proSub">Dépenses professionnelles · export prêt pour la compta</p>
+          </div>
+        </div>
+        <div class="pro-right">
+          <div class="pro-total" id="proTotal">0 €</div>
+          <div class="pro-count" id="proCount"></div>
+        </div>
+      </div>
+      <div class="pro-actions">
+        <button type="button" class="pro-btn" id="proToggle">Voir le détail</button>
+        <button type="button" class="pro-btn gold" id="proCsv">📄 Export CSV (compta)</button>
+      </div>
+      <div class="pro-list" id="proList" hidden></div>
+    </div>
+
     <!-- Transactions List (inside Overview) -->
     <div class="card" style="margin-bottom:20px;">
       <div class="card-header">
@@ -2744,6 +2766,20 @@ body{background-color:#f7f3ea!important;
 .tx-group.open .tx-cat-body .tx-row:nth-child(5){animation-delay:.18s}
 .tx-group.open .tx-cat-body .tx-row:nth-child(6){animation-delay:.22s}
 .tx-group.open .tx-cat-body .tx-row:nth-child(n+7){animation-delay:.26s}
+/* ===== v2.7 : carte Pro Quentin ===== */
+.pro-card .pro-icon{width:38px;height:38px;border-radius:12px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 auto}
+.pro-card .pro-right{text-align:right;margin-left:auto}
+.pro-card .pro-total{font-family:'Cabinet Grotesk',sans-serif;font-weight:800;font-size:20px;color:var(--ink)}
+.pro-card .pro-count{font-size:11px;color:var(--text-muted)}
+.pro-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.pro-btn{border:1px solid var(--border-subtle);background:#fdfbf6;border-radius:10px;padding:7px 12px;font-size:12.5px;font-weight:700;font-family:inherit;color:var(--text-main);cursor:pointer}
+.pro-btn.gold{background:#fdf3d9;border-color:rgba(201,162,39,.5);color:#8a6d1f}
+.pro-list{margin-top:10px;border-top:1px dashed var(--border-subtle);padding-top:8px}
+.pro-row{display:flex;gap:10px;align-items:center;padding:6px 2px;border-bottom:1px solid rgba(0,0,0,.04);font-size:13px}
+.pro-row-date{color:var(--text-muted);font-size:11.5px;flex:0 0 62px}
+.pro-row-label{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text-main)}
+.pro-row-amt{font-family:'Cabinet Grotesk',sans-serif;font-weight:700}
+.pro-empty{padding:10px 2px;color:var(--text-dim);font-size:12.5px}
 /* ===== v2.6 : classer une dépense (modale) + badges ===== */
 .imp-badge.low{background:#fdf3d9!important;color:#8a6d1f!important;border:1px solid rgba(201,162,39,.45)!important}
 .imp-magic{border:1px solid #fcd34d;background:#fffbeb;border-radius:8px;padding:5px 9px;cursor:pointer;font-size:13px;font-family:inherit}
@@ -3408,6 +3444,9 @@ function renderUI(){
   });
   updateDonut(catAmounts, total);
 
+  // Pro Quentin (compta)
+  renderProCard();
+
   // Render Envelopes
   const envContainer = $('envelopesContainer');
   envContainer.innerHTML = envelopes.map(e => {
@@ -3966,6 +4005,44 @@ function exportMonthCSV(){
   a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 400);
   showToast('Export CSV téléchargé');
+}
+
+function proRows(){ return (expenses || []).filter(x => x && x.category === 'Pro Quentin' && String(x.date || '').startsWith(currentMonth)); }
+function exportProCSV(){
+  const rows = proRows();
+  if(!rows.length){ showToast('Aucune dépense pro ce mois-ci', false); return; }
+  const out = [['Date','Libellé','Montant (€)','Payé par','Commune','Note']];
+  rows.slice().sort((a,b) => String(a.date).localeCompare(String(b.date))).forEach(t => {
+    out.push([t.date || '', t.label || '', String(t.amount != null ? t.amount : '').replace('.', ','), t.payer || '', t.shared === false ? 'Non' : 'Oui', t.note || '']);
+  });
+  out.push(['Total', '', String(rows.reduce((a,x) => a + Number(x.amount || 0), 0).toFixed(2)).replace('.', ','), '', '', '']);
+  const csv = '\ufeff' + out.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(';')).join('\r\n');
+  const blob = new Blob([csv], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'pro-quentin-' + currentMonth + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 400);
+  showToast('Export pro téléchargé ✓');
+}
+function renderProCard(){
+  const card = $('proCard'); if(!card) return;
+  const rows = proRows();
+  const sum = rows.reduce((a,x) => a + Number(x.amount || 0), 0);
+  const elT = $('proTotal'); if(elT) elT.textContent = eur(sum);
+  const elC = $('proCount');
+  if(elC) elC.textContent = rows.length ? (rows.length + ' dépense' + (rows.length > 1 ? 's' : '')) : 'aucune ce mois-ci';
+  const list = $('proList');
+  if(list && !list.hidden){
+    list.innerHTML = rows.slice().sort((a,b) => String(b.date).localeCompare(String(a.date))).map(r =>
+      `<div class="pro-row"><span class="pro-row-date">${fmtDate(r.date)}</span><span class="pro-row-label" title="${esc(r.label)}">${esc(r.label)}</span><span class="pro-row-amt">${eur(r.amount)}</span></div>`
+    ).join('') || '<div class="pro-empty">Aucune dépense pro ce mois-ci.</div>';
+  }
+  const btnT = $('proToggle');
+  if(btnT) btnT.textContent = (list && !list.hidden) ? 'Masquer le détail' : 'Voir le détail';
+  if(btnT) btnT.onclick = () => { const l = $('proList'); if(l){ l.hidden = !l.hidden; renderProCard(); } };
+  const btnC = $('proCsv'); if(btnC) btnC.onclick = exportProCSV;
 }
 
 // Chat & Advisor Interaction
