@@ -121,7 +121,7 @@ class HttpServerTests(unittest.TestCase):
         status, body, _ = self.req("/api/health")
         self.assertEqual(status, 200)
         self.assertTrue(body.get("ok"))
-        self.assertEqual(body.get("release"), "2.9")
+        self.assertEqual(body.get("release"), "2.10")
         self.assertEqual(body.get("mode"), "local-empty")
 
     def test_api_requires_code(self):
