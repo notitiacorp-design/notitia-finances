@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>DuoSpend · l’app du foyer (v2.9)</title>
+<title>DuoSpend · l’app du foyer (v2.10)</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -1678,9 +1678,11 @@ async function updateBudget(category, amount){
       envelopes = j.envelopes || envelopes;
       renderUI();
       addChatMessage('bot', `Repère budgétaire pour ${category} mis à jour à ${eur(amount)}.`);
+    } else {
+      showToast('Repère non enregistré' + (j && j.error ? ' : ' + j.error : ' (HTTP ' + r.status + ')'), false);
     }
   }catch(e){
-    console.error(e);
+    showToast('Repère non enregistré : ' + e.message, false);
   }
 }
 
@@ -1770,16 +1772,27 @@ function suggestBudgets(){
     btn.disabled = true;
     btn.textContent = 'Application…';
     try{
+      let failed = 0, firstErr = '';
       for(const inp of inputs){
-        await fetch(API_BASE + '/api/budgets', {
+        const rr = await fetch(API_BASE + '/api/budgets', {
           method:'POST',
           headers:{'Content-Type':'application/json'},
           body:JSON.stringify({ category: inp.dataset.cat, amount: Number(inp.value || 0), month: currentMonth })
         });
+        if(!rr.ok){
+          failed++;
+          try { firstErr = (await rr.json()).error || firstErr; } catch(e){}
+        }
       }
-      box.hidden = true;
-      box.innerHTML = '';
-      showToast('Repères du mois appliqués');
+      if(failed){
+        btn.disabled = false;
+        btn.textContent = 'Appliquer ces repères';
+        showToast(failed + ' repère(s) non enregistré(s)' + (firstErr ? ' : ' + firstErr : ''), false);
+      } else {
+        box.hidden = true;
+        box.innerHTML = '';
+        showToast('Repères du mois appliqués');
+      }
       await loadState();
     }catch(e){
       btn.disabled = false;
@@ -2531,7 +2544,7 @@ if($('btnImportFile')){
 }
 if($('btnImportHelp')) $('btnImportHelp').onclick = () => { const h = $('importHelp'); if(h) h.hidden = !h.hidden; };
 if($('btnSwitchUser')) $('btnSwitchUser').onclick = () => {
-  try { localStorage.removeItem('duospend_code'); localStorage.removeItem('duospend_user'); localStorage.removeItem('duospend_mode'); } catch(e){}
+  try { Object.keys(localStorage).filter(k => k.indexOf('duospend_') === 0 || k === 'foyer_refonte_code').forEach(k => localStorage.removeItem(k)); } catch(e){}
   location.reload();
 };
 if($('btnClearChat')) $('btnClearChat').onclick = () => {
