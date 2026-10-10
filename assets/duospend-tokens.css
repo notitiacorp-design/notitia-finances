@@ -1,0 +1,73 @@
+/* ============================================================
+   DUOSPEND — jetons de design partagés (accueil, app, compagnon)
+   Direction : maison patrimoniale éditoriale.
+   Ivoire + pourpre, sérif éditoriale + sans fonctionnelle.
+   Source unique : index.html (accueil validé).
+   ============================================================ */
+
+:root{
+  /* — palette */
+  --ivoire:#F3EFE5;
+  --ivoire-clair:#F8F5EE;
+  --pourpre:#35212F;
+  --encre:#292824;
+  --laiton:#B18B4B;
+  --laiton-texte:#8a6a35;      /* laiton assombri : texte accessible */
+  --pierre:#E6DED0;
+  --gris:#766C60;
+  --vert:#48745D;
+  --terrecuite:#A75B43;
+  --hairline:rgba(41,40,36,.16);
+  --hairline-soft:rgba(41,40,36,.09);
+
+  /* — typographie */
+  --serif:'Instrument Serif', Georgia, 'Times New Roman', serif;
+  --sans:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --t-micro:10px;
+  --t-small:11.5px;
+  --t-body:14.5px;
+  --t-lead:16px;
+  --ls-caps:.16em;
+  --ls-caps-l:.22em;
+
+  /* — espacements */
+  --s1:4px; --s2:8px; --s3:12px; --s4:18px; --s5:26px; --s6:40px; --s7:64px;
+
+  /* — rayons (sobres) */
+  --r1:3px; --r2:6px; --r3:10px;
+
+  /* — mouvement */
+  --t-fast:170ms; --t-med:300ms; --t-slow:640ms;
+  --ease-out:cubic-bezier(.22,.61,.36,1);
+  --ease-soft:cubic-bezier(.4,0,.2,1);
+
+  /* — pont sémantique : les patrons historiques de l'app
+       (var(--primary), var(--text-muted)…) pointent vers la palette
+       de l'accueil pour éviter toute double thémague. */
+  --bg:var(--ivoire);
+  --surface:var(--ivoire-clair);
+  --surface-card:var(--ivoire-clair);
+  --surface-subtle:rgba(41,40,36,.045);
+  --surface-sunken:rgba(41,40,36,.06);
+  --text-main:var(--encre);
+  --text-muted:var(--gris);
+  --text-dim:#998F81;
+  --primary:var(--pourpre);
+  --primary-dark:#2b1a26;
+  --primary-light:rgba(53,33,47,.08);
+  --primary-subtle:rgba(53,33,47,.06);
+  --amber:var(--laiton-texte);
+  --amber-light:rgba(177,139,75,.16);
+  --coral:var(--terrecuite);
+  --coral-light:rgba(167,91,67,.12);
+  --blue:#44546A;
+  --blue-light:rgba(68,84,106,.12);
+  --purple:#6B5470;
+  --purple-light:rgba(107,84,112,.12);
+  --border:var(--hairline);
+  --border-subtle:var(--hairline-soft);
+  --radius-xl:var(--r3);
+  --radius-lg:var(--r3);
+  --radius-md:var(--r2);
+  --font-mono:ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+}

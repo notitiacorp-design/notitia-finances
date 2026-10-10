@@ -1,0 +1,33 @@
+/* Home extensions of the shared editorial language (release 2.9). */
+body.duo-home .page{padding-bottom:124px}
+.month-bar{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;border-bottom:1px solid var(--hairline-soft);margin-top:4px}
+.month-bar button{min-width:44px;min-height:44px;color:var(--pourpre);font-size:22px;line-height:1}
+.month-bar .month{text-align:center;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gris)}
+.head-right .avatar{width:44px;height:44px}
+.home-nav{position:fixed;left:0;right:0;bottom:0;z-index:45;display:flex;justify-content:center;background:var(--ivoire);border-top:1px solid var(--hairline);padding:5px 8px calc(5px + env(safe-area-inset-bottom,0px));font-family:var(--sans)}
+.home-nav a{width:min(20%,104px);min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--gris);font-size:11px;font-weight:500;text-decoration:none;position:relative}
+.home-nav a svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6}
+.home-nav a[aria-current=page]{color:var(--pourpre)}
+.home-nav a[aria-current=page]::after{content:'';position:absolute;bottom:2px;width:18px;height:2px;background:var(--laiton)}
+.home-nav a:active{color:var(--pourpre)}
+.notice[hidden]{display:none!important}
+.notice h2{font:400 24px/1.2 var(--serif);color:var(--pourpre);margin:0 0 8px}
+.auth-profiles{display:flex;gap:8px;margin-top:12px}
+.auth-profiles button{min-height:44px;flex:1;border:1px solid var(--hairline);border-radius:3px;padding:8px 10px;color:var(--encre)}
+.auth-profiles button[aria-pressed=true]{background:var(--pourpre);border-color:var(--pourpre);color:var(--ivoire)}
+.notice-form input{font-size:16px;min-width:100px;min-height:44px}
+.notice-form .btn-primary{min-height:44px}
+.notice{padding:16px}
+.notice-form button:disabled,button:disabled{opacity:.55;cursor:default}
+.sheet input,.date-line input{min-width:0;max-width:100%}
+.sheet .f-field{font-size:16px}
+.sheet .chip,.sheet .seg,.sheet .btn-text{min-height:44px}
+.sheet{max-height:calc(100dvh - 20px);overflow:auto}
+.sheet[aria-hidden=true]{visibility:hidden;pointer-events:none}
+.sheet[aria-hidden=false]{visibility:visible}
+.calc-toggle,.more-btn,.btn-text{min-height:44px;align-items:center}
+.calc-toggle{display:inline-flex}
+.home-relock{font-size:11px;color:var(--gris)}
+@media(min-width:881px){.home-nav{left:50%;right:auto;transform:translateX(-50%);width:520px;border:1px solid var(--hairline);border-bottom:0}.page{padding-bottom:130px}}
+@media(max-width:360px){.page{padding-left:16px;padding-right:16px}.home-nav a{font-size:9px}.notice-form{gap:6px}}
+@media(prefers-reduced-motion:reduce){.home-nav *, .month-bar *{transition:none!important;animation:none!important}}

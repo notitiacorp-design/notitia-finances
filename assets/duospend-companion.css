@@ -1,0 +1,17 @@
+/* Scribe lives in a reserved dock, never among the financial values. */
+.scribe-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:10px;min-height:42px;padding:4px 0;font-family:var(--sans,Inter,system-ui,sans-serif);font-size:11px;color:#766C60}
+.scribe-toolbar[hidden],#scribeDock[hidden]{display:none!important}
+.scribe-toggle{min-height:44px;padding:8px 10px;border:0;background:transparent;font:inherit;color:#35212F;cursor:pointer;text-decoration:underline;text-decoration-color:#B18B4B;text-underline-offset:4px}
+.scribe-toggle:focus-visible,#scribeDock button:focus-visible{outline:2px solid #8a6a35;outline-offset:3px}
+#scribeDock{position:relative;z-index:1;width:100%;max-width:520px;margin:0 auto 10px;height:84px;display:grid;grid-template-columns:82px minmax(0,1fr) 44px;align-items:center;gap:6px;padding:3px 0;background:#F3EFE5;border-bottom:1px solid rgba(41,40,36,.12);font-family:var(--sans,Inter,system-ui,sans-serif);color:#292824;isolation:isolate}
+.scribe-stage{width:82px;height:78px;padding:0;border:0;background:transparent;display:flex;align-items:flex-end;justify-content:center;cursor:pointer;overflow:hidden}
+.scribe-stage img{height:78px;width:62px;object-fit:contain;object-position:bottom;display:block;pointer-events:none;transform:translateX(0);will-change:auto}
+#scribeDock[data-pose="walk"] .scribe-stage img{animation:scribe-travel 920ms cubic-bezier(.22,.61,.36,1) both}
+@keyframes scribe-travel{0%{transform:translateX(-9px)}25%{transform:translate(0,-1px)}50%{transform:translate(9px,0)}75%{transform:translate(2px,-1px)}100%{transform:translateX(0)}}
+.scribe-copy{min-width:0;line-height:1.45}
+.scribe-eyebrow{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#766C60;margin-bottom:2px;display:block}
+.scribe-status{font-size:12px;display:block;white-space:normal;overflow-wrap:anywhere}
+.scribe-action{display:inline-block;min-height:26px;padding:3px 0;color:#35212F;font-size:11px;text-decoration:underline;text-decoration-color:#B18B4B;text-underline-offset:3px;border:0;background:transparent;cursor:pointer}
+.scribe-close{min-width:44px;min-height:44px;font-size:22px;line-height:1;color:#766C60;border:0;background:transparent;cursor:pointer;align-self:center}
+@media(min-width:881px){#scribeDock{max-width:520px;margin-left:0;height:84px}}
+@media(prefers-reduced-motion:reduce){#scribeDock *,#scribeDock *::before,#scribeDock *::after{animation:none!important;transition:none!important}}

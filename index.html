@@ -11,7 +11,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="apple-mobile-web-app-title" content="DuoSpend">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>DuoSpend · registre patrimonial</title>
+<title>DuoSpend · registre patrimonial (v2.9)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -347,8 +347,10 @@ a{color:inherit}
   .bal-bar .seg-q,.bal-bar .seg-j{transform:scaleX(1)}
 }
 </style>
+<link rel="stylesheet" href="/assets/duospend-home.css?v=2.9">
+<link rel="stylesheet" href="/assets/duospend-companion.css?v=2.9">
 </head>
-<body>
+<body class="duo-home">
 
 <!-- ============ ouverture : le médaillon ============ -->
 <div class="intro" id="intro" aria-hidden="true">
@@ -389,11 +391,11 @@ a{color:inherit}
       <div class="sb">Registre patrimonial</div>
     </div>
     <div class="head-right">
-      <span class="month" id="monthLabel">&#160;</span>
-      <a class="avatar" href="/app.html" title="Ouvrir l'app complète">Q</a>
+      <button class="avatar" id="profileBtn" type="button" title="Verrouiller le registre" aria-label="Verrouiller le registre">·</button>
     </div>
   </header>
   <div class="head-rule"></div>
+  <div class="month-bar"><button type="button" id="homePrev" aria-label="Mois précédent">‹</button><span class="month" id="monthLabel">&#160;</span><button type="button" id="homeNext" aria-label="Mois suivant">›</button></div>
 
   <p class="standfirst rv">Ce que le foyer engage, ce que chacun avance.</p>
 
@@ -422,7 +424,7 @@ a{color:inherit}
   <!-- ============ actions ============ -->
   <div class="actions">
     <button class="btn-primary" id="addBtn">Ajouter une dépense</button>
-    <a class="btn-text" href="/app.html">Importer un relevé</a>
+    <a class="btn-text" href="/app.html?tab=import">Importer un relevé</a>
   </div>
 
   <!-- ============ équilibre du couple ============ -->
@@ -455,16 +457,17 @@ a{color:inherit}
     <div class="foot-in">
       <span>DuoSpend · registre patrimonial du foyer</span>
       <span class="dot">·</span>
-      <a href="/app.html">Ouvrir l'app complète</a>
+      <a href="/app.html?tab=registry">Ouvrir le registre complet</a>
       <span class="dot">·</span>
       <a href="#" id="replayIntro">Revoir l'ouverture</a>
+      <button type="button" class="btn-text home-relock" id="lockBtn">Verrouiller</button>
     </div>
   </footer>
 </div>
 
 <!-- ============ feuille de saisie rapide ============ -->
 <div class="veil" id="veil"></div>
-<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Ajouter une dépense">
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Ajouter une dépense">
   <div class="sheet-grip"></div>
   <h2>Inscrire une dépense</h2>
   <div class="f-amt">
@@ -508,6 +511,7 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp
 const pad2 = n => String(n).padStart(2,'0');
 const isoToday = (d => d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()))(new Date());
 const CUR_MONTH = isoToday.slice(0,7);
+let activeMonth = CUR_MONTH, loadEpoch = 0, visualEpoch = 0, authenticated = false, selectedPerson = null, lastFocus = null;
 const MONTHS_FR = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 const MONTHS_SHORT = ['JANV','FÉVR','MARS','AVR','MAI','JUIN','JUIL','AOÛT','SEPT','OCT','NOV','DÉC'];
 const monthNameFr = m => { const y = m.slice(0,4), i = Number(m.slice(5,7)) - 1; return MONTHS_FR[i] + ' ' + y; };
@@ -530,14 +534,14 @@ let selCat = 'Courses', selPayer = 'Quentin', selShared = true;
 let bigTarget = null, qTarget = null, jTarget = null;
 
 /* ---------- données ---------- */
-const code = () => { try { return localStorage.getItem('foyer_refonte_code') || localStorage.getItem('duospend_code') || ''; } catch(e){ return ''; } };
+const code = () => { try { return localStorage.getItem('duospend_code') || localStorage.getItem('foyer_refonte_code') || ''; } catch(e){ return ''; } };
 async function fetchState(month, codeOverride){
   const r = await fetch('/api/state?month=' + month, { headers: {'X-App-Code': codeOverride || code()} });
   if(r.status === 401) throw new Error('auth');
   if(!r.ok) throw new Error('http ' + r.status);
   return r.json();
 }
-const monthExpenses = () => (state.expenses || []).filter(x => String(x.date || '').startsWith(CUR_MONTH));
+const monthExpenses = () => (state.expenses || []).filter(x => String(x.date || '').startsWith(activeMonth));
 const norm = x => ({ id:x.id, date:x.date, label:x.label, amount:Number(x.amount || 0), category:x.category || 'Autres', payer:x.payer || '', shared:x.shared !== false, note:x.note || '' });
 
 /* ---------- ouverture (médaillon) ---------- */
@@ -576,8 +580,9 @@ function tweenAmount(target){
   const from = isFinite(prev) ? prev : 0;
   el.dataset.v = target;
   if(REDUCED || from === target){ el.innerHTML = nf.format(target) + '<span class="eur">€</span>'; return; }
-  const dur = 980, t0 = performance.now(), de = from - target;
+  const dur = 460, t0 = performance.now(), de = from - target, token = visualEpoch;
   (function step(t){
+    if(token !== visualEpoch) return;
     const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3);
     el.innerHTML = nf.format(from - de * e) + '<span class="eur">€</span>';
     if(p < 1) requestAnimationFrame(step);
@@ -588,8 +593,9 @@ function tweenVal(el, target){
   const from = isFinite(prev) ? prev : 0;
   el.dataset.v = target;
   if(REDUCED || from === target){ el.textContent = fmtEur(target); return; }
-  const dur = 900, t0 = performance.now(), de = from - target;
+  const dur = 460, t0 = performance.now(), de = from - target, token = visualEpoch;
   (function step(t){
+    if(token !== visualEpoch) return;
     const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3);
     el.textContent = fmtEur(from - de * e);
     if(p < 1) requestAnimationFrame(step);
@@ -668,16 +674,17 @@ function selectCat(cat, silent){
   const amt = Number(bc[selectedCat] || 0);
   const tot = Object.keys(bc).reduce((a, kk) => a + Number(bc[kk] || 0), 0);
   const share = tot ? Math.round(amt / tot * 100) : 0;
-  const ops = monthExpenses().filter(x => !isTr(x) && (x.category || 'Autres') === selectedCat).length;
+  const ops = monthExpenses().filter(x => x.shared !== false && !isTr(x) && (x.category || 'Autres') === selectedCat).length;
   $('vizInfo').innerHTML = '<span class="vi-amt num">' + fmtEur(amt) + '</span>' +
     '<span class="vi-meta">' + esc(selectedCat) + ' · ' + share + ' % du total · ' + ops + ' opération' + (ops > 1 ? 's' : '') + '</span>';
 }
 
 /* ---------- dérive ambiante ---------- */
-let driftOn = false, driftLast = 0;
+let driftOn = false, driftLast = 0, driftUntil = 0;
 function drift(){
   if(!driftOn) return;
   const now = performance.now();
+  if(now > driftUntil){ driftOn = false; document.querySelectorAll('#viz .curve').forEach(p => p.style.transform = ''); return; }
   if(now - driftLast > 110){
     driftLast = now;
     const t = now * 0.00052;
@@ -689,7 +696,7 @@ function drift(){
 }
 function startDrift(){
   if(REDUCED || driftOn) return;
-  driftOn = true; driftLast = 0; requestAnimationFrame(drift);
+  driftOn = true; driftLast = 0; driftUntil = performance.now() + 3600; requestAnimationFrame(drift);
 }
 document.addEventListener('visibilitychange', () => { if(document.hidden) driftOn = false; else startDrift(); });
 
@@ -775,6 +782,9 @@ function renderRegister(freshId){
 /* ---------- rendu d'ensemble ---------- */
 function renderAll(opts){
   opts = opts || {};
+  visualEpoch++;
+  $('addBtn').disabled = !authenticated;
+  $('profileBtn').textContent = authenticated ? String(state.user || 'F').charAt(0) : '·';
   const f = state.facts;
   if(f){
     tweenAmount(Number(f.total || 0));
@@ -782,7 +792,7 @@ function renderAll(opts){
     const del = $('delta');
     if(prevTotal != null && prevTotal > 0 && total !== prevTotal){
       const pct = (total - prevTotal) / prevTotal * 100;
-      del.innerHTML = '<span class="ar">' + (pct >= 0 ? '▲' : '▼') + '</span>' + nf.format(Math.abs(Number(pct.toFixed(1)))) + ' % sur ' + monthNameFr(prevMonthOf(CUR_MONTH));
+      del.innerHTML = '<span class="ar">' + (pct >= 0 ? '▲' : '▼') + '</span>' + nf.format(Math.abs(Number(pct.toFixed(1)))) + ' % sur ' + monthNameFr(prevMonthOf(activeMonth));
     } else del.textContent = '';
   } else {
     const el = $('bigAmount');
@@ -798,6 +808,7 @@ function renderAll(opts){
   renderBalance();
   renderRegister(opts.freshId);
   startDrift();
+  document.dispatchEvent(new CustomEvent('duospend:state', {detail: companionContext()}));
 }
 
 /* ---------- feuille de saisie ---------- */
@@ -813,18 +824,21 @@ function buildSheet(){
   pay.querySelectorAll('.seg').forEach(b => b.addEventListener('click', () => {
     selPayer = b.getAttribute('data-p');
     pay.querySelectorAll('.seg').forEach(x => x.classList.toggle('sel', x === b));
+    if(!selShared && selPayer !== me) selShared = true;
+    paintSh();
   }));
   const sh = $('fShared');
   const paintSh = () => {
+    const own = ['Quentin','Jessica'].includes(me) && selPayer === me;
     sh.innerHTML = '<button type="button" class="seg' + (selShared ? ' sel' : '') + '" data-s="1">Commune</button>' +
-      '<button type="button" class="seg' + (!selShared ? ' sel' : '') + '" data-s="0">Perso</button>';
+      '<button type="button" class="seg' + (!selShared ? ' sel' : '') + '" data-s="0"' + (own ? '' : ' disabled title="Une dépense personnelle doit être la vôtre"') + '>Perso</button>';
     sh.querySelectorAll('.seg').forEach(b => b.addEventListener('click', () => { selShared = b.getAttribute('data-s') === '1'; paintSh(); }));
   };
   paintSh();
-  $('fDate').value = isoToday;
+  $('fDate').value = activeMonth === CUR_MONTH ? isoToday : activeMonth + '-01';
 }
-function openSheet(){ $('veil').classList.add('open'); $('sheet').classList.add('open'); $('fErr').textContent = ''; setTimeout(() => { try { $('fAmount').focus(); } catch(e){} }, 320); }
-function closeSheet(){ $('veil').classList.remove('open'); $('sheet').classList.remove('open'); }
+function openSheet(){ if(!authenticated){ showAuthNotice(); return; } lastFocus = document.activeElement; $('veil').classList.add('open'); $('sheet').classList.add('open'); $('sheet').setAttribute('aria-hidden','false'); $('fErr').textContent = ''; setTimeout(() => { try { $('fAmount').focus(); } catch(e){} }, REDUCED ? 0 : 200); }
+function closeSheet(){ $('veil').classList.remove('open'); $('sheet').classList.remove('open'); $('sheet').setAttribute('aria-hidden','true'); if(lastFocus && lastFocus.focus) lastFocus.focus(); }
 function fErr(msg){ $('fErr').textContent = msg; }
 function toast(msg){
   $('toastTxt').textContent = msg;
@@ -834,9 +848,10 @@ function toast(msg){
   toast._t = setTimeout(() => t.classList.remove('show'), 2700);
 }
 async function submitSheet(){
-  const amt = parseFloat(String($('fAmount').value || '').replace(/\s/g, '').replace(',', '.'));
+  const amountText = String($('fAmount').value || '').replace(/\s/g, '').replace(',', '.');
+  const amt = /^\d+(?:\.\d{1,2})?$/.test(amountText) ? Number(amountText) : NaN;
   const label = $('fLabel').value.trim();
-  if(!(amt > 0)){ fErr('Indiquez un montant valide.'); return; }
+  if(!(amt > 0) || !Number.isFinite(amt)){ fErr('Indiquez un montant valide.'); return; }
   if(!label){ fErr('Donnez un libellé à la dépense.'); return; }
   const btn = $('fSubmit');
   btn.disabled = true;
@@ -856,10 +871,15 @@ async function submitSheet(){
     $('fAmount').value = ''; $('fLabel').value = '';
     toast('Inscrit au registre · ' + fmtEur(amt) + ' · ' + selCat);
     const before = new Set((state.expenses || []).map(x => String(x.id)));
-    const st = await fetchState(CUR_MONTH);
-    state = st; me = st.user || me;
-    const added = (st.expenses || []).find(x => !before.has(String(x.id)));
-    renderAll({ sweep:true, pulseCat: selCat, freshId: added ? added.id : null });
+    try {
+      const st = await fetchState(activeMonth);
+      state = st; me = st.user || me;
+      const added = (st.expenses || []).find(x => !before.has(String(x.id)));
+      renderAll({ sweep:true, pulseCat: selCat, freshId: added ? added.id : null });
+    } catch(refreshError){
+      if(refreshError.message === 'auth') lockHome();
+      else showNotice('Dépense enregistrée. L’actualisation du registre a échoué : rechargez pour vérifier, sans réinscrire la dépense.');
+    }
   } catch(e){
     fErr('Inscription impossible : ' + e.message);
   } finally {
@@ -869,69 +889,127 @@ async function submitSheet(){
 
 /* ---------- bandeau ---------- */
 function showNotice(html){ const n = $('notice'); n.innerHTML = html; n.hidden = false; }
+function companionContext(){
+  const rows = monthExpenses();
+  return {user: authenticated ? state.user : '', month: activeMonth,
+    uncategorized: rows.filter(x => !isTr(x) && (x.category === 'Autres' || /(?:^|·)\s*ia:low/.test(String(x.note || '')))).length,
+    overBudget: ((state.facts && state.facts.envelopes) || []).filter(x => x.status === 'over').length,
+    shoppingRemaining: (state.shopping || []).filter(x => !x.checked).length};
+}
+function clearCredentials(){
+  try {
+    ['duospend_code','foyer_refonte_code','duospend_unlocked_at'].forEach(k => localStorage.removeItem(k));
+    Object.keys(localStorage).filter(k => k.startsWith('duospend_state_')).forEach(k => localStorage.removeItem(k));
+  } catch(e){}
+}
+function lockHome(){
+  loadEpoch++; authenticated = false; clearCredentials(); closeSheet();
+  state = {expenses:[], facts:null, user:''}; prevTotal = null;
+  bigTarget = qTarget = jTarget = null; selectedCat = null; driftOn = false;
+  renderAll({});
+  document.dispatchEvent(new CustomEvent('duospend:locked'));
+  showAuthNotice();
+}
 function showAuthNotice(){
   const n = $('notice');
-  n.innerHTML = '<div>Ce registre lit les données de DuoSpend (mêmes comptes, mêmes totaux). Saisissez votre code d’accès une fois sur cet appareil :</div>' +
-    '<div class="notice-form"><input id="codeInp" inputmode="numeric" placeholder="Code d’accès" autocomplete="one-time-code">' +
-    '<button type="button" class="btn-primary" id="codeGo">Afficher le registre</button></div>' +
-    '<div class="notice-err" id="codeErr"></div>';
+  try { const u = localStorage.getItem('duospend_user'); if(['Quentin','Jessica'].includes(u)) selectedPerson = u; } catch(e){}
+  n.innerHTML = '<h2>Votre registre, à deux.</h2><div>Choisissez votre profil puis saisissez votre code d’accès. Les dépenses personnelles restent séparées.</div>' +
+    '<div class="auth-profiles">' + ['Quentin','Jessica'].map(u => '<button type="button" data-profile="'+u+'" aria-pressed="'+(u===selectedPerson)+'">'+u+'</button>').join('') + '</div>' +
+    '<div class="notice-form"><input id="codeInp" type="password" inputmode="numeric" aria-label="Code d’accès personnel" placeholder="Code d’accès" autocomplete="off">' +
+    '<button type="button" class="btn-primary" id="codeGo">Ouvrir le registre</button></div>' +
+    '<div class="notice-err" id="codeErr" role="status"></div>';
   n.hidden = false;
+  n.querySelectorAll('[data-profile]').forEach(b => b.addEventListener('click', () => {
+    selectedPerson = b.dataset.profile; n.querySelectorAll('[data-profile]').forEach(x => x.setAttribute('aria-pressed',String(x===b))); $('codeInp').focus();
+  }));
   $('codeGo').addEventListener('click', tryCode);
   $('codeInp').addEventListener('keydown', ev => { if(ev.key === 'Enter') tryCode(); });
-  setTimeout(() => { try { $('codeInp').focus(); } catch(e){} }, 200);
 }
 async function tryCode(){
   const c = String(($('codeInp') && $('codeInp').value) || '').trim();
-  if(!c){ return; }
-  $('codeErr').textContent = '';
+  if(!c) return;
+  const error = $('codeErr'), btn = $('codeGo');
+  error.textContent = ''; btn.disabled = true;
+  const token = ++loadEpoch, requestedMonth = activeMonth;
   try {
-    const st = await fetchState(CUR_MONTH, c);
+    const st = await fetchState(requestedMonth, c);
+    if(token !== loadEpoch) return;
+    if(selectedPerson && st.user !== selectedPerson && st.user !== 'Foyer'){
+      error.textContent = 'Ce code ne correspond pas au profil choisi.'; return;
+    }
     try {
-      localStorage.setItem('foyer_refonte_code', c);
       localStorage.setItem('duospend_code', c);
+      localStorage.removeItem('foyer_refonte_code');
+      localStorage.setItem('duospend_user', st.user || 'Foyer');
       localStorage.setItem('duospend_unlocked_at', String(Date.now()));
     } catch(e){}
-    state = st; me = st.user || me;
-    if(st.user && ['Quentin','Jessica'].includes(st.user)){ selPayer = st.user; buildSheet(); }
-    try { const p = await fetchState(prevMonthOf(CUR_MONTH), c); prevTotal = Number((p.facts || {}).total || 0); } catch(e){ prevTotal = null; }
-    $('notice').hidden = true;
-    renderAll({sweep:true});
+    authenticated = true; state = st; me = st.user || 'Foyer';
+    if(['Quentin','Jessica'].includes(me)) selPayer = me;
+    selShared = true; buildSheet();
+    $('notice').hidden = true; renderAll({sweep:true});
+    try {
+      const p = await fetchState(prevMonthOf(requestedMonth), c);
+      if(token === loadEpoch){ prevTotal = Number((p.facts || {}).total || 0); renderAll({}); }
+    } catch(e){ prevTotal = null; }
   } catch(e){
-    $('codeErr').textContent = String(e.message) === 'auth' ? 'Code refusé.' : 'Lecture impossible, réessayez.';
-  }
+    if(token === loadEpoch) error.textContent = e.message === 'auth' ? 'Code refusé.' : 'Lecture impossible, réessayez.';
+  } finally { if(btn.isConnected) btn.disabled = false; }
 }
 
 /* ---------- chargement ---------- */
+function renderMonth(){ $('monthLabel').textContent = monthNameFr(activeMonth); }
 async function load(){
-  const label = monthNameFr(CUR_MONTH);
-  const ml = $('monthLabel'), ml2 = $('monthLabel2');
-  if(ml) ml.textContent = label;
-  if(ml2) ml2.textContent = label;
+  renderMonth();
+  const token = ++loadEpoch, requestedMonth = activeMonth;
   try {
-    const st = await fetchState(CUR_MONTH);
-    state = st; me = st.user || me;
-    if(st.user && ['Quentin','Jessica'].includes(st.user)){ selPayer = st.user; buildSheet(); }
-    try { const p = await fetchState(prevMonthOf(CUR_MONTH)); prevTotal = Number((p.facts || {}).total || 0); } catch(e){ prevTotal = null; }
-    $('notice').hidden = true;
-    renderAll({sweep:true});
+    const st = await fetchState(requestedMonth);
+    if(token !== loadEpoch) return;
+    authenticated = true; state = st; me = st.user || 'Foyer';
+    if(['Quentin','Jessica'].includes(me)) selPayer = me;
+    buildSheet(); $('notice').hidden = true; renderAll({sweep:true});
+    try {
+      const p = await fetchState(prevMonthOf(requestedMonth));
+      if(token === loadEpoch){ prevTotal = Number((p.facts || {}).total || 0); renderAll({}); }
+    } catch(e){ if(token === loadEpoch) prevTotal = null; }
   } catch(e){
-    if(String(e.message) === 'auth'){
-      showAuthNotice();
-    } else {
-      showNotice('Lecture du registre impossible pour l’instant. <a href="#" id="retryLink">Réessayer</a>');
-      const rl = $('retryLink'); if(rl) rl.addEventListener('click', ev => { ev.preventDefault(); load(); });
-    }
+    if(token !== loadEpoch) return;
+    if(e.message === 'auth'){ lockHome(); return; }
+    authenticated = false; state = {expenses:[],facts:null,user:''}; bigTarget=qTarget=jTarget=null;
+    showNotice('Lecture du registre impossible pour l’instant. <a href="#" id="retryLink">Réessayer</a>');
+    const rl = $('retryLink'); if(rl) rl.addEventListener('click', ev => { ev.preventDefault(); load(); });
     renderAll({});
   }
+}
+function changeMonth(step){
+  const d = new Date(Number(activeMonth.slice(0,4)), Number(activeMonth.slice(5,7))-1+step, 1);
+  activeMonth = d.getFullYear()+'-'+pad2(d.getMonth()+1);
+  selectedCat=null; showAllRows=false; prevTotal=null; renderMonth();
+  if(authenticated){
+    state={expenses:[],facts:null,user:me}; bigTarget=qTarget=jTarget=null; renderAll({}); load();
+  }
+  document.dispatchEvent(new CustomEvent('duospend:tab',{detail:{tab:'home'}}));
 }
 
 /* ---------- branchements ---------- */
 function bind(){
   $('addBtn').addEventListener('click', openSheet);
+  $('profileBtn').addEventListener('click', lockHome);
+  $('lockBtn').addEventListener('click', lockHome);
+  $('homePrev').addEventListener('click', () => changeMonth(-1));
+  $('homeNext').addEventListener('click', () => changeMonth(1));
   $('veil').addEventListener('click', closeSheet);
   $('fCancel').addEventListener('click', closeSheet);
   $('fSubmit').addEventListener('click', submitSheet);
-  document.addEventListener('keydown', ev => { if(ev.key === 'Escape') closeSheet(); });
+  document.addEventListener('keydown', ev => {
+    if(!$('sheet').classList.contains('open')) return;
+    if(ev.key === 'Escape'){ ev.preventDefault(); closeSheet(); return; }
+    if(ev.key === 'Tab'){
+      const els = Array.from($('sheet').querySelectorAll('input,select,textarea,button,a[href]')).filter(el => !el.disabled && el.offsetParent !== null);
+      const first=els[0], last=els[els.length-1];
+      if(ev.shiftKey && document.activeElement === first){ ev.preventDefault(); last.focus(); }
+      else if(!ev.shiftKey && document.activeElement === last){ ev.preventDefault(); first.focus(); }
+    }
+  });
   $('calcToggle').addEventListener('click', () => {
     $('calcBody').classList.toggle('open');
     $('calcToggle').classList.toggle('open');
@@ -947,6 +1025,7 @@ function bind(){
 
 /* ---------- finalisation (QA / capture) ---------- */
 window.__finalize = function(){
+  visualEpoch++;
   const intro = $('intro'); if(intro) intro.remove();
   document.querySelectorAll('.rv').forEach(el => el.classList.add('on'));
   if(bigTarget != null){ const el = $('bigAmount'); el.dataset.v = bigTarget; el.innerHTML = nf.format(bigTarget) + '<span class="eur">€</span>'; }
@@ -970,12 +1049,34 @@ function armReveals(){
 }
 
 /* ---------- démarrage ---------- */
+window.DuoHome = Object.freeze({context:companionContext,lock:lockHome});
 buildSheet();
 bind();
 armReveals();
-load();
+renderMonth();
+let unlockedAt = 0;
+try { unlockedAt = Number(localStorage.getItem('duospend_unlocked_at') || 0); } catch(e){}
+const age = Date.now() - unlockedAt;
+if(code() && unlockedAt > 0 && age >= 0 && age < 90000) load();
+else lockHome();
+let hiddenAt = null;
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden) hiddenAt = Date.now();
+  else if(hiddenAt != null && Date.now()-hiddenAt > 600000) lockHome();
+});
+window.addEventListener('storage', e => {
+  if(e.key === 'duospend_user' || (['duospend_code','foyer_refonte_code'].includes(e.key) && !e.newValue)) lockHome();
+});
 })();
 
 </script>
+<nav class="home-nav" aria-label="Sections de DuoSpend">
+<a href="/" aria-current="page"><svg viewBox="0 0 24 24"><path d="M4 10l8-6 8 6v10H4z"/><path d="M9 20v-7h6v7"/></svg><span>Accueil</span></a>
+<a href="/app.html?tab=envelopes"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 6l9 7 9-7"/></svg><span>Enveloppes</span></a>
+<a href="/app.html?tab=shopping"><svg viewBox="0 0 24 24"><path d="M6 8h12l2 12H4zM9 8V6a3 3 0 0 1 6 0v2"/></svg><span>Courses</span></a>
+<a href="/app.html?tab=assistant"><svg viewBox="0 0 24 24"><path d="M5 4h14v13H9l-4 3z"/><path d="M9 8h6M9 12h4"/></svg><span>Assistant</span></a>
+<a href="/app.html?tab=decider"><svg viewBox="0 0 24 24"><path d="M5 6h5l4 12h5M5 18h5l4-12h5M16 3l3 3-3 3M16 15l3 3-3 3"/></svg><span>Décideur</span></a>
+</nav>
+<script src="/assets/duospend-companion.js?v=2.9"></script>
 </body>
 </html>
