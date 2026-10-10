@@ -886,7 +886,11 @@ async function tryCode(){
   $('codeErr').textContent = '';
   try {
     const st = await fetchState(CUR_MONTH, c);
-    try { localStorage.setItem('foyer_refonte_code', c); } catch(e){}
+    try {
+      localStorage.setItem('foyer_refonte_code', c);
+      localStorage.setItem('duospend_code', c);
+      localStorage.setItem('duospend_unlocked_at', String(Date.now()));
+    } catch(e){}
     state = st; me = st.user || me;
     if(st.user && ['Quentin','Jessica'].includes(st.user)){ selPayer = st.user; buildSheet(); }
     try { const p = await fetchState(prevMonthOf(CUR_MONTH), c); prevTotal = Number((p.facts || {}).total || 0); } catch(e){ prevTotal = null; }
